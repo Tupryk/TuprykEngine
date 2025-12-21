@@ -249,38 +249,48 @@ void tensor_transpose(struct tensor* t)
         return;
     }
     
-    // TODO: Make more efficient
+    // Create a copy of the vector to store the original tensor information
     struct tensor* t_copy = tensor_copy(t);
     for (int i = 0; i < t->shape_dim; i++) {
         t->shape[i] = t_copy->shape[t->shape_dim-1-i];
     }
 
-    int counts[t->shape_dim];
-    for (int i = 0; i < t->shape_dim; i++) {
-        counts[i] = 0;
+    // Initialize loop variables
+    int mods[t->shape_dim];
+    int divs[t->shape_dim];
+    int mults[t->shape_dim];
+    for (int i = 0; i < t->shape_dim; i++)
+    {
+        mods[i] = 1;
+        for (int j = t->shape_dim-1; j > t->shape_dim-2-i; j--)
+        {
+            mods[i] *= t->shape[j];
+        }
+
+        divs[i] = 1;
+        for (int j = t->shape_dim-1; j > t->shape_dim-1-i; j--)
+        {
+            divs[i] *= t->shape[j];
+        }
+
+        mults[i] = 1;
+        for (int j = 0; j < t->shape_dim-1-i; j++)
+        {
+            mults[i] *= t->shape[j];
+        }
     }
 
-    int n = t->shape_dim-1;
-    while (counts[0] < t->shape[0])
+    // Perform tensor transpose
+    for (int i = 0; i < t->volume; i++)
     {
-        int t_counts[t->shape_dim];
-        for (int i = 0; i < t->shape_dim; i++) {
-            t_counts[i] = counts[t->shape_dim-1-i];
+        int tci = 0;
+
+        for (int j = 0; j < t->shape_dim; j++)
+        {
+            tci += i % mods[j] / divs[j] * mults[j];
         }
 
-        int index = get_tensor_value_index(t, counts);
-        int t_index = get_tensor_value_index(t_copy, t_counts);
-        t->values[index] = t_copy->values[t_index];
-
-        counts[n]++;
-        for (int i = n; i > 0; i--) {
-            if (counts[i] >= t->shape[i]) {
-                counts[i] = 0;
-                counts[i-1]++;
-            } else {
-                break;
-            }
-        }
+        t->values[i] = t_copy->values[tci];
     }
     free_tensor(t_copy);
 }
