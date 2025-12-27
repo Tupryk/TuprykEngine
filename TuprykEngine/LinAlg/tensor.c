@@ -81,6 +81,26 @@ void tensor_transfer_values(struct tensor* to, struct tensor* from)
     }
 }
 
+void tensor_transfer_all(struct tensor* to, struct tensor* from)
+{
+    // TODO: should probably implement some safety stuff here...
+    free(to->shape);
+    free(to->values);
+    
+    to->shape = (int*) malloc(from->shape_dim * sizeof(int));
+    to->values = (float*) malloc(from->volume * sizeof(float));
+    
+    to->shape_dim = from->shape_dim;
+    to->volume = from->volume;
+
+    for (int i = 0; i < from->shape_dim; i++) {
+        to->shape[i] = from->shape[i];
+    }
+    for (int i = 0; i < to->volume; i++) {
+        to->values[i] = from->values[i];
+    }
+}
+
 void free_tensor(struct tensor* t)
 {
     // TODO: could maybe make this take a list of tensors as input.
@@ -154,28 +174,7 @@ int tensors_can_be_mult(struct tensor* a, struct tensor* b)
     return connection_dim && prev_equal;
 }
 
-struct tensor* tensor_mult_give(struct tensor* a, struct tensor* b)
-{
-    int out_shape_dim = a->shape_dim < b->shape_dim ? b->shape_dim : a->shape_dim;
-    int out_shape[out_shape_dim];
-    
-    int* bigger_shape = a->shape_dim < b->shape_dim ? b->shape : a->shape;
-    for (int i = 0; i < out_shape_dim; i++)
-    {
-        out_shape[i] = bigger_shape[i];
-    }
-    
-    out_shape[out_shape_dim-1] = b->shape[b->shape_dim-1];
-    out_shape[out_shape_dim-2] = a->shape_dim > 1 ? a->shape[a->shape_dim-2] : 1 ;
-
-    struct tensor* out = new_tensor(out_shape, out_shape_dim, NULL);
-
-    tensor_mult(a, b, out);
-
-    return out;
-}
-
-void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
+void tensor_mult_(struct tensor* a, struct tensor* b, struct tensor* out)
 {
     // Check if tensor operation is possible
     #ifdef DEBUG
@@ -188,7 +187,6 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
         exit(EXIT_FAILURE);
     }
     #endif
-
     // Initialize loop variables
     int out_mat_area = out->shape[out->shape_dim-1] * out->shape[out->shape_dim-2];
     int a_col_len = a->shape[a->shape_dim-1];
@@ -214,6 +212,57 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
 
             out->values[i] += a->values[ai] * b->values[bi];
         }
+    }
+}
+
+struct tensor* tensor_mult_give(struct tensor* a, struct tensor* b)
+{
+    // TODO: Maybe make a nicer fix for the row vectors...
+    int out_shape_dim = a->shape_dim < b->shape_dim ? b->shape_dim : a->shape_dim;
+    int out_shape[out_shape_dim];
+    
+    int* bigger_shape = a->shape_dim < b->shape_dim ? b->shape : a->shape;
+    for (int i = 0; i < out_shape_dim; i++)
+    {
+        out_shape[i] = bigger_shape[i];
+    }
+    
+    out_shape[out_shape_dim-1] = b->shape[b->shape_dim-1];
+    out_shape[out_shape_dim-2] = a->shape_dim > 1 ? a->shape[a->shape_dim-2] : 1 ;
+
+    struct tensor* out = new_tensor(out_shape, out_shape_dim, NULL);
+
+    tensor_mult_(a, b, out);
+
+    return out;
+}
+
+void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
+{
+    // TODO: Make nicer
+    if (a == out || b == out)
+    {
+        struct tensor* tmp = tensor_mult_give(a, b);
+
+        if (a == out)
+        {
+            if (tensors_equal_shape(a, tmp))
+                tensor_transfer_values(a, tmp);
+            else
+                tensor_transfer_all(a, tmp);
+        }
+        else
+        {
+            if (tensors_equal_shape(b, tmp))
+                tensor_transfer_values(b, tmp);
+            else
+                tensor_transfer_all(b, tmp);
+        }
+        free_tensor(tmp);
+    }
+    else
+    {
+        tensor_mult_(a, b, out);
     }
 }
 
@@ -794,4 +843,31 @@ struct tensor* tensor_inverse_give(struct tensor* A)
     struct tensor* A_inv = tensor_copy_shape(A);
     tensor_inverse(A, A_inv);
     return A_inv;
+}
+
+float tensor_vec_magnitude(struct tensor* t)
+{
+    // TODO: Make this work for tensors with axis as input like numpy's np.linalg.norm(...).
+    #ifdef DEBUG
+    if (!(t->shape_dim == 1 || (t->shape_dim == 2 && (t->shape[0] == 1 || t->shape[1] == 1))))
+    {
+        printf("Function currently only works for vectors such that t->shape_dim = 1.\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    float magnitude = 0.f;
+    for (int i = 0; i < t->volume; i++) {
+        magnitude += t->values[i] * t->values[i];
+    }
+    magnitude = sqrt(magnitude);
+    return magnitude;
+}
+
+void tensor_flatten(struct tensor* t)
+{
+    free(t->shape);
+    
+    t->shape = t->shape = (int*) malloc(sizeof(int));
+    t->shape[0] = t->volume;
+    t->shape_dim = 1;
 }

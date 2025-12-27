@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 
-SRCS = main.c ../../TuprykEngine/LinAlg/tensor.c ../../TuprykEngine/visual/linalg.c ../../TuprykEngine/Optim/unconstrained/gradient_descent.c ../../TuprykEngine/Optim/unconstrained/newton.c
+SRCS = main.c ../../TuprykEngine/LinAlg/tensor.c ../../TuprykEngine/visual/prints/linalg.c ../../TuprykEngine/Optim/unconstrained/gradient_descent.c ../../TuprykEngine/Optim/unconstrained/newton.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

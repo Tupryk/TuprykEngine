@@ -1,7 +1,7 @@
 #ifndef UNCONSTRAINED
 #define UNCONSTRAINED
 
-#include "../../visual/linalg.h"
+#include "../../visual/prints/linalg.h"
 
 float gradient_descent(
     struct tensor* x0,

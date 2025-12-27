@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "../../global.h"
-#include "../../visual/linalg.h"
+#include "../../visual/prints/linalg.h"
 
 
 float gradient_descent(
@@ -22,28 +22,22 @@ float gradient_descent(
 
     // TODO: Should also output a final value for x.
     struct tensor* x = tensor_copy(x0);
-    struct tensor* delta = tensor_copy(x0);
+    struct tensor* delta = tensor_copy_shape(x0);
     int total_steps = max_iters;
     for (int i = 0; i < max_iters; i++)
     {
         // Compute gradient
         delta_cost_func(x, delta);
-        // TODO: Sort this out
-        float delta_magnitude = 0.f;
-        for (int i = 0; i < delta->shape[0]; i++) {
-            // float delta_magnitude = tensor_vec_magnitude(&delta);
-            delta_magnitude += delta->values[i] * delta->values[i];
-        }
-        delta_magnitude = sqrt(delta_magnitude);
         
         // Stopping criterion
+        float delta_magnitude = tensor_vec_magnitude(delta);
         if (delta_magnitude <= tolerance) {
             total_steps = i+1;
             break;
         }
 
         // Scale by alpha
-        tensor_scalar_mult(delta, alpha, delta);
+        tensor_scalar_mult(delta, alpha/delta_magnitude, delta);
         tensor_sub(x, delta, x);
 
         #ifdef OPTIM_VERBOSE

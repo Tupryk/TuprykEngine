@@ -1,7 +1,7 @@
 #ifndef OPTIM_UNCONSTRAINED_NEWTON
 #define OPTIM_UNCONSTRAINED_NEWTON
 
-#include "../../visual/linalg.h"
+#include "../../visual/prints/linalg.h"
 
 float newton(
     struct tensor* x0,

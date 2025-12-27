@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "../../global.h"
-#include "../../visual/linalg.h"
+#include "../../visual/prints/linalg.h"
 
 
 float newton(
@@ -23,37 +23,38 @@ float newton(
 
     // TODO: Should also output a final value for x.
     struct tensor* x = tensor_copy(x0);
-    struct tensor* delta = tensor_copy(x0);
+    struct tensor* delta = tensor_copy_shape(x0);
+    int delta2_shape[] = {delta->shape[0], delta->shape[0]};
+    struct tensor* delta2 = new_tensor(delta2_shape, 2, NULL);
+    struct tensor* delta2_inv = tensor_copy_shape(delta2);
+
     int total_steps = max_iters;
     for (int i = 0; i < max_iters; i++)
     {
         // Compute gradient
         delta_cost_func(x, delta);
-        // TODO: Sort this out
-        float delta_magnitude = 0.f;
-        for (int i = 0; i < delta->shape[0]; i++) {
-            // float delta_magnitude = tensor_vec_magnitude(&delta);
-            delta_magnitude += delta->values[i] * delta->values[i];
-        }
-        delta_magnitude = sqrt(delta_magnitude);
-        
+        delta2_cost_func(x, delta2);
+        tensor_flatten(delta); // TODO: Should not be necessary!
+
+        // Compute Newton Step
+        tensor_inverse(delta2, delta2_inv);
+        tensor_transpose(delta);  // TODO: Delta should not have to be transposed!
+        tensor_mult(delta2_inv, delta, delta);
+
         // Stopping criterion
+        float delta_magnitude = tensor_vec_magnitude(delta);
         if (delta_magnitude <= tolerance) {
             total_steps = i+1;
             break;
         }
 
         // Scale by alpha
-        tensor_scalar_mult(delta, alpha, delta);
+        tensor_scalar_mult(delta, alpha / delta_magnitude, delta);
         tensor_sub(x, delta, x);
 
         #ifdef OPTIM_VERBOSE
         cost = cost_func(x);
-        // printf("delta: ");
-        // print_tensor(delta);
         printf("Current Cost: %f\n", cost);
-        // printf("x: ");
-        // print_tensor(x);
         #endif
     }
     #ifdef OPTIM_VERBOSE
@@ -64,5 +65,8 @@ float newton(
 
     free_tensor(x);
     free_tensor(delta);
+    free_tensor(delta2);
+    free_tensor(delta2_inv);
+
     return cost;
 }

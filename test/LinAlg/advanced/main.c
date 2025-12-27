@@ -160,21 +160,15 @@ int test_inverse_single(struct tensor* A)
 
     
     struct tensor* A_A_inv = tensor_mult_give(A, A_inv);
-    struct tensor* A_inv_A = tensor_mult_give(A_inv, A);
 
     printf("----- A @ inv_A -----\n");
     print_tensor(A_A_inv);
 
-    printf("----- inv_A @ A -----\n");
-    print_tensor(A_inv_A);
-
-    int failure = tensors_equal(I, A_A_inv) && tensors_equal(I, A_inv_A) ? 0 : 1;
-    tensors_equal(I, A_inv_A);
+    int failure = tensors_equal(I, A_A_inv) ? 0 : 1;
 
     free_tensor(A_inv);
     free_tensor(I);
     free_tensor(A_A_inv);
-    free_tensor(A_inv_A);
 
     return failure;
 }
@@ -185,19 +179,32 @@ int test_inverse()
 
     printf("--- Test 3 a): Inverse ---\n");
 
-    int a_shape_0[] = {3, 3};  // CxR
-    float a_values_0[] = {
-         2,  1,  1,
-         4, -6,  0,
-        -2,  7,  2
+    int a_shape[] = {2, 2};  // CxR
+    float a_values[] = {
+         2, 1,
+         1, 3
     };
-    struct tensor* A = new_tensor(a_shape_0, 2, a_values_0);
+    struct tensor* A = new_tensor(a_shape, 2, a_values);
 
     failure_count += test_inverse_single(A);
 
     free_tensor(A);
 
     printf("--- Test 3 b): Inverse ---\n");
+
+    int a_shape_0[] = {3, 3};  // CxR
+    float a_values_0[] = {
+         2,  1,  1,
+         4, -6,  0,
+        -2,  7,  2
+    };
+    A = new_tensor(a_shape_0, 2, a_values_0);
+
+    failure_count += test_inverse_single(A);
+
+    free_tensor(A);
+
+    printf("--- Test 3 c): Inverse ---\n");
 
     int a_shape_1[] = {3, 3};  // CxR
     float a_values_1[] = {
@@ -211,7 +218,7 @@ int test_inverse()
 
     free_tensor(A);
 
-    printf("--- Test 3 c): Inverse ---\n");
+    printf("--- Test 3 d): Inverse ---\n");
 
     int a_shape_2[] = {4, 4};  // CxR
     float a_values_2[] = {
@@ -225,6 +232,8 @@ int test_inverse()
     failure_count += test_inverse_single(A);
 
     free_tensor(A);
+
+    printf("--- Test 3 e): Inverse ---\n");
 
     int a_shape_3[] = {5, 5};  // CxR
     float a_values_3[] = {

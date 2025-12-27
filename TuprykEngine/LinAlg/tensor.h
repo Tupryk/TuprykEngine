@@ -51,6 +51,8 @@ int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struc
 float tensor_determinant(struct tensor* A);
 void tensor_inverse(struct tensor* A, struct tensor* A_inv);
 struct tensor* tensor_inverse_give(struct tensor* A);
+float tensor_vec_magnitude(struct tensor* t);
+void tensor_flatten(struct tensor* t);
 
 
 // void singular_value_decomposition(struct tensor* target, struct tensor* U, struct tensor* eta, struct tensor* V_t);
