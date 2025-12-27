@@ -7,7 +7,7 @@ struct sparse_tensor
 {
     int* shape;
     int shape_dim;
-    TYPE* values;
+    float* values;
     int** indices;
 };
 
@@ -15,15 +15,14 @@ struct tensor
 {
     int* shape;
     int shape_dim;
-    TYPE* values;
+    float* values;
     int volume;
     // This could speed things up in a lot of cases (eg. Inverting). Value needs to be updated in certain cases.
     int type;  // -1: None, 0: diagonal, 1: orthogonal, 2: PSD // TODO: Decide this. Maybe each bit can encode a certain thing? Like positive, etc.
 };
 
 // Switch to always using tensor pointers (faster) ei. struct tensor new_tensor(...); -> struct tensor* new_tensor(...);
-void init_tensor(struct tensor* t, int* shape, int shape_dim, TYPE* values);
-struct tensor* new_tensor(int* shape, int shape_dim, TYPE* values);
+struct tensor* new_tensor(int* shape, int shape_dim, float* values);
 struct tensor* tensor_copy(struct tensor* t);
 struct tensor* tensor_copy_shape(struct tensor* t);
 void tensor_transfer_values(struct tensor* to, struct tensor* from);
@@ -44,12 +43,15 @@ void tensor_identity(struct tensor* a);
 void tensor_transpose(struct tensor* t);
 int tensors_equal_shape(struct tensor* a, struct tensor* b);
 int tensors_equal(struct tensor* a, struct tensor* b);
-void tensor_scalar_mult(struct tensor* a, TYPE b, struct tensor* out);
+void tensor_scalar_mult(struct tensor* a, float b, struct tensor* out);
 int tensor_is_square(struct tensor* t);
 void tensor_reshape(struct tensor* t, int* shape, int shape_dim);
 struct tensor* tensor_append(struct tensor* a, struct tensor* b, int axis);
 int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struct tensor* U);
 float tensor_determinant(struct tensor* A);
+void tensor_inverse(struct tensor* A, struct tensor* A_inv);
+struct tensor* tensor_inverse_give(struct tensor* A);
+
 
 // void singular_value_decomposition(struct tensor* target, struct tensor* U, struct tensor* eta, struct tensor* V_t);
 // struct tensor* pseudo_inverse(struct tensor* target);

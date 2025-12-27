@@ -17,8 +17,10 @@ int get_tensor_volume(struct tensor* t) {
     return volume;
 }
 
-void init_tensor(struct tensor* t, int* shape, int shape_dim, float* values)
+struct tensor* new_tensor(int* shape, int shape_dim, float* values)
 {
+    struct tensor* t = (struct tensor*) malloc(sizeof(struct tensor));
+
     t->shape_dim = shape_dim;
     t->shape = (int*) malloc(shape_dim * sizeof(int));
     for (int i = 0; i < shape_dim; i++)
@@ -46,12 +48,6 @@ void init_tensor(struct tensor* t, int* shape, int shape_dim, float* values)
         for (int i = 0; i < volume; i++)
             t->values[i] = 0.0;
     }
-}
-
-struct tensor* new_tensor(int* shape, int shape_dim, float* values)
-{
-    struct tensor* t = (struct tensor*) malloc(sizeof(struct tensor));
-    init_tensor(t, shape, shape_dim, values);
     // TODO: Add a universal allocated memory list so that everything can be removed from memory at once at the end of each program.
     return t;
 }
@@ -633,9 +629,6 @@ int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struc
             // Exchange columns
             tensor_mult(L, P_0, L_inter);
             tensor_transfer_values(L, L_inter);
-            
-            print_tensor(P_0);
-            printf("---------\n");
         }
 
         // Gaussian elimination
@@ -677,6 +670,7 @@ float tensor_determinant(struct tensor* A)
     if (A->shape_dim != 2 || A->shape[0] != A->shape[1])
     {
         printf("Only determinants of square matrices can be computed.");
+        exit(EXIT_FAILURE);
     }
     #endif
 
@@ -697,8 +691,6 @@ float tensor_determinant(struct tensor* A)
     struct tensor* L = tensor_copy_shape(A);
     struct tensor* U = tensor_copy_shape(A);
     int row_swaps = tensor_lu_decomp(A, P, L, U);
-    print_tensor(P);
-    printf("%d\n", row_swaps);
     
     float det = row_swaps % 2 ? -1.f : 1.f;
     for (int i = 0; i < cols; i++)
@@ -711,4 +703,95 @@ float tensor_determinant(struct tensor* A)
     free_tensor(U);
 
     return det;
+}
+
+void tensor_inverse(struct tensor* A, struct tensor* A_inv)
+{
+    // TODO: Make more efficient
+    #ifdef DEBUG
+    if (A->shape_dim != 2 || A->shape[0] != A->shape[1])
+    {
+        printf("Only the inverse of square matrices can be computed.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (!tensors_equal_shape(A, A_inv))
+    {
+        printf("Target matrix must share the same shape as input matrix.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (tensor_determinant(A) == 0.f)
+    {
+        printf("Can't compute inverse of matrix with determinant 0.\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
+    if (A->shape[0] == 1)
+    {
+        A_inv->values[0] = 1.f / A_inv->values[0];
+        return;
+    }
+
+    int cols = A->shape[0];
+
+    // Decompose matrix
+    struct tensor* P = tensor_copy_shape(A);
+    struct tensor* L = tensor_copy_shape(A);
+    struct tensor* U = tensor_copy_shape(A);
+    tensor_lu_decomp(A, P, L, U);
+    
+    // Solve LY = I
+    struct tensor* Y = tensor_copy_shape(A);
+    for (int col = 0; col < cols; col++)
+    {
+        Y->values[col * cols + col] = 1.f;
+
+        for (int row = 0; row < col; row++)
+        {
+            // Forward Substitution
+            float sum = 0.f;
+
+            for (int k = row; k < col; k++)
+            {
+                int L_idx = col * cols + k;
+                int Y_idx = k * cols + row;
+                sum -= L->values[L_idx] * Y->values[Y_idx];
+            }
+            
+            Y->values[col * cols + row] = sum;
+        }
+    }
+    
+    // Solve UA^-1 = Y
+    for (int row = cols-1; row >= 0; row--)
+    {
+        for (int col = cols-1; col >= 0; col--)
+        {
+            // Backward Substitution
+            float sum = 0.f;
+
+            for (int k = col+1; k < cols; k++)
+            {
+                int U_idx = col * cols + k;
+                int X_idx = k * cols + row;
+                sum += U->values[U_idx] * A_inv->values[X_idx];
+            }
+            
+            int A_inv_idx = col * cols + row;
+            sum = Y->values[A_inv_idx] - sum;
+            A_inv->values[A_inv_idx] = sum / U->values[col * cols + col];
+        }
+    }
+
+    free_tensor(P);
+    free_tensor(L);
+    free_tensor(U);
+    free_tensor(Y);
+}
+
+struct tensor* tensor_inverse_give(struct tensor* A)
+{
+    struct tensor* A_inv = tensor_copy_shape(A);
+    tensor_inverse(A, A_inv);
+    return A_inv;
 }

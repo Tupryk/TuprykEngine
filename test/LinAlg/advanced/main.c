@@ -140,6 +140,107 @@ int test_determinant()
 
     failure_count += det == -4.f ? 0 : 1;
 
+    free_tensor(A);
+
+    return failure_count;
+}
+
+int test_inverse_single(struct tensor* A)
+{
+    struct tensor* I = tensor_copy_shape(A);
+    tensor_identity(I);
+
+    struct tensor* A_inv = tensor_inverse_give(A);
+
+    printf("----- A -----\n");
+    print_tensor(A);
+
+    printf("----- A^-1 -----\n");
+    print_tensor(A_inv);
+
+    
+    struct tensor* A_A_inv = tensor_mult_give(A, A_inv);
+    struct tensor* A_inv_A = tensor_mult_give(A_inv, A);
+
+    printf("----- A @ inv_A -----\n");
+    print_tensor(A_A_inv);
+
+    printf("----- inv_A @ A -----\n");
+    print_tensor(A_inv_A);
+
+    int failure = tensors_equal(I, A_A_inv) && tensors_equal(I, A_inv_A) ? 0 : 1;
+    tensors_equal(I, A_inv_A);
+
+    free_tensor(A_inv);
+    free_tensor(I);
+    free_tensor(A_A_inv);
+    free_tensor(A_inv_A);
+
+    return failure;
+}
+
+int test_inverse()
+{
+    int failure_count = 0;
+
+    printf("--- Test 3 a): Inverse ---\n");
+
+    int a_shape_0[] = {3, 3};  // CxR
+    float a_values_0[] = {
+         2,  1,  1,
+         4, -6,  0,
+        -2,  7,  2
+    };
+    struct tensor* A = new_tensor(a_shape_0, 2, a_values_0);
+
+    failure_count += test_inverse_single(A);
+
+    free_tensor(A);
+
+    printf("--- Test 3 b): Inverse ---\n");
+
+    int a_shape_1[] = {3, 3};  // CxR
+    float a_values_1[] = {
+          3,  -5,   9,
+         10,   8,  -6,
+          7,  15,  -2
+    };
+    A = new_tensor(a_shape_1, 2, a_values_1);
+
+    failure_count += test_inverse_single(A);
+
+    free_tensor(A);
+
+    printf("--- Test 3 c): Inverse ---\n");
+
+    int a_shape_2[] = {4, 4};  // CxR
+    float a_values_2[] = {
+        1, 1, 1, 0,
+        0, 3, 1, 2,
+        2, 3, 1, 0,
+        1, 0, 2, 1
+    };
+    A = new_tensor(a_shape_2, 2, a_values_2);
+
+    failure_count += test_inverse_single(A);
+
+    free_tensor(A);
+
+    int a_shape_3[] = {5, 5};  // CxR
+    float a_values_3[] = {
+         1,  1,  1,  0,  1,
+         0, -3,  1, -2,  4,
+         2,  3,  1,  0,  6,
+         1, -2, -2,  1, -1,
+         1,  0,  2, -1, -1,
+         1,  3, -4, -4,  0
+    };
+    A = new_tensor(a_shape_3, 2, a_values_3);
+
+    failure_count += test_inverse_single(A);
+
+    free_tensor(A);
+
     return failure_count;
 }
 
@@ -149,6 +250,7 @@ int main()
 
     failures_count += test_lu_decomposition();
     failures_count += test_determinant();
+    failures_count += test_inverse();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

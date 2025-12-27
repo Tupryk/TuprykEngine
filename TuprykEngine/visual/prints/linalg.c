@@ -25,7 +25,7 @@ void print_tensor_element(struct tensor *t, int* indices)
     if (value >= 0) {
         printf(" ");
     }
-    printf("%.5f", value);
+    printf("%g", value);
     if (indices[n] != t->shape[n]-1) {
         printf(", ");
     }
@@ -79,7 +79,7 @@ void print_tensor_verbose(struct tensor *t, int verbose)
 
     if (verbose > 2)
     {
-        // TODO: Specify the type of the tensor, ie. diagonal, PSD, etc.
+        // TODO: Specify the type of the tensor, ie. diagonal, PSD, determinant, etc.
     }
     // TODO: rank of matrix
 }
