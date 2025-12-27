@@ -1,8 +1,8 @@
 #define DEBUG
 
 #include <stdio.h>
-#include "../../TuprykEngine/visual/prints/linalg.h"
-#include "../../TuprykEngine/LinAlg/tensor.h"
+#include "../../../TuprykEngine/visual/prints/linalg.h"
+#include "../../../TuprykEngine/LinAlg/tensor.h"
 
 void print_counts(struct tensor* a, int* counts)
 {
@@ -425,15 +425,15 @@ int main()
 {
     int failures_count = 0;
 
-    // failures_count += test_basic();
+    failures_count += test_basic();
     failures_count += test_tensor_transpose();
-    // failures_count += test_matrix_mult();
-    // failures_count += test_tensor_mult();
-    // failures_count += test_tensor_mult2();
-    // failures_count += test_tensor_mult3();
-    // failures_count += test_tensor_inner_outer();
-    // failures_count += test_append();
-    // failures_count += test_append_harder();
+    failures_count += test_matrix_mult();
+    failures_count += test_tensor_mult();
+    failures_count += test_tensor_mult2();
+    failures_count += test_tensor_mult3();
+    failures_count += test_tensor_inner_outer();
+    failures_count += test_append();
+    failures_count += test_append_harder();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

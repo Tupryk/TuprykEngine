@@ -17,9 +17,8 @@ int get_tensor_volume(struct tensor* t) {
     return volume;
 }
 
-struct tensor* new_tensor(int* shape, int shape_dim, TYPE* values)
+void init_tensor(struct tensor* t, int* shape, int shape_dim, float* values)
 {
-    struct tensor* t = (struct tensor*) malloc(sizeof(struct tensor));
     t->shape_dim = shape_dim;
     t->shape = (int*) malloc(shape_dim * sizeof(int));
     for (int i = 0; i < shape_dim; i++)
@@ -34,7 +33,7 @@ struct tensor* new_tensor(int* shape, int shape_dim, TYPE* values)
     }
     
     int volume = get_tensor_volume(t);
-    t->values = (TYPE*) malloc(volume * sizeof(TYPE));
+    t->values = (float*) malloc(volume * sizeof(float));
     t->volume = volume;
 
     if (values != NULL)
@@ -47,8 +46,20 @@ struct tensor* new_tensor(int* shape, int shape_dim, TYPE* values)
         for (int i = 0; i < volume; i++)
             t->values[i] = 0.0;
     }
+}
+
+struct tensor* new_tensor(int* shape, int shape_dim, float* values)
+{
+    struct tensor* t = (struct tensor*) malloc(sizeof(struct tensor));
+    init_tensor(t, shape, shape_dim, values);
     // TODO: Add a universal allocated memory list so that everything can be removed from memory at once at the end of each program.
     return t;
+}
+
+struct tensor* tensor_copy_shape(struct tensor* t)
+{
+    struct tensor* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
+    return t_copy;
 }
 
 struct tensor* tensor_copy(struct tensor* t)
@@ -58,6 +69,20 @@ struct tensor* tensor_copy(struct tensor* t)
         t_copy->values[i] = t->values[i];
     }
     return t_copy;
+}
+
+void tensor_transfer_values(struct tensor* to, struct tensor* from)
+{
+    #ifdef DEBUG
+    if (!tensors_equal_shape(from, to))
+    {
+        printf("Tensors must have the same shape to transfer values!\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    for (int i = 0; i < to->volume; i++) {
+        to->values[i] = from->values[i];
+    }
 }
 
 void free_tensor(struct tensor* t)
@@ -309,18 +334,35 @@ void identify(struct tensor* a, int* counts)
 
 void tensor_identity(struct tensor* a)
 {
+    // TODO: Make faster
     #ifdef DEBUG
     if (a->shape_dim < 2 || a->shape[a->shape_dim-1] != a->shape[a->shape_dim-2])
     {
-        printf("Identity must be square!");
+        printf("Identity must be square!\n");
         exit(EXIT_FAILURE);
     }
     #endif
     tensor_loop(a, identify);
 }
 
+int tensors_equal_shape(struct tensor* a, struct tensor* b)
+{
+    // Compare tensor volumes
+    if (a->volume != b->volume) return 0;
+    
+    // Compare tensor shapes
+    if (a->shape_dim != b->shape_dim) return 0;
+    for (int i = 0; i < a->shape_dim; i++)
+    {
+        if (a->shape[i] != b->shape[i]) return 0;
+    }
+
+    return 1;
+}
+
 int tensors_equal(struct tensor* a, struct tensor* b)
 {
+    // Compare tensor volumes
     if (a->volume != b->volume) return 0;
     
     // Compare tensor shapes
@@ -333,7 +375,7 @@ int tensors_equal(struct tensor* a, struct tensor* b)
     // Compare tensor values
     for (int i = 0; i < a->volume; i++)
     {
-        if (fabs(a->values[i] - b->values[i]) > PRECISION)
+        if (fabsf(a->values[i] - b->values[i]) > PRECISION)
         {
             return 0;
         }
@@ -342,7 +384,7 @@ int tensors_equal(struct tensor* a, struct tensor* b)
     return 1;
 }
 
-void tensor_scalar_mult(struct tensor* a, TYPE b, struct tensor* out)
+void tensor_scalar_mult(struct tensor* a, float b, struct tensor* out)
 {
     for (int i = 0; i < a->volume; i++)
     {
@@ -510,4 +552,163 @@ struct tensor* tensor_append(struct tensor* a, struct tensor* b, int axis)
     }
 
     return out;
+}
+
+int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struct tensor* U)
+{
+    // TODO: Check if a decomposition can be performed. Also make faster
+    // TODO: Test for vertical matrices
+    #ifdef DEBUG
+    if (A->shape_dim != 2)
+    {
+        printf("Cannot perform LU decomposition on tensor with shape ");
+        print_shape(A->shape, A->shape_dim);
+        printf("\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    
+    int operator_shape[] = {A->shape[0], A->shape[0]};
+    struct tensor* M = new_tensor(operator_shape, 2, NULL);
+    struct tensor* P_0 = tensor_copy_shape(M);
+    
+    struct tensor* P_inter = tensor_copy_shape(M);
+    struct tensor* L_inter = tensor_copy_shape(M);
+    struct tensor* U_inter = tensor_copy_shape(A);
+    
+    tensor_identity(M);
+    tensor_identity(P);
+    tensor_identity(L);
+    tensor_transfer_values(U, A);
+
+    int row_swaps = 0;
+
+    int rows = A->shape[0];
+    int cols = A->shape[1];
+    int current_col = 0;
+    for (int i = 0; i < rows-1; i++)
+    {
+        tensor_identity(P_0);
+        
+        // Set the largest starting value row at the top
+        int pivot_index = -1;
+        while (pivot_index == -1)
+        {
+            for (int j = i; j < rows; j++)
+            {
+                if (U->values[j * cols + current_col] != 0.f)
+                {
+                    pivot_index = j * cols + current_col;
+                    break;
+                }
+            }
+            if (pivot_index == -1)
+            {
+                current_col++;
+            }
+        }
+
+        int row_idx = (pivot_index - current_col) / cols;
+        
+        if (rows * i + row_idx != row_idx * rows + i)  // TODO: Make this nicer
+        {
+            P_0->values[row_idx * rows + row_idx] = 0.f;
+            P_0->values[rows * i + row_idx] = 1.f;
+
+            P_0->values[rows * i + i] = 0.f;
+            P_0->values[row_idx * rows + i] = 1.f;
+
+            row_swaps++;
+            
+            tensor_mult(P_0, U, U_inter);
+            tensor_transfer_values(U, U_inter);
+            
+            tensor_mult(P, P_0, P_inter);
+            tensor_transfer_values(P, P_inter);
+            
+            // Exchange rows
+            tensor_mult(P_0, L, L_inter);
+            tensor_transfer_values(L, L_inter);
+            
+            // Exchange columns
+            tensor_mult(L, P_0, L_inter);
+            tensor_transfer_values(L, L_inter);
+            
+            print_tensor(P_0);
+            printf("---------\n");
+        }
+
+        // Gaussian elimination
+        int pivot_elem_idx = i * cols + current_col;
+        for (int j = i+1; j < rows; j++)
+        {
+            float scaler = -1.f * (U->values[j * cols + current_col] / U->values[pivot_elem_idx]);
+            M->values[j * rows + i] = scaler;
+        }
+        tensor_mult(M, U, U_inter);
+        tensor_transfer_values(U, U_inter);
+        
+        for (int j = i+1; j < rows; j++)
+        {
+            M->values[j * rows + i] *= -1.f;
+        }
+        tensor_mult(L, M, L_inter);
+        tensor_transfer_values(L, L_inter);
+        
+        for (int j = i+1; j < rows; j++)
+        {
+            M->values[j * rows + i] = 0.f;
+        }
+        current_col++;
+    }
+    
+    free_tensor(P_0);
+    free_tensor(M);
+    free_tensor(P_inter);
+    free_tensor(L_inter);
+    free_tensor(U_inter);
+
+    return row_swaps;
+}
+
+float tensor_determinant(struct tensor* A)
+{
+    #ifdef DEBUG
+    if (A->shape_dim != 2 || A->shape[0] != A->shape[1])
+    {
+        printf("Only determinants of square matrices can be computed.");
+    }
+    #endif
+
+    if (A->shape[0] == 1)
+    {
+        return A->values[0];
+    }
+    
+    if (A->shape[0] == 2)
+    {
+        return A->values[0] * A->values[3] - A->values[1] * A->values[2];
+    }
+
+    int cols = A->shape[0];
+
+    // TODO: Might have to create a function that skips computing L and P (ie. just counts row swaps)...
+    struct tensor* P = tensor_copy_shape(A);
+    struct tensor* L = tensor_copy_shape(A);
+    struct tensor* U = tensor_copy_shape(A);
+    int row_swaps = tensor_lu_decomp(A, P, L, U);
+    print_tensor(P);
+    printf("%d\n", row_swaps);
+    
+    float det = row_swaps % 2 ? -1.f : 1.f;
+    for (int i = 0; i < cols; i++)
+    {
+        det *= U->values[i * cols + i];
+    }
+
+    free_tensor(P);
+    free_tensor(L);
+    free_tensor(U);
+
+    return det;
 }
