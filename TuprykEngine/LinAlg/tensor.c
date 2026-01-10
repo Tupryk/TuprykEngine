@@ -141,19 +141,6 @@ void fill_const(struct tensor* t, double num)
     }
 }
 
-void recursive_tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out, int dim_idx)
-{
-    if (dim_idx == a->shape_dim-1) {
-        // Dot Product
-    } else if (dim_idx == a->shape_dim-2) {
-        // Matrix Products
-    } else {
-        for (int i = 0; i < a->shape[dim_idx]; i++) {
-            recursive_tensor_mult(a, b, out, dim_idx+1);
-        }
-    }
-}
-
 int tensors_can_be_mult(struct tensor* a, struct tensor* b)
 {
     int connection_dim = a->shape_dim > 1 || b->shape_dim > 1;
