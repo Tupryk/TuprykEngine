@@ -9,6 +9,12 @@ float global_x_rot = M_PI * 0.25;
 float global_y_rot = M_PI * 0.0;
 float global_z_rot = 0.0;
 
+void draw_pixel(float x, float y, float r, float g, float b)
+{
+    SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), 255);
+    SDL_RenderDrawPoint(renderer, x, y);
+}
+
 void draw_line(float start_x, float start_y, float end_x, float end_y)
 {
     SDL_RenderDrawLine(renderer, start_x * 480.f, start_y * 480.f, end_x * 480.f, end_y * 480.f);
@@ -52,7 +58,27 @@ void draw_line_3d(
     draw_line(s.x, s.y, e.x, e.y);
 }
 
+void draw_circle(int cx, int cy, int r)
+{
+    for (int y = -r; y <= r; y++)
+    {
+        int dx = (int)sqrt(r * r - y * y);
+        SDL_RenderDrawLine(
+            renderer,
+            cx - dx, cy + y,
+            cx + dx, cy + y
+        );
+    }
+}
+
 void draw_3d_point(float x, float y, float z)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    struct point_2d p = unit_3d_to_2d(x, y, z);
+    draw_circle(p.x * 480.f, p.y * 480.f, 2);
+}
+
+void draw_3d_mark(float x, float y, float z)
 {
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
 
@@ -117,7 +143,7 @@ void plot_unit_func(
             if (min > v) min = v;
         }
     }
-    free_tensor(in);
+    tensor_free(in);
 
     for (int i = 0; i < res-1; i++)
     {
@@ -158,6 +184,105 @@ void plot_unit_func(
             }
         }
     }
+}
+
+void plot_unit_func_heat(
+    float (*func)(struct tensor*),
+    float center_x,
+    float center_y,
+    float area_side
+)
+{
+    int x_shape[1] = {2};
+    struct tensor* x = new_tensor(x_shape, 1, NULL);
+
+    int screen_shape[2] = {WINDOW_W, WINDOW_H};
+    struct tensor* screen = new_tensor(screen_shape, 2, NULL);
+
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            float i_norm = (float) i / (float) WINDOW_W;
+            float j_norm = (float) j / (float) WINDOW_W;
+            i_norm = (i_norm - 0.5f) * area_side + center_x;
+            j_norm = (j_norm - 0.5f) * area_side + center_y;
+            x->values[0] = i_norm;
+            x->values[1] = j_norm;
+            
+            float out = func(x);
+            int index[] = {i, j};
+            screen->values[get_tensor_value_index(screen, index)] = out;
+        }
+    }
+
+    float max_val = tensor_max(screen);
+    float min_val = tensor_min(screen);
+
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            int index[] = {i, j};
+            float out = screen->values[get_tensor_value_index(screen, index)];
+            if (fabsf(out) < 1e-1)
+            {
+                draw_pixel(i, j, 0, 1.f, 0);
+            }
+            else
+            {
+                out = (out - min_val) / (max_val - min_val) * 2.f - 1.f;
+                if (out < 0) draw_pixel(i, j, 0, 0, -1.f * out);
+                else if (out > 0) draw_pixel(i, j, out, 0, 0);
+                else draw_pixel(i, j, 0, 0, 0);
+            }
+        }
+    }
+    
+    tensor_free(x);
+    tensor_free(screen);
+}
+
+void plot_unit_func_3d(
+    float (*func)(struct tensor*),
+    float center_x,
+    float center_y,
+    float center_z,
+    float area_side
+)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    int res = 200;
+    float step_eval = area_side / res;
+
+    int shape[] = {3};
+    struct tensor* in = new_tensor(shape, 1, NULL);
+
+    for (int i = 0; i < res; i++)
+    {
+        for (int j = 0; j < res; j++)
+        {
+            for (int k = 0; k < res; k++)
+            {
+                in->values[0] = ((float)i) * step_eval + center_x - (area_side * 0.5f);
+                in->values[1] = ((float)j) * step_eval + center_y - (area_side * 0.5f);
+                in->values[2] = ((float)k) * step_eval + center_z - (area_side * 0.5f);
+
+                float v = func(in);
+
+                if (fabsf(v) < 1e-2)
+                {
+                    draw_3d_point(
+                        ((float)i) / ((float)res),
+                        ((float)j) / ((float)res),
+                        ((float)k) / ((float)res)
+                    );
+                }
+            }
+        }
+    }
+    tensor_free(in);
 }
 
 void add_global_rot(float delta_x, float delta_y, float delta_z)

@@ -3,14 +3,6 @@
 
 #include "../global.h"
 
-struct sparse_tensor
-{
-    int* shape;
-    int shape_dim;
-    float* values;
-    int** indices;
-};
-
 struct tensor
 {
     int* shape;
@@ -26,7 +18,7 @@ struct tensor* new_tensor(int* shape, int shape_dim, float* values);
 struct tensor* tensor_copy(struct tensor* t);
 struct tensor* tensor_copy_shape(struct tensor* t);
 void tensor_transfer_values(struct tensor* to, struct tensor* from);
-void free_tensor(struct tensor* t);
+void tensor_free(struct tensor* t);
 int get_tensor_volume(struct tensor* t);
 int get_tensor_value_index(struct tensor* t, int* indices);
 double get_tensor_value(struct tensor* t, int* indices);
@@ -44,6 +36,7 @@ void tensor_transpose(struct tensor* t);
 int tensors_equal_shape(struct tensor* a, struct tensor* b);
 int tensors_equal(struct tensor* a, struct tensor* b);
 void tensor_scalar_mult(struct tensor* a, float b, struct tensor* out);
+struct tensor* tensor_scalar_mult_give(struct tensor* a, float b);
 int tensor_is_square(struct tensor* t);
 void tensor_reshape(struct tensor* t, int* shape, int shape_dim);
 struct tensor* tensor_append(struct tensor* a, struct tensor* b, int axis);
@@ -53,6 +46,8 @@ void tensor_inverse(struct tensor* A, struct tensor* A_inv);
 struct tensor* tensor_inverse_give(struct tensor* A);
 float tensor_vec_magnitude(struct tensor* t);
 void tensor_flatten(struct tensor* t);
+float tensor_max(struct tensor* t);
+float tensor_min(struct tensor* t);
 
 
 // void singular_value_decomposition(struct tensor* target, struct tensor* U, struct tensor* eta, struct tensor* V_t);

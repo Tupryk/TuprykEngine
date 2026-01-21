@@ -52,8 +52,8 @@ int test_basic()
     tensor_identity(I);
     print_tensor(I);
 
-    free_tensor(t);
-    free_tensor(t_copy);
+    tensor_free(t);
+    tensor_free(t_copy);
 
     printf("\033[1;32mSuccess\033[0m\n");
 
@@ -80,8 +80,8 @@ int test_tensor_transpose()
 
     int failure = !tensors_equal(A_right, A);
 
-    free_tensor(A);
-    free_tensor(A_right);
+    tensor_free(A);
+    tensor_free(A_right);
 
     int a_shape_b[] = {2, 3, 4, 5};
     int a_right_shape_b[] = {5, 4, 3, 2};
@@ -108,9 +108,9 @@ int test_tensor_transpose()
     tensor_transpose(v);
     print_tensor_verbose(v, 1);
 
-    free_tensor(v);
-    free_tensor(A);
-    free_tensor(A_right);
+    tensor_free(v);
+    tensor_free(A);
+    tensor_free(A_right);
 
     printf("\033[1;32mSuccess\033[0m\n");
 
@@ -143,9 +143,9 @@ int test_matrix_mult()
 
     int failure = !tensors_equal(c_right, c);
 
-    free_tensor(a);
-    free_tensor(b);
-    free_tensor(c);
+    tensor_free(a);
+    tensor_free(b);
+    tensor_free(c);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -193,10 +193,10 @@ int test_tensor_mult()
     int failure = !tensors_equal(C_right, C);
     failure += !tensors_equal(C2_right, C2);
 
-    free_tensor(A);
-    free_tensor(B);
-    free_tensor(C);
-    free_tensor(C2);
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
+    tensor_free(C2);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -234,9 +234,9 @@ int test_tensor_mult2()
 
     int failure = !tensors_equal(C_right, C);
 
-    free_tensor(A);
-    free_tensor(B);
-    free_tensor(C);
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -274,9 +274,9 @@ int test_tensor_mult3()
 
     int failure = !tensors_equal(C_right, C);
 
-    free_tensor(A);
-    free_tensor(B);
-    free_tensor(C);
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -324,13 +324,13 @@ int test_tensor_inner_outer()
     int failure = !tensors_equal(v3, v3_right);
     failure += !tensors_equal(v4, v4_right);
 
-    free_tensor(v1);
-    free_tensor(v2);
-    free_tensor(v3);
-    free_tensor(v4);
+    tensor_free(v1);
+    tensor_free(v2);
+    tensor_free(v3);
+    tensor_free(v4);
 
-    free_tensor(v3_right);
-    free_tensor(v4_right);
+    tensor_free(v3_right);
+    tensor_free(v4_right);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -368,9 +368,9 @@ int test_append()
 
     int failure = !tensors_equal(C_right, C);
 
-    free_tensor(A);
-    free_tensor(B);
-    free_tensor(C);
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");
@@ -408,9 +408,9 @@ int test_append_harder()
 
     int failure = !tensors_equal(C_right, C);
 
-    free_tensor(A);
-    free_tensor(B);
-    free_tensor(C);
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");

@@ -37,7 +37,7 @@ float gradient_descent(
         }
 
         // Scale by alpha
-        tensor_scalar_mult(delta, alpha/delta_magnitude, delta);
+        tensor_scalar_mult(delta, alpha, delta);
         tensor_sub(x, delta, x);
 
         #ifdef OPTIM_VERBOSE
@@ -55,7 +55,7 @@ float gradient_descent(
     printf("Final cost: % .7f\n", cost);
     #endif
 
-    free_tensor(x);
-    free_tensor(delta);
+    tensor_free(x);
+    tensor_free(delta);
     return cost;
 }

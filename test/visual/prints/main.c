@@ -14,7 +14,7 @@ int main()
     printf("----- a -----\n");
     print_tensor_flat(a);
     print_tensor(a);
-    free_tensor(a);
+    tensor_free(a);
 
     printf("--- Test 2: Display Tensor ---\n");
     int shape_A[] = {2, 3, 4};
@@ -26,7 +26,7 @@ int main()
     print_tensor(A);
     printf("----- A verbose -----\n");
     print_tensor_verbose(A, 10);
-    free_tensor(A);
+    tensor_free(A);
     
     return 0;
 }

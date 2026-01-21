@@ -101,7 +101,7 @@ void tensor_transfer_all(struct tensor* to, struct tensor* from)
     }
 }
 
-void free_tensor(struct tensor* t)
+void tensor_free(struct tensor* t)
 {
     // TODO: could maybe make this take a list of tensors as input.
     free(t->values);
@@ -245,7 +245,7 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
             else
                 tensor_transfer_all(b, tmp);
         }
-        free_tensor(tmp);
+        tensor_free(tmp);
     }
     else
     {
@@ -255,6 +255,7 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
 
 void tensor_add(struct tensor* a, struct tensor* b, struct tensor* out)
 {
+    // TODO: Adding tensors of shape n1Xn2X...nNxaXb + aXb
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] + b->values[i];
     }
@@ -349,7 +350,7 @@ void tensor_transpose(struct tensor* t)
 
         t->values[i] = t_copy->values[tci];
     }
-    free_tensor(t_copy);
+    tensor_free(t_copy);
 }
 
 void identify(struct tensor* a, int* counts)
@@ -422,6 +423,13 @@ void tensor_scalar_mult(struct tensor* a, float b, struct tensor* out)
     {
         out->values[i] = a->values[i] * b;
     }
+}
+
+struct tensor* tensor_scalar_mult_give(struct tensor* a, float b)
+{
+    struct tensor* out = tensor_copy(a);
+    tensor_scalar_mult(a, b, out);
+    return out;
 }
 
 int tensor_is_square(struct tensor* t)
@@ -691,11 +699,11 @@ int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struc
         current_col++;
     }
     
-    free_tensor(P_0);
-    free_tensor(M);
-    free_tensor(P_inter);
-    free_tensor(L_inter);
-    free_tensor(U_inter);
+    tensor_free(P_0);
+    tensor_free(M);
+    tensor_free(P_inter);
+    tensor_free(L_inter);
+    tensor_free(U_inter);
 
     return row_swaps;
 }
@@ -734,9 +742,9 @@ float tensor_determinant(struct tensor* A)
         det *= U->values[i * cols + i];
     }
 
-    free_tensor(P);
-    free_tensor(L);
-    free_tensor(U);
+    tensor_free(P);
+    tensor_free(L);
+    tensor_free(U);
 
     return det;
 }
@@ -819,10 +827,10 @@ void tensor_inverse(struct tensor* A, struct tensor* A_inv)
         }
     }
 
-    free_tensor(P);
-    free_tensor(L);
-    free_tensor(U);
-    free_tensor(Y);
+    tensor_free(P);
+    tensor_free(L);
+    tensor_free(U);
+    tensor_free(Y);
 }
 
 struct tensor* tensor_inverse_give(struct tensor* A)
@@ -857,4 +865,30 @@ void tensor_flatten(struct tensor* t)
     t->shape = t->shape = (int*) malloc(sizeof(int));
     t->shape[0] = t->volume;
     t->shape_dim = 1;
+}
+
+float tensor_max(struct tensor* t)
+{
+    float out = t->values[0];
+    for (int i = 1; i < t->volume; i++)
+    {
+        if (out < t->values[i])
+        {
+            out = t->values[i];
+        }
+    }
+    return out;
+}
+
+float tensor_min(struct tensor* t)
+{
+    float out = t->values[0];
+    for (int i = 1; i < t->volume; i++)
+    {
+        if (out > t->values[i])
+        {
+            out = t->values[i];
+        }
+    }
+    return out;
 }

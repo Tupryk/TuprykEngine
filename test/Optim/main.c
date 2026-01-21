@@ -41,8 +41,8 @@ void quadratic_init()
 
 void quadratic_free()
 {
-    free_tensor(q.H);
-    free_tensor(q.v);
+    tensor_free(q.H);
+    tensor_free(q.v);
 }
 
 float quadratic_eval(struct tensor* x)
@@ -56,10 +56,10 @@ float quadratic_eval(struct tensor* x)
     
     float out = 0.5 * dot->values[0] + a->values[0] + q.c;
     
-    free_tensor(x_T);
-    free_tensor(dot0);
-    free_tensor(dot);
-    free_tensor(a);
+    tensor_free(x_T);
+    tensor_free(dot0);
+    tensor_free(dot);
+    tensor_free(a);
 
     return out;
 }
@@ -89,7 +89,7 @@ int main()
     printf("--- Test 2: Newton ---\n");
     newton(init_x, quadratic_eval, quadratic_eval2, quadratic_eval3, 1, 1e-2, 100);
 
-    free_tensor(init_x);
+    tensor_free(init_x);
 
     quadratic_free();
 

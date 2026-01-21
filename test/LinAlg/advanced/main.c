@@ -28,11 +28,11 @@ int test_lu_decomposition_single(struct tensor* A)
 
     int failure = !tensors_equal(A, A_reconstructed);
 
-    free_tensor(P);
-    free_tensor(L);
-    free_tensor(U);
-    free_tensor(PL);
-    free_tensor(A_reconstructed);
+    tensor_free(P);
+    tensor_free(L);
+    tensor_free(U);
+    tensor_free(PL);
+    tensor_free(A_reconstructed);
 
     return failure;
 }
@@ -52,7 +52,7 @@ int test_lu_decomposition()
     struct tensor* A = new_tensor(a_shape_0, 2, a_values_0);
 
     failure_count += test_lu_decomposition_single(A);
-    free_tensor(A);
+    tensor_free(A);
     
     printf("--- Test 1 b): LU Decomposition ---\n");
 
@@ -66,7 +66,7 @@ int test_lu_decomposition()
     A = new_tensor(a_shape_1, 2, a_values_1);
 
     failure_count += test_lu_decomposition_single(A);
-    free_tensor(A);
+    tensor_free(A);
 
     printf("--- Test 1 c): LU Decomposition ---\n");
 
@@ -79,7 +79,7 @@ int test_lu_decomposition()
     A = new_tensor(a_shape_2, 2, a_values_2);
 
     failure_count += test_lu_decomposition_single(A);
-    free_tensor(A);
+    tensor_free(A);
 
     return failure_count;
 }
@@ -140,7 +140,7 @@ int test_determinant()
 
     failure_count += det == -4.f ? 0 : 1;
 
-    free_tensor(A);
+    tensor_free(A);
 
     return failure_count;
 }
@@ -166,9 +166,9 @@ int test_inverse_single(struct tensor* A)
 
     int failure = tensors_equal(I, A_A_inv) ? 0 : 1;
 
-    free_tensor(A_inv);
-    free_tensor(I);
-    free_tensor(A_A_inv);
+    tensor_free(A_inv);
+    tensor_free(I);
+    tensor_free(A_A_inv);
 
     return failure;
 }
@@ -188,7 +188,7 @@ int test_inverse()
 
     failure_count += test_inverse_single(A);
 
-    free_tensor(A);
+    tensor_free(A);
 
     printf("--- Test 3 b): Inverse ---\n");
 
@@ -202,7 +202,7 @@ int test_inverse()
 
     failure_count += test_inverse_single(A);
 
-    free_tensor(A);
+    tensor_free(A);
 
     printf("--- Test 3 c): Inverse ---\n");
 
@@ -216,7 +216,7 @@ int test_inverse()
 
     failure_count += test_inverse_single(A);
 
-    free_tensor(A);
+    tensor_free(A);
 
     printf("--- Test 3 d): Inverse ---\n");
 
@@ -231,7 +231,7 @@ int test_inverse()
 
     failure_count += test_inverse_single(A);
 
-    free_tensor(A);
+    tensor_free(A);
 
     printf("--- Test 3 e): Inverse ---\n");
 
@@ -248,7 +248,7 @@ int test_inverse()
 
     failure_count += test_inverse_single(A);
 
-    free_tensor(A);
+    tensor_free(A);
 
     return failure_count;
 }

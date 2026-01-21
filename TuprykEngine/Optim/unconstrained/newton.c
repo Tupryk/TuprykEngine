@@ -49,7 +49,7 @@ float newton(
         }
 
         // Scale by alpha
-        tensor_scalar_mult(delta, alpha / delta_magnitude, delta);
+        tensor_scalar_mult(delta, alpha, delta);
         tensor_sub(x, delta, x);
 
         #ifdef OPTIM_VERBOSE
@@ -63,10 +63,10 @@ float newton(
     printf("Final cost: % .7f\n", cost);
     #endif
 
-    free_tensor(x);
-    free_tensor(delta);
-    free_tensor(delta2);
-    free_tensor(delta2_inv);
+    tensor_free(x);
+    tensor_free(delta);
+    tensor_free(delta2);
+    tensor_free(delta2_inv);
 
     return cost;
 }

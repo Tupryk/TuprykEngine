@@ -10,7 +10,7 @@ void init_window()
         "TuprykEngine Visualizer",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        480, 480,
+        WINDOW_W, WINDOW_H,
         SDL_WINDOW_SHOWN
     );
 
