@@ -18,6 +18,7 @@ struct sparse
 
 struct sparse* new_sparse(int* shape, int shape_dim);
 struct sparse* sparse_from_tensor(struct tensor* t);
+struct sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int));
 struct tensor* tensor_from_sparse(struct sparse* st);
 void sparse_free(struct sparse* st);
 void sparse_insert(struct sparse* st, float value, int index);

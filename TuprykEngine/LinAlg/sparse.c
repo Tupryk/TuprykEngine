@@ -48,6 +48,23 @@ struct sparse* sparse_from_tensor(struct tensor* t)
     return st;
 }
 
+struct sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
+{
+    struct sparse* st = new_sparse(shape, shape_dim);
+
+    // TODO: Make more efficient
+    for (int i = 0; i < st->volume; i++)
+    {
+        float new_value = func(i);
+        if (fabsf(new_value) > SPARSE_PRECISION)
+        {
+            sparse_insert(st, new_value, i);
+        }
+    }
+
+    return st;
+}
+
 struct tensor* tensor_from_sparse(struct sparse* st)
 {
     struct tensor* t = new_tensor(st->shape, st->shape_dim, NULL);
