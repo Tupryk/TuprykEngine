@@ -3,7 +3,7 @@
 #include "linalg.h"
 
 
-void print_tensor_element(struct tensor *t, int* indices)
+void print_tensor_element(struct tensor* t, int* indices)
 {
     int n = t->shape_dim-1;
 
@@ -46,12 +46,12 @@ void print_tensor_element(struct tensor *t, int* indices)
     }
 }
 
-void print_tensor(struct tensor *t)
+void print_tensor(struct tensor* t)
 {
     tensor_loop(t, print_tensor_element);
 }
 
-void print_tensor_verbose(struct tensor *t, int verbose)
+void print_tensor_verbose(struct tensor* t, int verbose)
 {
     print_tensor(t);
 
@@ -84,7 +84,7 @@ void print_tensor_verbose(struct tensor *t, int verbose)
     // TODO: rank of matrix
 }
 
-void print_tensor_element_flat(struct tensor *t, int* indices)
+void print_tensor_element_flat(struct tensor* t, int* indices)
 {
     int value_idx = get_tensor_value_index(t, indices);
     double value = t->values[value_idx];
@@ -97,7 +97,7 @@ void print_tensor_element_flat(struct tensor *t, int* indices)
     printf("): %f\n", value);
 }
 
-void print_tensor_flat(struct tensor *t)
+void print_tensor_flat(struct tensor* t)
 {
     // Main tensor
     tensor_loop(t, print_tensor_element_flat);
@@ -124,4 +124,16 @@ void print_shape(int* shape, int shape_dim)
             printf("%d, ", shape[i]);
         }
     }
+}
+
+void print_sparse(struct sparse* st)
+{
+    for (int i = 0; i < st->value_count; i++)
+    {
+        // TODO: print the index in (n, m, ...) form instead
+        printf("%d: %f\n", st->indices[i], st->values[i]);
+    }
+    printf("Sparse tensor with shape: ");
+    print_shape(st->shape, st->shape_dim);
+    printf(" and %d elements.\n", st->value_count);
 }

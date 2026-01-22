@@ -85,6 +85,8 @@ int main()
     plot_unit_func_heat(hyperbolic_case3, 0.f, 0.f, 4.f);
     window_wait();
 
+    // TODO: "Set" function which return a bool
+
     // plot_unit_func(hyperbolic_case1, 0.f, 0.f, 10.f);
     // window_wait();
     // plot_unit_func(hyperbolic_case2, 0.f, 0.f, 10.f);
