@@ -33,6 +33,11 @@ float gradient_descent(
         float delta_magnitude = tensor_vec_magnitude(delta);
         if (delta_magnitude <= tolerance) {
             total_steps = i+1;
+            
+            #ifdef OPTIM_VERBOSE
+            printf("Converged with ||delta||: %f\n", delta_magnitude);
+            #endif
+            
             break;
         }
 
@@ -42,11 +47,11 @@ float gradient_descent(
 
         #ifdef OPTIM_VERBOSE
         cost = cost_func(x);
-        // printf("delta: ");
-        // print_tensor(delta);
+        printf("delta: ");
+        print_tensor(delta);
         printf("Current Cost: %f\n", cost);
-        // printf("x: ");
-        // print_tensor(x);
+        printf("x: ");
+        print_tensor(x);
         #endif
     }
     #ifdef OPTIM_VERBOSE

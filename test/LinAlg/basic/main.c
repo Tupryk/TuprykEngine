@@ -290,9 +290,9 @@ int test_tensor_mult3()
 int test_tensor_inner_outer()
 {
     printf("--- Test 13 & 14: Inner product & Outer product ---\n");
-    int v1_shape[] = {3};
+    int v1_shape[] = {1, 3};
     TYPE v1_values[3] = {1.f, 2.f, 3.f};
-    struct tensor* v1 = new_tensor(v1_shape, 1, v1_values);
+    struct tensor* v1 = new_tensor(v1_shape, 2, v1_values);
     struct tensor* v2 = tensor_copy(v1);
     tensor_transpose(v1);
     printf("--- v1 ---\n");
@@ -421,6 +421,49 @@ int test_append_harder()
     return failure;
 }
 
+int test_matrix_vector_mult()
+{
+    printf("--- Test 12: Multiply Tensors ---\n");
+    int shape_A[] = {2, 2};
+    TYPE A_values[] = {
+        0, 4,
+        4, 0
+    };
+    struct tensor* A = new_tensor(shape_A, 2, A_values);
+    printf("----- A -----\n");
+    print_tensor(A);
+    int shape_B[] = {2, 1};
+    TYPE B_values[] = {11, -5};
+    struct tensor* B = new_tensor(shape_B, 2, B_values);
+    printf("----- B -----\n");
+    print_tensor(B);
+    
+    struct tensor* C = tensor_mult_give(A, B);
+    
+    int shape_C[] = {2, 1};
+    TYPE C_right_values[] = {-20, 44};
+    struct tensor* C_right = new_tensor(shape_C, 2, C_right_values);
+
+    printf("----- C right -----\n");
+    print_tensor(C_right);
+    printf("----- C -----\n");
+    print_tensor(C);
+
+    int failure = !tensors_equal(C_right, C);
+
+    tensor_free(A);
+    tensor_free(B);
+    tensor_free(C);
+
+    if (failure > 0) {
+        printf("\033[1;31mFail\033[0m\n");
+    } else {
+        printf("\033[1;32mSuccess\033[0m\n");
+    }
+
+    return failure;
+}
+
 int main()
 {
     int failures_count = 0;
@@ -434,6 +477,7 @@ int main()
     failures_count += test_tensor_inner_outer();
     failures_count += test_append();
     failures_count += test_append_harder();
+    failures_count += test_matrix_vector_mult();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

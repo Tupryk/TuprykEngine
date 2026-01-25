@@ -19,6 +19,16 @@ int get_tensor_volume(struct tensor* t) {
 
 struct tensor* new_tensor(int* shape, int shape_dim, float* values)
 {
+    #ifdef DEBUG
+    if (shape_dim < 2)
+    {
+        printf(
+            "Shape dimension must be at least 2.\n- Row vectors: (1, 2)\n- Column vectors: (2, 1)\n"
+        );
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
     struct tensor* t = (struct tensor*) malloc(sizeof(struct tensor));
 
     t->shape_dim = shape_dim;
@@ -143,7 +153,7 @@ void fill_const(struct tensor* t, double num)
 
 int tensors_can_be_mult(struct tensor* a, struct tensor* b)
 {
-    int connection_dim = a->shape_dim > 1 || b->shape_dim > 1;
+    int connection_dim = a->shape_dim > 1 && b->shape_dim > 1;
     if (b->shape_dim > 1) {
         connection_dim = a->shape[a->shape_dim-1] == b->shape[b->shape_dim-2];
     }
@@ -256,6 +266,7 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out)
 void tensor_add(struct tensor* a, struct tensor* b, struct tensor* out)
 {
     // TODO: Adding tensors of shape n1Xn2X...nNxaXb + aXb
+    // TODO: Safety checks
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] + b->values[i];
     }
