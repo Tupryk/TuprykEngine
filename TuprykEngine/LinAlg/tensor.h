@@ -48,6 +48,7 @@ float tensor_vec_magnitude(struct tensor* t);
 void tensor_flatten(struct tensor* t);
 float tensor_max(struct tensor* t);
 float tensor_min(struct tensor* t);
+struct tensor* tensor_slice(struct tensor* t, int idx);
 
 
 // void singular_value_decomposition(struct tensor* target, struct tensor* U, struct tensor* eta, struct tensor* V_t);

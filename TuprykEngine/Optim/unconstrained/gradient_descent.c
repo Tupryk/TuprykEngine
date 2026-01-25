@@ -2,25 +2,27 @@
 
 #include <math.h>
 #include <stdio.h>
+#include "../meta.h"
 #include "../../global.h"
 #include "../../visual/prints/linalg.h"
 
 
-float gradient_descent(
+struct optim_logs* gradient_descent(
     struct tensor* x0,
     float (*cost_func)(struct tensor*),
     void (*delta_cost_func)(struct tensor*, struct tensor*),
     float alpha,
     float tolerance,
     int max_iters) {
-    
+
+    struct optim_logs* logs = new_optim_logs();
+
     float cost;
     #ifdef OPTIM_VERBOSE
     cost = cost_func(x0);
     printf("Initial cost: %.4f\n", cost);
     #endif
 
-    // TODO: Should also output a final value for x.
     struct tensor* x = tensor_copy(x0);
     struct tensor* delta = tensor_copy_shape(x0);
     int total_steps = max_iters;
@@ -40,27 +42,33 @@ float gradient_descent(
             
             break;
         }
-
+        
         // Scale by alpha
         tensor_scalar_mult(delta, alpha, delta);
         tensor_sub(x, delta, x);
-
+        
         #ifdef OPTIM_VERBOSE
         cost = cost_func(x);
-        printf("delta: ");
+        printf("delta:\n");
         print_tensor(delta);
         printf("Current Cost: %f\n", cost);
-        printf("x: ");
+        printf("x:\n");
         print_tensor(x);
+
+        optim_logs_add(logs, x, cost);
         #endif
     }
     #ifdef OPTIM_VERBOSE
     cost = cost_func(x);
     printf("Total steps taken: %d\n", total_steps);
     printf("Final cost: % .7f\n", cost);
+    printf("x:\n");
+    print_tensor(x);
     #endif
+    
+    logs->final_cost = cost;
+    logs->final_x = x;
 
-    tensor_free(x);
     tensor_free(delta);
-    return cost;
+    return logs;
 }

@@ -1,9 +1,10 @@
 #ifndef OPTIM_UNCONSTRAINED_NEWTON
 #define OPTIM_UNCONSTRAINED_NEWTON
 
+#include "../meta.h"
 #include "../../visual/prints/linalg.h"
 
-float newton(
+struct optim_logs* newton(
     struct tensor* x0,
     float (*cost_func)(struct tensor*),
     void (*delta_cost_func)(struct tensor*, struct tensor*),

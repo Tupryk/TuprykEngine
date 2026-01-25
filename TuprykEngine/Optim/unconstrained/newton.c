@@ -6,14 +6,17 @@
 #include "../../visual/prints/linalg.h"
 
 
-float newton(
+struct optim_logs* newton(
     struct tensor* x0,
     float (*cost_func)(struct tensor*),
     void (*delta_cost_func)(struct tensor*, struct tensor*),
     void (*delta2_cost_func)(struct tensor*, struct tensor*),
     float alpha,
     float tolerance,
-    int max_iters) {
+    int max_iters
+)
+{
+    struct optim_logs* logs = new_optim_logs();
 
     float cost;
     #ifdef OPTIM_VERBOSE
@@ -34,11 +37,9 @@ float newton(
         // Compute gradient
         delta_cost_func(x, delta);
         delta2_cost_func(x, delta2);
-        tensor_flatten(delta); // TODO: Should not be necessary!
 
         // Compute Newton Step
         tensor_inverse(delta2, delta2_inv);
-        tensor_transpose(delta);  // TODO: Delta should not have to be transposed!
         tensor_mult(delta2_inv, delta, delta);
 
         // Stopping criterion
@@ -55,6 +56,7 @@ float newton(
         #ifdef OPTIM_VERBOSE
         cost = cost_func(x);
         printf("Current Cost: %f\n", cost);
+        optim_logs_add(logs, x, cost);
         #endif
     }
     #ifdef OPTIM_VERBOSE
@@ -63,10 +65,11 @@ float newton(
     printf("Final cost: % .7f\n", cost);
     #endif
 
-    tensor_free(x);
+    logs->final_cost = cost;
+    logs->final_x = x;
+
     tensor_free(delta);
     tensor_free(delta2);
     tensor_free(delta2_inv);
-
-    return cost;
+    return logs;
 }

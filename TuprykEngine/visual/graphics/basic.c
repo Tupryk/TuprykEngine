@@ -121,8 +121,8 @@ void plot_unit_func(
     float step_eval = area_side / res;
     float step_vis = 1.f / res;
 
-    int shape[] = {2};
-    struct tensor* in = new_tensor(shape, 1, NULL);
+    int shape[] = {2, 1};
+    struct tensor* in = new_tensor(shape, 2, NULL);
 
     float surface[res][res];
 
@@ -193,10 +193,10 @@ void plot_unit_func_heat(
     float area_side
 )
 {
-    int x_shape[1] = {2};
-    struct tensor* x = new_tensor(x_shape, 1, NULL);
+    int x_shape[] = {2, 1};
+    struct tensor* x = new_tensor(x_shape, 2, NULL);
 
-    int screen_shape[2] = {WINDOW_W, WINDOW_H};
+    int screen_shape[] = {WINDOW_W, WINDOW_H};
     struct tensor* screen = new_tensor(screen_shape, 2, NULL);
 
     for (int i = 0; i < WINDOW_W; i++)
@@ -256,8 +256,8 @@ void plot_unit_func_3d(
     int res = 200;
     float step_eval = area_side / res;
 
-    int shape[] = {3};
-    struct tensor* in = new_tensor(shape, 1, NULL);
+    int shape[] = {3, 1};
+    struct tensor* in = new_tensor(shape, 2, NULL);
 
     for (int i = 0; i < res; i++)
     {

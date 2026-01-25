@@ -423,7 +423,7 @@ int test_append_harder()
 
 int test_matrix_vector_mult()
 {
-    printf("--- Test 12: Multiply Tensors ---\n");
+    printf("--- Test 16: Tensor Vector Multiplication ---\n");
     int shape_A[] = {2, 2};
     TYPE A_values[] = {
         0, 4,
@@ -464,6 +464,28 @@ int test_matrix_vector_mult()
     return failure;
 }
 
+int test_tensor_slice()
+{
+    printf("--- Test 17: Slice Tensor ---\n");
+    int shape_A[] = {3, 3};
+    float A_values[] = {
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9
+    };
+    struct tensor* A = new_tensor(shape_A, 2, A_values);
+    printf("----- A -----\n");
+    print_tensor(A);
+    
+    struct tensor* slice = tensor_slice(A, 1);
+    print_tensor(slice);
+    
+    tensor_free(A);
+    tensor_free(slice);
+
+    return 0;
+}
+
 int main()
 {
     int failures_count = 0;
@@ -478,6 +500,7 @@ int main()
     failures_count += test_append();
     failures_count += test_append_harder();
     failures_count += test_matrix_vector_mult();
+    failures_count += test_tensor_slice();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

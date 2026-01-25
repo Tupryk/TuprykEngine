@@ -8,6 +8,8 @@
 #include "../visual/prints/linalg.h"
 #endif
 
+// TODO: switch to tensors with over shape dim 2
+
 
 int get_tensor_volume(struct tensor* t) {
     int volume = 1;
@@ -23,7 +25,7 @@ struct tensor* new_tensor(int* shape, int shape_dim, float* values)
     if (shape_dim < 2)
     {
         printf(
-            "Shape dimension must be at least 2.\n- Row vectors: (1, 2)\n- Column vectors: (2, 1)\n"
+            "Shape dimension must be at least 2.\n- Row vectors: (1, n)\n- Column vectors: (n, 1)\n"
         );
         exit(EXIT_FAILURE);
     }
@@ -576,7 +578,7 @@ struct tensor* tensor_append(struct tensor* a, struct tensor* b, int axis)
     }
     if (!feasible)
     {
-        printf("Cannot append tensors with shapes (");
+        printf("Cannot append tensors with shapes ");
         print_shape(a->shape, a->shape_dim);
         printf(" and ");
         print_shape(b->shape, b->shape_dim);
@@ -873,9 +875,9 @@ void tensor_flatten(struct tensor* t)
 {
     free(t->shape);
     
-    t->shape = t->shape = (int*) malloc(sizeof(int));
+    t->shape = t->shape = (int*) malloc(sizeof(int) * 2);
     t->shape[0] = t->volume;
-    t->shape_dim = 1;
+    t->shape_dim = 2;
 }
 
 float tensor_max(struct tensor* t)
@@ -901,5 +903,29 @@ float tensor_min(struct tensor* t)
             out = t->values[i];
         }
     }
+    return out;
+}
+
+struct tensor* tensor_slice(struct tensor* t, int idx)
+{
+    // TODO: test properly and make nicer
+    int new_shape_dim = t->shape_dim == 2 ? 2 : t->shape_dim-1;
+    int new_shape[new_shape_dim];
+    int step = 1;
+    for (int i = 1; i < t->shape_dim; i++)
+    {
+        new_shape[i-1] = t->shape[i];
+        step *= t->shape[i];
+    }
+    if (t->shape_dim == 2) new_shape[1] = 1;
+    struct tensor* out = new_tensor(new_shape, new_shape_dim, NULL);
+
+    int out_idx = 0;
+    for (int i = idx; i < t->volume; i+=step)
+    {
+        out->values[out_idx] = t->values[i];
+        out_idx++;
+    }
+
     return out;
 }
