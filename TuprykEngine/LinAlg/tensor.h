@@ -48,6 +48,7 @@ float tensor_vec_magnitude(struct tensor* t);
 void tensor_flatten(struct tensor* t);
 float tensor_max(struct tensor* t);
 float tensor_min(struct tensor* t);
+float tensor_trace(struct tensor* t);
 struct tensor* tensor_slice(struct tensor* t, int idx);
 
 
@@ -55,5 +56,6 @@ struct tensor* tensor_slice(struct tensor* t, int idx);
 // struct tensor* pseudo_inverse(struct tensor* target);
 // void pseudo_inverse(struct tensor* target, struct tensor* out);
 // Eigenvalues / Eigenvectors
+// Diagonalisierung
 
 #endif

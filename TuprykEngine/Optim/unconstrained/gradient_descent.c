@@ -24,37 +24,32 @@ struct optim_logs* gradient_descent(
     #endif
 
     struct tensor* x = tensor_copy(x0);
-    struct tensor* delta = tensor_copy_shape(x0);
+    struct tensor* J = tensor_copy_shape(x0);
     int total_steps = max_iters;
     for (int i = 0; i < max_iters; i++)
     {
         // Compute gradient
-        delta_cost_func(x, delta);
+        delta_cost_func(x, J);
         
         // Stopping criterion
-        float delta_magnitude = tensor_vec_magnitude(delta);
-        if (delta_magnitude <= tolerance) {
+        float J_magnitude = tensor_vec_magnitude(J);
+        if (J_magnitude <= tolerance) {
             total_steps = i+1;
             
             #ifdef OPTIM_VERBOSE
-            printf("Converged with ||delta||: %f\n", delta_magnitude);
+            printf("Converged with ||J||: %f\n", J_magnitude);
             #endif
             
             break;
         }
         
         // Scale by alpha
-        tensor_scalar_mult(delta, alpha, delta);
-        tensor_sub(x, delta, x);
+        tensor_scalar_mult(J, alpha, J);
+        tensor_sub(x, J, x);
         
         #ifdef OPTIM_VERBOSE
         cost = cost_func(x);
-        printf("delta:\n");
-        print_tensor(delta);
         printf("Current Cost: %f\n", cost);
-        printf("x:\n");
-        print_tensor(x);
-
         optim_logs_add(logs, x, cost);
         #endif
     }
@@ -69,6 +64,6 @@ struct optim_logs* gradient_descent(
     logs->final_cost = cost;
     logs->final_x = x;
 
-    tensor_free(delta);
+    tensor_free(J);
     return logs;
 }

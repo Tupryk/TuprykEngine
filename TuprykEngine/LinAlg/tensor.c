@@ -82,9 +82,9 @@ struct tensor* tensor_copy(struct tensor* t)
 void tensor_transfer_values(struct tensor* to, struct tensor* from)
 {
     #ifdef DEBUG
-    if (!tensors_equal_shape(from, to))
+    if (to->volume != from->volume)
     {
-        printf("Tensors must have the same shape to transfer values!\n");
+        printf("Tensors must have the same volume to transfer values!\n");
         exit(EXIT_FAILURE);
     }
     #endif
@@ -904,6 +904,28 @@ float tensor_min(struct tensor* t)
         }
     }
     return out;
+}
+
+float tensor_trace(struct tensor* t)
+{
+    // TODO: Adapt to tensors of any shape?
+    #ifdef DEBUG
+    if (t->shape_dim != 2 || t->shape[0] != t->shape[1])
+    {
+        printf("Trace can only be performed on square matrices.\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    
+    float sum = 0.f;
+    
+    int dim = t->shape[0];
+    for (int i = 0; i < dim; i++)
+    {
+        sum += t->values[ i*dim + i ];
+    }
+    
+    return sum;
 }
 
 struct tensor* tensor_slice(struct tensor* t, int idx)
