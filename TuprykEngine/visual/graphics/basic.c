@@ -298,3 +298,27 @@ void set_global_rot(float rot_x, float rot_y, float rot_z)
     global_y_rot = rot_y;
     global_z_rot = rot_z;
 }
+
+void plot_1d_func(float (*func)(float), float from, float to)
+{
+    int resolution = 100;
+    float values[resolution];
+    float step = (to - from) / (float) resolution;
+    float max_v = -1e6;
+    float min_v = 1e6;
+    
+    float x = from;
+    for (int i = 0; i < resolution; i++)
+    {
+        values[i] = func(x);
+        x += step;
+
+        if (max_v < values[i]) max_v = values[i];
+        if (min_v > values[i]) min_v = values[i];
+    }
+
+    for (int i = 0; i < resolution; i++)
+    {
+
+    }
+}

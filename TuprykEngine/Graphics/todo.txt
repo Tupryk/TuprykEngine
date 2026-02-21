@@ -1,0 +1,6 @@
+- Gaussian splatting
+- Raytracing!!!
+    - Glass
+    - Caustics
+- Raymarching
+- Normal maps :)

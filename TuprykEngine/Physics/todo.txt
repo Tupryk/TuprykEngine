@@ -2,10 +2,8 @@
     - Differentiable Simulator
     - Backward Simulator
 
-- Raytracing!!!
-    - Glass
-    - Caustics
-- Raymarching
 - Particle simulation
 - Fluid simulation
 - Simulation in any dimensionality?
+- Maybe use this for collision checking: https://arxiv.org/pdf/2503.13704v1
+- Simulate an atom (simulate quantum computer?)

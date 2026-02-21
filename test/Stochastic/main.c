@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 #include "../../TuprykEngine/Stochastic/markov.h"
+#include "../../TuprykEngine/Stochastic/pdfs.h"
+#include "../../TuprykEngine/Stochastic/pascal.h"
+#include "../../TuprykEngine/visual/prints/stoch.h"
 #include "../../TuprykEngine/LinAlg/sparse.h"
 #include "../../TuprykEngine/LinAlg/tensor.h"
 #include "../../TuprykEngine/visual/prints/linalg.h"
@@ -34,11 +37,21 @@ int test_basic()
     return 0;
 }
 
+int test_pascal()
+{
+    int row_count = 16;
+    int** tri = new_pascals_triangle(row_count);
+    print_pascals_triangle(tri, row_count);
+    pascals_triangle_free(tri, row_count);
+    return 0;
+}
+
 int main()
 {
     int failures_count = 0;
 
     failures_count += test_basic();
+    failures_count += test_pascal();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

@@ -152,11 +152,12 @@ struct optim_logs* gauss_newton(
     #endif
 
     logs->final_cost = cost;
-    logs->final_x = x;
+    logs->final_x = tensor_copy(x);
 
     tensor_free(J);
     tensor_free(J_T);
     tensor_free(H);
     tensor_free(H_inv);
+    tensor_free(x);
     return logs;
 }

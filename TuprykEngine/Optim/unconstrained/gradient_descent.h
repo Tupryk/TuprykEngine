@@ -3,7 +3,7 @@
 
 #include "../../visual/prints/linalg.h"
 
-struct optim_logs* gradient_descent(
+void gradient_descent_init(
     struct tensor* x0,
     float (*cost_func)(struct tensor*),
     void (*delta_cost_func)(struct tensor*, struct tensor*),
@@ -11,5 +11,7 @@ struct optim_logs* gradient_descent(
     float tolerance,
     int max_iters
 );
+int gradient_descent_run();
+void gradient_descent_free();
 
 #endif

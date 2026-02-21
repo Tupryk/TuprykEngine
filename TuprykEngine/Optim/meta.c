@@ -9,6 +9,8 @@ struct optim_logs* new_optim_logs()
     struct optim_logs* ol = (struct optim_logs*) malloc( sizeof(struct optim_logs) );
     
     ol->steps = 0;
+    ol->converged = 0;
+    ol->final_cost = 0.f;
     ol->Xs = NULL;
     ol->costs = NULL;
     ol->final_x = NULL;

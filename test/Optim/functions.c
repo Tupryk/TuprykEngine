@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "functions.h"
-#include "../LinAlg/tensor.h"
-#include "../visual/prints/linalg.h"
+#include "../../TuprykEngine/LinAlg/tensor.h"
+#include "../../TuprykEngine/visual/prints/linalg.h"
+#include "../../TuprykEngine/Optim/constrained/nlp.h"
 
 
 void quadratic_init()
@@ -62,4 +64,25 @@ void quadratic_eval2(struct tensor* x, struct tensor* out)
 void quadratic_eval3(struct tensor* x, struct tensor* out)
 {
     tensor_transfer_values(out, q.A);
+}
+
+struct nlp* get_nlp0()
+{
+    struct nlp* nlp_ = (struct nlp*) malloc(sizeof(struct nlp));
+    nlp_->eq_count = 0;
+    nlp_->ineq_count = 0;
+
+    nlp_->f = quadratic_eval;
+    nlp_->eq = NULL;
+    nlp_->ineq = NULL;
+    
+    nlp_->delta_f = quadratic_eval2;
+    nlp_->delta_eq = NULL;
+    nlp_->delta_ineq = NULL;
+    
+    nlp_->delta2_f = NULL;
+    nlp_->delta2_eq = NULL;
+    nlp_->delta2_ineq = NULL;
+
+    return  nlp_;
 }

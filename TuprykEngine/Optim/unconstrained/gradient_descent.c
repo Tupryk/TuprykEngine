@@ -2,38 +2,71 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "../meta.h"
 #include "../../global.h"
 #include "../../visual/prints/linalg.h"
 
 
-struct optim_logs* gradient_descent(
+struct gd_context
+{
+    float (*cost_func)(struct tensor*);
+    void (*delta_cost_func)(struct tensor*, struct tensor*);
+    
+    float alpha;
+    float tolerance;
+    int total_steps;
+    int max_iters;
+    
+    struct tensor* x;
+    struct tensor* J;
+    struct optim_logs* logs;
+};
+
+static struct gd_context* ctx;
+
+void gradient_descent_init(
     struct tensor* x0,
     float (*cost_func)(struct tensor*),
     void (*delta_cost_func)(struct tensor*, struct tensor*),
     float alpha,
     float tolerance,
-    int max_iters) {
+    int max_iters
+) {
+    ctx = (struct gd_context*) malloc(sizeof(struct gd_context));
 
-    struct optim_logs* logs = new_optim_logs();
+    ctx->cost_func = cost_func;
+    ctx->delta_cost_func = delta_cost_func;
+    ctx->alpha = alpha;
+    ctx->tolerance = tolerance;
+    ctx->max_iters = max_iters;
 
+    ctx->x = tensor_copy(x0);
+    ctx->J = tensor_copy_shape(x0);
+    ctx->logs = new_optim_logs();
+
+    ctx->total_steps = 0;
+}
+
+int gradient_descent_run()
+{
     float cost;
     #ifdef OPTIM_VERBOSE
-    cost = cost_func(x0);
+    cost = ctx->cost_func(ctx->x);
     printf("Initial cost: %.4f\n", cost);
     #endif
 
-    struct tensor* x = tensor_copy(x0);
-    struct tensor* J = tensor_copy_shape(x0);
-    int total_steps = max_iters;
-    for (int i = 0; i < max_iters; i++)
+    int total_steps = ctx->max_iters;
+    ctx->logs->converged = 0;
+    for (int i = 0; i < ctx->max_iters; i++)
     {
         // Compute gradient
-        delta_cost_func(x, J);
+        ctx->delta_cost_func(ctx->x, ctx->J);
         
         // Stopping criterion
-        float J_magnitude = tensor_vec_magnitude(J);
-        if (J_magnitude <= tolerance) {
+        float J_magnitude = tensor_vec_magnitude(ctx->J);
+        if (J_magnitude <= ctx->tolerance) {
+            ctx->logs->converged = 1;
             total_steps = i+1;
             
             #ifdef OPTIM_VERBOSE
@@ -44,26 +77,33 @@ struct optim_logs* gradient_descent(
         }
         
         // Scale by alpha
-        tensor_scalar_mult(J, alpha, J);
-        tensor_sub(x, J, x);
+        tensor_scalar_mult(ctx->J, ctx->alpha, ctx->J);
+        tensor_sub(ctx->x, ctx->J, ctx->x);
         
         #ifdef OPTIM_VERBOSE
-        cost = cost_func(x);
+        cost = ctx->cost_func(ctx->x);
         printf("Current Cost: %f\n", cost);
-        optim_logs_add(logs, x, cost);
+        optim_logs_add(ctx->logs, ctx->x, cost);
         #endif
     }
     #ifdef OPTIM_VERBOSE
-    cost = cost_func(x);
+    cost = ctx->cost_func(ctx->x);
     printf("Total steps taken: %d\n", total_steps);
     printf("Final cost: % .7f\n", cost);
     printf("x:\n");
-    print_tensor(x);
+    print_tensor(ctx->x);
     #endif
     
-    logs->final_cost = cost;
-    logs->final_x = x;
+    ctx->logs->final_cost = cost;
+    ctx->logs->final_x = tensor_copy(ctx->x);
 
-    tensor_free(J);
-    return logs;
+    return ctx->logs->converged;
+}
+
+void gradient_descent_free()
+{
+    tensor_free(ctx->x);
+    tensor_free(ctx->J);
+    optim_logs_free(ctx->logs);
+    free(ctx);
 }

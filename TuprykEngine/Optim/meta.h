@@ -8,9 +8,10 @@ struct optim_logs
 {
     struct tensor* Xs;
     struct tensor* costs;
-    int steps;
-    float final_cost;
     struct tensor* final_x;
+    float final_cost;
+    int converged;
+    int steps;
 };
 
 struct optim_logs* new_optim_logs();
