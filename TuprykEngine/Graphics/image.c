@@ -2,9 +2,9 @@
 #include "stdlib.h"
 
 
-struct Image* new_image(int width, int height, int channels)
+struct image* new_image(int width, int height, int channels)
 {
-    struct Image* im = (struct Image*) malloc(sizeof(struct Image));
+    struct image* im = (struct image*) malloc(sizeof(struct image));
 
     int shape[3] = {width, height, channels};
     im->pixels = new_tensor(shape, 3, NULL);
@@ -12,12 +12,12 @@ struct Image* new_image(int width, int height, int channels)
     return im;
 }
 
-void image_set_pixel(struct Image* im, int x, int y, float r, float g, float b, float a)
+void image_set_pixel(struct image* im, int x, int y, float r, float g, float b, float a)
 {
     
 }
 
-void image_free(struct Image* im)
+void image_free(struct image* im)
 {
     tensor_free(im->pixels);
     free(im);

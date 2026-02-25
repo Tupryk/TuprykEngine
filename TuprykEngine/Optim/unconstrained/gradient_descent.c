@@ -64,7 +64,7 @@ int gradient_descent_run()
         ctx->delta_cost_func(ctx->x, ctx->J);
         
         // Stopping criterion
-        float J_magnitude = tensor_vec_magnitude(ctx->J);
+        float J_magnitude = tensor_norm(ctx->J);
         if (J_magnitude <= ctx->tolerance) {
             ctx->logs->converged = 1;
             total_steps = i+1;

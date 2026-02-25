@@ -281,6 +281,20 @@ void tensor_sub(struct tensor* a, struct tensor* b, struct tensor* out)
     }
 }
 
+struct tensor* tensor_add_give(struct tensor* a, struct tensor* b)
+{
+    struct tensor* out = tensor_copy_shape(a);
+    tensor_add(a, b, out);
+    return out;
+}
+
+struct tensor* tensor_sub_give(struct tensor* a, struct tensor* b)
+{
+    struct tensor* out = tensor_copy_shape(a);
+    tensor_sub(a, b, out);
+    return out;
+}
+
 void tensor_loop(struct tensor* t, void (*func)(struct tensor*, int*))
 {
     int counts[t->shape_dim];
@@ -853,7 +867,7 @@ struct tensor* tensor_inverse_give(struct tensor* A)
     return A_inv;
 }
 
-float tensor_vec_magnitude(struct tensor* t)
+float tensor_norm(struct tensor* t)
 {
     // TODO: Make this work for tensors with axis as input like numpy's np.linalg.norm(...).
     #ifdef DEBUG

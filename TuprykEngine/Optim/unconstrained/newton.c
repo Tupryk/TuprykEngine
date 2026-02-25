@@ -47,7 +47,7 @@ struct optim_logs* newton(
         tensor_mult(H_inv, J, J);
 
         // Stopping criterion
-        float J_magnitude = tensor_vec_magnitude(J);
+        float J_magnitude = tensor_norm(J);
         if (J_magnitude <= tolerance) {
             total_steps = i+1;
             break;
@@ -129,7 +129,7 @@ struct optim_logs* gauss_newton(
         tensor_mult(H_inv, J, J);
 
         // Stopping criterion
-        float J_magnitude = tensor_vec_magnitude(J);
+        float J_magnitude = tensor_norm(J);
         if (J_magnitude <= tolerance) {
             total_steps = i+1;
             break;

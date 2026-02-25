@@ -30,6 +30,8 @@ void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out);
 struct tensor* tensor_mult_give(struct tensor* a, struct tensor* b);
 void tensor_add(struct tensor* a, struct tensor* b, struct tensor* out);
 void tensor_sub(struct tensor* a, struct tensor* b, struct tensor* out);
+struct tensor* tensor_add_give(struct tensor* a, struct tensor* b);
+struct tensor* tensor_sub_give(struct tensor* a, struct tensor* b);
 void tensor_loop(struct tensor* t, void (*func)(struct tensor*, int*));
 void tensor_identity(struct tensor* a);
 void tensor_transpose(struct tensor* t);
@@ -44,7 +46,7 @@ int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struc
 float tensor_determinant(struct tensor* A);
 void tensor_inverse(struct tensor* A, struct tensor* A_inv);
 struct tensor* tensor_inverse_give(struct tensor* A);
-float tensor_vec_magnitude(struct tensor* t);
+float tensor_norm(struct tensor* t);
 void tensor_flatten(struct tensor* t);
 float tensor_max(struct tensor* t);
 float tensor_min(struct tensor* t);
