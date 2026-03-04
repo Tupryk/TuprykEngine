@@ -14,6 +14,7 @@ struct frame
     // 0: None, 1: Triangulated, 2: Implicit
     // There should be different mesh types for collisions and visuals
     int mesh_type;
+    float r;  // For now just spheres
 };
 
 void frame_free(struct frame* f);

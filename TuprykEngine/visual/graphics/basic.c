@@ -322,3 +322,24 @@ void plot_1d_func(float (*func)(float), float from, float to)
 
     }
 }
+
+void view_image(struct tensor* im)
+{
+    int width = im->shape[0];
+    int height = im->shape[1];
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            int indices[] = {x, y, 0};
+            int idx = get_tensor_value_index(im, indices);
+
+            float r = im->values[idx];
+            float g = im->values[idx+1];
+            float b = im->values[idx+2];
+
+            SDL_SetRenderDrawColor(renderer, r*255, g*255, b*255, 255);
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
+    }
+}

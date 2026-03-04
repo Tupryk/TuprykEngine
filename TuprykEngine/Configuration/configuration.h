@@ -6,7 +6,8 @@
 
 struct config
 {
-    struct frame* root;
+    int frame_count;
+    struct frame* frames;
     
     struct tensor* q;
     struct tensor* q_max;

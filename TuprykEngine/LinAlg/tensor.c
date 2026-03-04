@@ -79,6 +79,14 @@ struct tensor* tensor_copy(struct tensor* t)
     return t_copy;
 }
 
+void tensor_fill_uniform(struct tensor* t, float min, float max)
+{
+    for (int i = 0; i < t->volume; i++)
+    {
+        t->values[i] = (((float) (rand() % (int) 1e6)) * 1e-6) * (max - min) + min;
+    }
+}
+
 void tensor_transfer_values(struct tensor* to, struct tensor* from)
 {
     #ifdef DEBUG
