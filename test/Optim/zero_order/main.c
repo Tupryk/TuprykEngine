@@ -56,7 +56,7 @@ int main()
                 max_score = scores[k];
             }
         }
-        printf("Best score for generation %d: %f\n", i, max_score);
+        printf("Best score for generation %d: %f\n", i+1, max_score);
         population_kill_weak(pop, scores);
         population_mutate(pop);
     }

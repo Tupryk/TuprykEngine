@@ -1,8 +1,6 @@
 #ifndef GENETIC
 #define GENETIC
 
-#include "../../LinAlg/sparse.h"
-
 
 struct new_nodes_gene
 {
@@ -19,6 +17,10 @@ struct new_weights_gene
     int** connections;
     float* connection_weights;
 };
+
+// TODO: Add a noise as input mechanism to the network, ie. like in diffusion models
+// TODO: Add dropout somehow
+// TODO: Adaptime uniman schedule that only moves when the population is ready (above a certain success threshhold)
 
 struct node_perturvation_gene
 {
@@ -43,10 +45,16 @@ struct gene
 struct agent
 {
     int gene_count;
+    int node_count;
     struct gene** genes;
+    
     float* activations;
+    int* activation_count;
     int* activation_funcs;
-    struct sparse* weights;
+
+    int* connection_counts;
+    int** connections;
+    float** connection_weight;
 };
 
 struct population
@@ -56,13 +64,12 @@ struct population
     int max_size;
     int current_size;
     int keep_best_n;
-    int inovation_count;
+    int innovation_count;
     int agent_children_count;
-    struct gene* inovations;
-    struct gene* latest_inovation;
+    struct gene* innovations;
+    struct gene* latest_innovation;
     struct agent** agents;
 };
-
 
 struct population* init_population(int in_dim, int out_dim);
 void population_mutate(struct population* pop);

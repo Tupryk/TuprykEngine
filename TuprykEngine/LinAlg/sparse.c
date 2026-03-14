@@ -32,6 +32,23 @@ struct sparse* new_sparse(int* shape, int shape_dim)
     return st;
 }
 
+struct sparse* sparse_copy(struct sparse* s)
+{
+    struct sparse* out = new_sparse(s->shape, s->shape_dim);
+    
+    out->value_count = s->value_count;
+    out->values = (float*) malloc(sizeof(float) * s->value_count);
+    out->indices = (int*) malloc(sizeof(int) * s->value_count);
+
+    for (int i = 0; i < s->value_count; i++)
+    {
+        out->values[i] = s->values[i];
+        out->indices[i] = s->indices[i];
+    }
+
+    return out;
+}
+
 struct sparse* sparse_from_tensor(struct tensor* t)
 {
     struct sparse* st = new_sparse(t->shape, t->shape_dim);
