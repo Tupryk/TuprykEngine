@@ -22,8 +22,10 @@ int main()
 {
     int generation_count = 100;
     int task_trials = 10;
+    int in_dim = 3;
+    int out_dim = 2;
 
-    struct population* pop = init_population(3, 2);
+    struct population* pop = init_population(in_dim, out_dim);
 
     for (int i = 0; i < generation_count; i++)
     {
@@ -35,7 +37,7 @@ int main()
         }
         for (int j = 0; j < task_trials; j++)
         {
-            float input[3] = {
+            float input[] = {
                 ((float)(rand() % 1000)) * 0.001f * 10.f - 5.f,
                 ((float)(rand() % 1000)) * 0.001f * 10.f - 5.f,
                 ((float)(rand() % 1000)) * 0.001f * 10.f - 5.f
@@ -43,6 +45,12 @@ int main()
             float** outputs = population_feed_all_agents(pop, input);
             for (int k = 0; k < pop->max_size; k++)
             {
+                // printf("Output of agent %d: ", k);
+                // for (int o = 0; o < out_dim; o++)
+                // {
+                //     printf("%f, ", outputs[k][o]);
+                // }
+                // printf("\n");
                 scores[k] += task1_eval(input, outputs[k]);
                 free(outputs[k]);
             }

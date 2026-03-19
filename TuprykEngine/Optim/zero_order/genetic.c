@@ -12,6 +12,38 @@ struct int_queue
     struct int_queue* next;
 };
 
+struct int_queue* queue_add_val(struct int_queue* queue, int value)
+{
+    struct int_queue* tmp = NULL;
+    if (queue != NULL)
+    {
+        tmp = queue->next;
+    }
+    struct int_queue* new_start = (struct int_queue*) malloc(sizeof(struct int_queue));
+    new_start->value = value;
+    new_start->next = tmp;
+    
+    return new_start;
+}
+
+int value_in_queue(struct int_queue* queue, int value)
+{
+    struct int_queue* tmp = queue;
+    while (tmp != NULL)
+    {
+        if (tmp->value == value) return 1;
+        tmp = tmp->next;
+    }
+    
+    return 0;
+}
+
+// TODO: move this somewhere else
+float relu(float x)
+{
+    return x < 0.f ? x : 0.f;
+}
+
 struct gene* basic_layer_gene(int dim)
 {
     struct gene* g = (struct gene*) malloc(sizeof(struct gene));
@@ -43,8 +75,10 @@ void reset_agent(struct agent* a)
 
 struct agent* mutate_agent(struct population* pop, struct agent* parent)
 {
+    // Copy parent on child
     struct agent* child = (struct agent*) malloc(sizeof(struct agent)); 
     
+    // TODO: this construction should be done based on the genetic code
     int node_count = parent->node_count;
     child->node_count = node_count;
 
@@ -76,11 +110,70 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
         else
         {
             child->connections[i] = (int*) malloc(sizeof(int) * parent->connection_counts[i]);
+            child->connection_weight[i] = (float*) malloc(sizeof(float) * parent->connection_counts[i]);
             for (int j = 0; j < parent->connection_counts[i]; j++)
             {
                 child->connections[i][j] = parent->connections[i][j];
                 child->connection_weight[i][j] = parent->connection_weight[i][j];
             }
+        }
+    }
+
+    // Mutate child
+    int mutation_done = 0;
+    while (!mutation_done)
+    {
+        mutation_done = 1;
+        int mutation_type = rand() % 2;
+        switch (mutation_type)
+        {
+        case 0:
+        {
+            // Add weight
+            int start_node = rand() % child->node_count;
+            int end_node = rand() % child->node_count;
+            float weight = (((float)(rand() % 10000)) * 0.0001) * 2.f - 1.f;  // TODO: put this into a utils func
+
+            // TODO: this should be removed
+            child->connection_counts[start_node]++;
+            int cc = child->connection_counts[start_node];
+            if (child->connections[start_node] != NULL)
+            {
+                free(child->connections[start_node]);
+                free(child->connection_weight[start_node]);
+            }
+            child->connections[start_node] = (int*) malloc(sizeof(int) * cc);
+            child->connection_weight[start_node] = (float*) malloc(sizeof(float) * cc);
+            for (int i = 0; i < cc-1; i++)
+            {
+                child->connections[start_node][i] = parent->connections[start_node][i];
+                child->connection_weight[start_node][i] = parent->connection_weight[start_node][i];
+            }
+            child->connections[start_node][cc-1] = end_node;
+            child->connection_weight[start_node][cc-1] = weight;
+            break;
+        }
+    
+        case 1:
+        {
+            // Mutate weight
+            int start_node = rand() % child->node_count;
+            int cc = child->connection_counts[start_node];
+            if (cc > 0)
+            {
+                int connection_idx = rand() % cc;
+                child->connection_weight[start_node][connection_idx] = (((float)(rand() % 10000)) * 0.0001) * 2.f - 1.f;
+            }
+            else mutation_done = 0;
+            break;
+        }
+        
+        default:
+            #ifdef DEBUG
+            printf("Mutation type does not exist!\n");
+            exit(EXIT_FAILURE);
+            #endif
+            break;
         }
     }
 
@@ -240,25 +333,54 @@ void population_kill_weak(struct population* pop, float* scores)
 
 float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
 {
+    // Set all activations in the network to 0
     reset_agent(a);
 
+    // Initialize the input layer
     struct int_queue* queue = NULL;
     for (int i = 0; i < in_dim; i++)
     {
         a->activations[i] = input[i];
-
-        struct int_queue* tmp = NULL;
-        if (queue != NULL)
-        {
-            tmp = queue->next;
-        }
-        queue = (struct int_queue*) malloc(sizeof(struct int_queue));
-        queue->value = i;
-        queue->next = tmp;
+        queue = queue_add_val(queue, i);
     }
+
+    // Forward through the network
     struct int_queue* next_queue = NULL;
     while (queue != NULL)
     {
+        int node_id = queue->value;
+        a->activation_count[node_id]++;
+        // Pass through non-linearity
+        float node_activation = a->activations[node_id];
+        float forward_act = node_activation;
+        switch (a->activation_funcs[node_id])
+        {
+        case 0:
+            // Nothing
+            break;
+
+        case 1:
+            forward_act = relu(forward_act);
+            break;
+
+        default:
+            #ifdef DEBUG
+            printf("Invalid node activation function!\n");
+            #endif
+            break;
+        }
+
+        for (int i = 0; i < a->connection_counts[node_id]; i++)
+        {
+            int forward_node = a->connections[node_id][i];
+            float w = a->connection_weight[node_id][i];
+            a->activations[forward_node] += w * forward_act;
+            if (!value_in_queue(queue, i) && !a->activation_count[i])
+            {
+                queue = queue_add_val(queue, i);
+            }
+        }
+
         struct int_queue* tmp = queue->next;
         free(queue);
         queue = tmp;
@@ -269,6 +391,7 @@ float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
         }
     }
 
+    // Write to output array
     float* out = (float*) malloc(sizeof(float) * out_dim);
     for (int i = 0; i < out_dim; i++)
     {
@@ -325,7 +448,7 @@ void gene_free(struct gene* g)
 {
     switch(g->type)
     {
-        case 0:
+    case 0:
         // struct new_nodes_gene* data_ = (struct new_nodes_gene*) init_gene->data;
         // int count;
         // int connection_count;
@@ -333,9 +456,11 @@ void gene_free(struct gene* g)
         // float* connection_weights;
         // int* activation_type;
         break;
-        case 1:
+
+    case 1:
         break;
-        case 2:
+
+    case 2:
         break;
     }
     free(g);

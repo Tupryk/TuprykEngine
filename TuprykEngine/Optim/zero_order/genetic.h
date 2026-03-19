@@ -4,6 +4,7 @@
 
 struct new_nodes_gene
 {
+    int noisy;  // Adds gaussian noise to outputs
     int count;
     int connection_count;
     int** connections;  // Indices of entire network, not just mutation set!
