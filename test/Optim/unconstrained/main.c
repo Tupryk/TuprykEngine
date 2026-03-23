@@ -15,8 +15,8 @@
 // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 // for (int i = 0; i < logs->steps-1; i++)
 // {
-//     struct tensor* x_0 = tensor_slice(logs->Xs, i);
-//     struct tensor* x_1 = tensor_slice(logs->Xs, i+1);
+//     tensor* x_0 = tensor_slice(logs->Xs, i);
+//     tensor* x_1 = tensor_slice(logs->Xs, i+1);
 //     draw_line_3d(
 //         x_0->values[0], x_0->values[1], logs->costs->values[i],
 //         x_1->values[0], x_1->values[1], logs->costs->values[i+1]
@@ -31,7 +31,7 @@ int main()
 {
     int shape[] = {2, 1};
     float values[] = {11.f, -5.f};
-    struct tensor* init_x = new_tensor(shape, 2, values);
+    tensor* init_x = new_tensor(shape, 2, values);
     
     quadratic_init();
 

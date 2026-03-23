@@ -15,7 +15,7 @@ static struct ParticleSim* g_ps = NULL;
 static int g_point_count = 0;
 static int g_dim = 0;
 
-void spin(struct ParticleSim* ps, struct tensor* acc)
+void spin(struct ParticleSim* ps, tensor* acc)
 {
     for (int j = 0; j < g_point_count; j++)
     {

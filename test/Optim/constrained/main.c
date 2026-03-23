@@ -12,7 +12,7 @@ int main()
 {
     int shape[] = {2, 1};
     float values[] = {11.f, -5.f};
-    struct tensor* init_x = new_tensor(shape, 2, values);
+    tensor* init_x = new_tensor(shape, 2, values);
     
     quadratic_init();
     struct nlp* nlp_0 = get_nlp0();

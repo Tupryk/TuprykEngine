@@ -109,7 +109,7 @@ void draw_3d_unit_cube()
 }
 
 void plot_unit_func(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float area_side
@@ -122,7 +122,7 @@ void plot_unit_func(
     float step_vis = 1.f / res;
 
     int shape[] = {2, 1};
-    struct tensor* in = new_tensor(shape, 2, NULL);
+    tensor* in = new_tensor(shape, 2, NULL);
 
     float surface[res][res];
 
@@ -187,17 +187,17 @@ void plot_unit_func(
 }
 
 void plot_unit_func_heat(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float area_side
 )
 {
     int x_shape[] = {2, 1};
-    struct tensor* x = new_tensor(x_shape, 2, NULL);
+    tensor* x = new_tensor(x_shape, 2, NULL);
 
     int screen_shape[] = {WINDOW_W, WINDOW_H};
-    struct tensor* screen = new_tensor(screen_shape, 2, NULL);
+    tensor* screen = new_tensor(screen_shape, 2, NULL);
 
     for (int i = 0; i < WINDOW_W; i++)
     {
@@ -244,7 +244,7 @@ void plot_unit_func_heat(
 }
 
 void plot_unit_func_3d(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float center_z,
@@ -257,7 +257,7 @@ void plot_unit_func_3d(
     float step_eval = area_side / res;
 
     int shape[] = {3, 1};
-    struct tensor* in = new_tensor(shape, 2, NULL);
+    tensor* in = new_tensor(shape, 2, NULL);
 
     for (int i = 0; i < res; i++)
     {
@@ -323,7 +323,7 @@ void plot_1d_func(float (*func)(float), float from, float to)
     }
 }
 
-void view_image(struct tensor* im)
+void view_image(tensor* im)
 {
     int width = im->shape[0];
     int height = im->shape[1];

@@ -6,8 +6,8 @@
 
 struct frame
 {
-    struct tensor* pos;
-    struct tensor* rot;
+    tensor* pos;
+    tensor* rot;
     
     struct frame* parent;
 

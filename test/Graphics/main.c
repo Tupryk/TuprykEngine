@@ -12,7 +12,7 @@
 
 int test_raytracer()
 {
-    struct tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
+    tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
     tensor_fill_uniform(im, 0.f, 1.f);
 
     // raytrace(C, cam, im);

@@ -3,7 +3,7 @@
 
 #include "../global.h"
 
-struct tensor
+typedef struct
 {
     int* shape;
     int shape_dim;
@@ -11,53 +11,53 @@ struct tensor
     int volume;
     // This could speed things up in a lot of cases (eg. Inverting). Value needs to be updated in certain cases.
     int type;  // -1: None, 0: diagonal, 1: orthogonal, 2: PSD // TODO: Decide this. Maybe each bit can encode a certain thing? Like positive, etc.
-};
+} tensor;
 
-// Switch to always using tensor pointers (faster) ei. struct tensor new_tensor(...); -> struct tensor* new_tensor(...);
-struct tensor* new_tensor(int* shape, int shape_dim, float* values);
-struct tensor* tensor_copy(struct tensor* t);
-struct tensor* tensor_copy_shape(struct tensor* t);
-void tensor_fill_uniform(struct tensor* t, float min, float max);
-void tensor_transfer_values(struct tensor* to, struct tensor* from);
-void tensor_free(struct tensor* t);
-int get_tensor_volume(struct tensor* t);
-int get_tensor_value_index(struct tensor* t, int* indices);
-double get_tensor_value(struct tensor* t, int* indices);
+// Switch to always using tensor pointers (faster) ei. tensor new_tensor(...); -> tensor* new_tensor(...);
+tensor* new_tensor(int* shape, int shape_dim, float* values);
+tensor* tensor_copy(tensor* t);
+tensor* tensor_copy_shape(tensor* t);
+void tensor_fill_uniform(tensor* t, float min, float max);
+void tensor_transfer_values(tensor* to, tensor* from);
+void tensor_free(tensor* t);
+int get_tensor_volume(tensor* t);
+int get_tensor_value_index(tensor* t, int* indices);
+double get_tensor_value(tensor* t, int* indices);
 void get_identity(int shape_dim, int shape);
-void fill_random(struct tensor* t);
-void fill_const(struct tensor* t, double num);
-int tensors_can_be_mult(struct tensor* a, struct tensor* b);
-void tensor_mult(struct tensor* a, struct tensor* b, struct tensor* out);
-struct tensor* tensor_mult_give(struct tensor* a, struct tensor* b);
-void tensor_add(struct tensor* a, struct tensor* b, struct tensor* out);
-void tensor_sub(struct tensor* a, struct tensor* b, struct tensor* out);
-struct tensor* tensor_add_give(struct tensor* a, struct tensor* b);
-struct tensor* tensor_sub_give(struct tensor* a, struct tensor* b);
-void tensor_loop(struct tensor* t, void (*func)(struct tensor*, int*));
-void tensor_identity(struct tensor* a);
-void tensor_transpose(struct tensor* t);
-int tensors_equal_shape(struct tensor* a, struct tensor* b);
-int tensors_equal(struct tensor* a, struct tensor* b);
-void tensor_scalar_mult(struct tensor* a, float b, struct tensor* out);
-struct tensor* tensor_scalar_mult_give(struct tensor* a, float b);
-int tensor_is_square(struct tensor* t);
-void tensor_reshape(struct tensor* t, int* shape, int shape_dim);
-struct tensor* tensor_append(struct tensor* a, struct tensor* b, int axis);
-int tensor_lu_decomp(struct tensor* A, struct tensor* P, struct tensor* L, struct tensor* U);
-float tensor_determinant(struct tensor* A);
-void tensor_inverse(struct tensor* A, struct tensor* A_inv);
-struct tensor* tensor_inverse_give(struct tensor* A);
-float tensor_norm(struct tensor* t);
-void tensor_flatten(struct tensor* t);
-float tensor_max(struct tensor* t);
-float tensor_min(struct tensor* t);
-float tensor_trace(struct tensor* t);
-struct tensor* tensor_slice(struct tensor* t, int idx);
+void fill_random(tensor* t);
+void fill_const(tensor* t, double num);
+int tensors_can_be_mult(tensor* a, tensor* b);
+void tensor_mult(tensor* a, tensor* b, tensor* out);
+tensor* tensor_mult_give(tensor* a, tensor* b);
+void tensor_add(tensor* a, tensor* b, tensor* out);
+void tensor_sub(tensor* a, tensor* b, tensor* out);
+tensor* tensor_add_give(tensor* a, tensor* b);
+tensor* tensor_sub_give(tensor* a, tensor* b);
+void tensor_loop(tensor* t, void (*func)(tensor*, int*));
+void tensor_identity(tensor* a);
+void tensor_transpose(tensor* t);
+int tensors_equal_shape(tensor* a, tensor* b);
+int tensors_equal(tensor* a, tensor* b);
+void tensor_scalar_mult(tensor* a, float b, tensor* out);
+tensor* tensor_scalar_mult_give(tensor* a, float b);
+int tensor_is_square(tensor* t);
+void tensor_reshape(tensor* t, int* shape, int shape_dim);
+tensor* tensor_append(tensor* a, tensor* b, int axis);
+int tensor_lu_decomp(tensor* A, tensor* P, tensor* L, tensor* U);
+float tensor_determinant(tensor* A);
+void tensor_inverse(tensor* A, tensor* A_inv);
+tensor* tensor_inverse_give(tensor* A);
+float tensor_norm(tensor* t);
+void tensor_flatten(tensor* t);
+float tensor_max(tensor* t);
+float tensor_min(tensor* t);
+float tensor_trace(tensor* t);
+tensor* tensor_slice(tensor* t, int idx);
 
 
-// void singular_value_decomposition(struct tensor* target, struct tensor* U, struct tensor* eta, struct tensor* V_t);
-// struct tensor* pseudo_inverse(struct tensor* target);
-// void pseudo_inverse(struct tensor* target, struct tensor* out);
+// void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
+// tensor* pseudo_inverse(tensor* target);
+// void pseudo_inverse(tensor* target, tensor* out);
 // Eigenvalues / Eigenvectors
 // Diagonalisierung
 

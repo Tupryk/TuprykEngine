@@ -2,7 +2,12 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g `sdl2-config --cflags`
 LDFLAGS = `sdl2-config --libs`
 
-SRCS = main.c ../../../TuprykEngine/visual/graphics/window.c ../../../TuprykEngine/visual/graphics/basic.c ../../../TuprykEngine/LinAlg/tensor.c ../../../TuprykEngine/visual/prints/linalg.c ../../../TuprykEngine/Optim/functions.c
+SRCS = main.c \
+	../../../TuprykEngine/visual/graphics/window.c \
+	../../../TuprykEngine/visual/graphics/basic.c \
+	../../../TuprykEngine/LinAlg/tensor.c \
+	../../../TuprykEngine/visual/prints/linalg.c \
+	../../../TuprykEngine/Optim/functions.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

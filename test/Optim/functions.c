@@ -31,14 +31,14 @@ void quadratic_free()
     tensor_free(q.b);
 }
 
-float quadratic_eval(struct tensor* x)
+float quadratic_eval(tensor* x)
 {
-    struct tensor* x_T = tensor_copy(x);
+    tensor* x_T = tensor_copy(x);
     tensor_transpose(x_T);
 
-    struct tensor* dot0 = tensor_mult_give(q.A, x);
-    struct tensor* dot1 = tensor_mult_give(x_T, dot0);
-    struct tensor* dot2 = tensor_mult_give(q.b, x);
+    tensor* dot0 = tensor_mult_give(q.A, x);
+    tensor* dot1 = tensor_mult_give(x_T, dot0);
+    tensor* dot2 = tensor_mult_give(q.b, x);
     
     float out = 0.5 * dot1->values[0] + dot2->values[0] + q.c;
     
@@ -50,9 +50,9 @@ float quadratic_eval(struct tensor* x)
     return out;
 }
 
-void quadratic_eval2(struct tensor* x, struct tensor* out)
+void quadratic_eval2(tensor* x, tensor* out)
 {
-    struct tensor* b_T = tensor_copy(q.b);
+    tensor* b_T = tensor_copy(q.b);
     tensor_transpose(b_T);
 
     tensor_mult(q.A, x, out);
@@ -61,7 +61,7 @@ void quadratic_eval2(struct tensor* x, struct tensor* out)
     tensor_free(b_T);
 }
 
-void quadratic_eval3(struct tensor* x, struct tensor* out)
+void quadratic_eval3(tensor* x, tensor* out)
 {
     tensor_transfer_values(out, q.A);
 }

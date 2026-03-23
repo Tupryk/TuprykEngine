@@ -6,7 +6,7 @@
 #include "tensor.h"
 
 
-struct sparse
+typedef struct
 {
     int* shape;
     int shape_dim;
@@ -14,14 +14,14 @@ struct sparse
     float* values;
     int* indices;
     int value_count;
-};
+} sparse;
 
-struct sparse* new_sparse(int* shape, int shape_dim);
-struct sparse* sparse_copy(struct sparse* s);
-struct sparse* sparse_from_tensor(struct tensor* t);
-struct sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int));
-struct tensor* tensor_from_sparse(struct sparse* st);
-void sparse_free(struct sparse* st);
-void sparse_insert(struct sparse* st, float value, int index);
+sparse* new_sparse(int* shape, int shape_dim);
+sparse* sparse_copy(sparse* s);
+sparse* sparse_from_tensor(tensor* t);
+sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int));
+tensor* tensor_from_sparse(sparse* st);
+void sparse_free(sparse* st);
+void sparse_insert(sparse* st, float value, int index);
 
 #endif

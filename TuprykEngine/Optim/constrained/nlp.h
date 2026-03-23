@@ -5,8 +5,8 @@
 #include "../../LinAlg/tensor.h"
 
 
-typedef float (*scalar_fn)(struct tensor*);
-typedef void (*constraint_fn)(struct tensor*, struct tensor*);
+typedef float (*scalar_fn)(tensor*);
+typedef void (*constraint_fn)(tensor*, tensor*);
 
 struct nlp
 {

@@ -1,7 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 
-SRCS = main.c ../../TuprykEngine/Control/spring.c
+SRCS = main.c \
+	../../TuprykEngine/Control/spring.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

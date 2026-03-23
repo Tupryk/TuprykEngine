@@ -2,7 +2,7 @@
 #define AUG_LAG
 
 void aug_lagrangian_init(
-    struct tensor* x0,
+    tensor* x0,
     struct nlp* nlp_,
     float alpha,
     float tolerance,

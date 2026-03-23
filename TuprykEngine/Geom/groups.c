@@ -6,7 +6,7 @@
 #include "../LinAlg/tensor.h"
 
 
-struct tensor make_se_mat(double pos[], double angles[], int dim)
+tensor make_se_mat(double pos[], double angles[], int dim)
 {
     if (dim != 3)
     {
@@ -21,7 +21,7 @@ struct tensor make_se_mat(double pos[], double angles[], int dim)
         0.0, 0.0, 1.0, pos[2],
         0.0, 0.0, 0.0, 1.0
     };
-    struct tensor out = new_tensor(shape, 2, values);
+    tensor out = new_tensor(shape, 2, values);
 
     return out;
 }

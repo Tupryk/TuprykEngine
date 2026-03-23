@@ -49,6 +49,7 @@ struct agent
     int node_count;
     struct gene** genes;
     
+    // TODO: this should be part of a different struct (network struct) maybe...
     float* activations;
     int* activation_count;
     int* activation_funcs;

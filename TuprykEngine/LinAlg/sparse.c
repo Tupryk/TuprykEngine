@@ -4,9 +4,9 @@
 #include "sparse.h"
 
 
-struct sparse* new_sparse(int* shape, int shape_dim)
+sparse* new_sparse(int* shape, int shape_dim)
 {
-    struct sparse* st = (struct sparse*) malloc(sizeof(struct sparse));
+    sparse* st = (sparse*) malloc(sizeof(sparse));
 
     st->shape_dim = shape_dim;
     st->shape = (int*) malloc(shape_dim * sizeof(int));
@@ -32,9 +32,9 @@ struct sparse* new_sparse(int* shape, int shape_dim)
     return st;
 }
 
-struct sparse* sparse_copy(struct sparse* s)
+sparse* sparse_copy(sparse* s)
 {
-    struct sparse* out = new_sparse(s->shape, s->shape_dim);
+    sparse* out = new_sparse(s->shape, s->shape_dim);
     
     out->value_count = s->value_count;
     out->values = (float*) malloc(sizeof(float) * s->value_count);
@@ -49,9 +49,9 @@ struct sparse* sparse_copy(struct sparse* s)
     return out;
 }
 
-struct sparse* sparse_from_tensor(struct tensor* t)
+sparse* sparse_from_tensor(tensor* t)
 {
-    struct sparse* st = new_sparse(t->shape, t->shape_dim);
+    sparse* st = new_sparse(t->shape, t->shape_dim);
 
     // TODO: Make more efficient
     for (int i = 0; i < t->volume; i++)
@@ -65,9 +65,9 @@ struct sparse* sparse_from_tensor(struct tensor* t)
     return st;
 }
 
-struct sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
+sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
 {
-    struct sparse* st = new_sparse(shape, shape_dim);
+    sparse* st = new_sparse(shape, shape_dim);
 
     // TODO: Make more efficient
     for (int i = 0; i < st->volume; i++)
@@ -82,9 +82,9 @@ struct sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
     return st;
 }
 
-struct tensor* tensor_from_sparse(struct sparse* st)
+tensor* tensor_from_sparse(sparse* st)
 {
-    struct tensor* t = new_tensor(st->shape, st->shape_dim, NULL);
+    tensor* t = new_tensor(st->shape, st->shape_dim, NULL);
 
     for (int i = 0; i < st->value_count; i++)
     {
@@ -94,7 +94,7 @@ struct tensor* tensor_from_sparse(struct sparse* st)
     return t;
 }
 
-void sparse_free(struct sparse* st)
+void sparse_free(sparse* st)
 {
     free(st->shape);
     if (st->values != NULL)
@@ -105,7 +105,7 @@ void sparse_free(struct sparse* st)
     free(st);
 }
 
-void sparse_insert(struct sparse* st, float value, int index)
+void sparse_insert(sparse* st, float value, int index)
 {
     // TODO: Make more efficient
     st->value_count++;

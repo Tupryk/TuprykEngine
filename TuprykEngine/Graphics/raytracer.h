@@ -5,6 +5,6 @@
 #include "../Configuration/frame.h"
 #include "../Configuration/configuration.h"
 
-void raytrace(struct config* C, struct frame* cam, struct tensor* out);
+void raytrace(struct config* C, struct frame* cam, tensor* out);
 
 #endif

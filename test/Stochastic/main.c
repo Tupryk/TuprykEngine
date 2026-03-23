@@ -18,8 +18,8 @@ int test_basic()
         1.f/3.f, 2.f/3.f, 0.f,
         0.f, 1.f, 0.f
     };
-    struct tensor* t = new_tensor(shape, 2, values);
-    struct sparse* st = sparse_from_tensor(t);
+    tensor* t = new_tensor(shape, 2, values);
+    sparse* st = sparse_from_tensor(t);
     tensor_free(t);
     print_sparse(st);
 

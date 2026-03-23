@@ -4,7 +4,7 @@
 #include "../LinAlg/tensor.h"
 
 
-struct tensor* new_image(int width, int height, int channels);
-void image_set_pixel(struct tensor* im, int x, int y, float r, float g, float b, float a);
+tensor* new_image(int width, int height, int channels);
+void image_set_pixel(tensor* im, int x, int y, float r, float g, float b, float a);
 
 #endif

@@ -7,10 +7,10 @@
 
 
 struct optim_logs* newton(
-    struct tensor* x0,
-    float (*cost_func)(struct tensor*),
-    void (*delta_cost_func)(struct tensor*, struct tensor*),
-    void (*delta2_cost_func)(struct tensor*, struct tensor*),
+    tensor* x0,
+    float (*cost_func)(tensor*),
+    void (*delta_cost_func)(tensor*, tensor*),
+    void (*delta2_cost_func)(tensor*, tensor*),
     float alpha,
     float tolerance,
     int max_iters
@@ -25,12 +25,12 @@ struct optim_logs* newton(
     #endif
 
     // TODO: Should also output a final value for x
-    struct tensor* x = tensor_copy(x0);
-    struct tensor* J = tensor_copy_shape(x0);
+    tensor* x = tensor_copy(x0);
+    tensor* J = tensor_copy_shape(x0);
     int H_shape[] = {J->shape[0], J->shape[0]};
-    struct tensor* H = new_tensor(H_shape, 2, NULL);
-    struct tensor* H_inv = tensor_copy_shape(H);
-    struct tensor* damping = tensor_copy_shape(H);
+    tensor* H = new_tensor(H_shape, 2, NULL);
+    tensor* H_inv = tensor_copy_shape(H);
+    tensor* damping = tensor_copy_shape(H);
     tensor_identity(damping);
     tensor_scalar_mult(damping, 1e-3, damping);
 
@@ -79,9 +79,9 @@ struct optim_logs* newton(
 }
 
 struct optim_logs* gauss_newton(
-    struct tensor* x0,
-    float (*cost_func)(struct tensor*),
-    void (*delta_cost_func)(struct tensor*, struct tensor*),
+    tensor* x0,
+    float (*cost_func)(tensor*),
+    void (*delta_cost_func)(tensor*, tensor*),
     float alpha,
     float tolerance,
     int max_iters
@@ -100,14 +100,14 @@ struct optim_logs* gauss_newton(
     #endif
 
     // TODO: Should also output a final value for x
-    struct tensor* x = tensor_copy(x0);
-    struct tensor* J = tensor_copy_shape(x0);
-    struct tensor* J_T = tensor_copy_shape(x0);
+    tensor* x = tensor_copy(x0);
+    tensor* J = tensor_copy_shape(x0);
+    tensor* J_T = tensor_copy_shape(x0);
     tensor_transpose(J_T);
     int H_shape[] = {J->shape[0], J->shape[0]};
-    struct tensor* H = new_tensor(H_shape, 2, NULL);
-    struct tensor* H_inv = tensor_copy_shape(H);
-    struct tensor* damping = tensor_copy_shape(H);
+    tensor* H = new_tensor(H_shape, 2, NULL);
+    tensor* H_inv = tensor_copy_shape(H);
+    tensor* damping = tensor_copy_shape(H);
     tensor_identity(damping);
     tensor_scalar_mult(damping, 1e-3, damping);
 
@@ -119,7 +119,7 @@ struct optim_logs* gauss_newton(
 
         // Hessian approximation
         tensor_transfer_values(J_T, J);
-        // TODO: Sparse Hessian?
+        // TODO: sparse Hessian?
         tensor_mult(J, J_T, H);
         tensor_scalar_mult(H, 2.f, H);
         tensor_add(H, damping, H);

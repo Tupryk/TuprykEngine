@@ -1,11 +1,11 @@
 #include "raytracer.h"
 
 
-void raytrace(struct config* C, struct frame* cam, struct tensor* out)
+void raytrace(struct config* C, struct frame* cam, tensor* out)
 {
     // Store intersection depth for z-buffer
     // Loop through all frames in the config (Just spheres for now (also no KD/Oct trees yet!))
-    struct tensor* depth;
+    tensor* depth;
 
     int height = out->shape[1];
     int width = out->shape[0];

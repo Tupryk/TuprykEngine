@@ -73,14 +73,80 @@ void reset_agent(struct agent* a)
     }
 }
 
+void build_agent_network(struct population* pop, struct agent* a)
+{
+    // Initial allocation based on node count
+    int node_count = a->node_count;
+
+    a->activations = (float*) malloc(sizeof(float) * node_count);
+    a->activation_count = (int*) malloc(sizeof(int) * node_count);
+    a->activation_funcs = (int*) malloc(sizeof(int) * node_count);
+
+    a->connection_counts = (int*) malloc(sizeof(int) * node_count);
+    a->connections = (int**) malloc(sizeof(int*) * node_count);
+    a->connection_weight = (float**) malloc(sizeof(float*) * node_count);
+
+    for (int i = 0; i < node_count; i++)
+    {
+        a->activations[i] = 0.f;
+        a->activation_count[i] = 0;
+        a->activation_funcs[i] = 0;
+    }
+
+    // Counting weights
+    for (int i = 0; i < a->gene_count; i++)
+    {
+        if (pop->ge)
+    }
+
+    // Allocate memory for weights
+    for (int i = 0; i < node_count; i++)
+    {
+        if (a->connection_counts[i] <= 0)
+        {
+            a->connections[i] = NULL;
+            a->connection_weight[i] = NULL;
+        }
+        else
+        {
+            a->connections[i] = (int*) malloc(sizeof(int) * a->connection_counts[i]);
+            a->connection_weight[i] = (float*) malloc(sizeof(float) * a->connection_counts[i]);
+        }
+    }
+
+    // Set weight values
+    for (int i = 0; i < a->gene_count; i++)
+    {
+
+    }
+}
+
+void free_agent_network(struct agent* a)
+{
+    free(a->activations);
+    free(a->activation_count);
+    free(a->activation_funcs);
+
+    for (int i = 0; i < a->node_count; i++)
+    {
+        if (a->connection_counts[i] > 0)
+        {
+            free(a->connections[i]);
+            free(a->connection_weight[i]);
+        }
+    }
+
+    free(a->connections);
+    free(a->connection_counts);
+    free(a->connection_weight);
+}
+
 struct agent* mutate_agent(struct population* pop, struct agent* parent)
 {
     // Copy parent on child
-    struct agent* child = (struct agent*) malloc(sizeof(struct agent)); 
-    
-    // TODO: this construction should be done based on the genetic code
-    int node_count = parent->node_count;
-    child->node_count = node_count;
+    struct agent* child = (struct agent*) malloc(sizeof(struct agent));
+
+    child->node_count = parent->node_count;
 
     child->gene_count = parent->gene_count;
     child->genes = (struct gene**) malloc(sizeof(struct gene*) * parent->gene_count);
@@ -88,43 +154,13 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
     {
         child->genes[i] = parent->genes[i];
     }
-    child->activations = (float*) malloc(sizeof(float) * node_count);
-    child->activation_count = (int*) malloc(sizeof(int) * node_count);
-    child->activation_funcs = (int*) malloc(sizeof(int) * node_count);
-
-    child->connection_counts = (int*) malloc(sizeof(int) * node_count);
-    child->connections = (int**) malloc(sizeof(int*) * node_count);
-    child->connection_weight = (float**) malloc(sizeof(float*) * node_count);
-    
-    for (int i = 0; i < node_count; i++)
-    {
-        child->activations[i] = 0.f;
-        child->activation_count[i] = 0;
-        child->activation_funcs[i] = parent->activation_funcs[i];
-        child->connection_counts[i] = parent->connection_counts[i];
-        if (parent->connection_counts[i] <= 0)
-        {
-            child->connections[i] = NULL;
-            child->connection_weight[i] = NULL;
-        }
-        else
-        {
-            child->connections[i] = (int*) malloc(sizeof(int) * parent->connection_counts[i]);
-            child->connection_weight[i] = (float*) malloc(sizeof(float) * parent->connection_counts[i]);
-            for (int j = 0; j < parent->connection_counts[i]; j++)
-            {
-                child->connections[i][j] = parent->connections[i][j];
-                child->connection_weight[i][j] = parent->connection_weight[i][j];
-            }
-        }
-    }
 
     // Mutate child
     int mutation_done = 0;
     while (!mutation_done)
     {
         mutation_done = 1;
-        int mutation_type = rand() % 2;
+        int mutation_type = rand() % 3;
         switch (mutation_type)
         {
         case 0:
@@ -165,6 +201,12 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
                 child->connection_weight[start_node][connection_idx] = (((float)(rand() % 10000)) * 0.0001) * 2.f - 1.f;
             }
             else mutation_done = 0;
+            break;
+        }
+
+        case 2:
+        {
+            child->node_count++;
             break;
         }
         
@@ -208,25 +250,6 @@ struct population* init_population(int in_dim, int out_dim)
         new_agent->genes = (struct gene**) malloc(sizeof(struct gene*) * 2);
         new_agent->genes[0] = pop->innovations;
         new_agent->genes[1] = pop->innovations->next;
-
-        new_agent->activations = (float*) malloc(sizeof(float) * initial_node_count);
-        new_agent->activation_funcs = (int*) malloc(sizeof(int) * initial_node_count);
-        new_agent->activation_count = (int*) malloc(sizeof(int) * initial_node_count);
-
-        new_agent->connection_counts = (int*) malloc(sizeof(int) * initial_node_count);
-        new_agent->connections = (int**) malloc(sizeof(int*) * initial_node_count);
-        new_agent->connection_weight = (float**) malloc(sizeof(float*) * initial_node_count);
-
-        for (int j = 0; j < initial_node_count; j++)
-        {
-            new_agent->activations[j] = 0.f;
-            new_agent->activation_funcs[j] = 0;
-            new_agent->activation_count[j] = 0;
-
-            new_agent->connection_counts[j] = 0;
-            new_agent->connections[j] = NULL;
-            new_agent->connection_weight = NULL;
-        }
 
         pop->agents[i] = new_agent;
     }
@@ -276,7 +299,6 @@ void population_mutate(struct population* pop)
             pop->innovation_count++;
         }
     }
-    printf("Current innovation count: %d\n", pop->innovation_count);
 }
 
 void population_kill_weak(struct population* pop, float* scores)
@@ -333,8 +355,13 @@ void population_kill_weak(struct population* pop, float* scores)
 
 float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
 {
-    // Set all activations in the network to 0
-    reset_agent(a);
+    #if DEBUG
+    if (a->activations == NULL)
+    {
+        printf("Agent network was not initialized!\n")
+        exit(EXIT_FAILURE);
+    }
+    #endif
 
     // Initialize the input layer
     struct int_queue* queue = NULL;
@@ -397,6 +424,7 @@ float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
     {
         out[i] = a->activations[in_dim+i];
     }
+
     return out;
 }
 
@@ -412,7 +440,9 @@ float** population_feed_all_agents(struct population* pop, float* input)
             exit(EXIT_FAILURE);
         }
         #endif
+        build_agent_network(pop, pop->agents[i]);
         out[i] = feed_agent(pop->agents[i], input, pop->in_dim, pop->out_dim);
+        free_agent_network(pop->agents[i]);
     }
     return out;
 }
@@ -437,10 +467,11 @@ void population_free(struct population* pop)
 
 void agent_free(struct agent* a)
 {
+    if (a->activations != NULL)
+    {
+        free_agent_network(a);
+    }
     free(a->genes);
-    free(a->activations);
-    free(a->activation_count);
-    free(a->activation_funcs);
     free(a);
 }
 

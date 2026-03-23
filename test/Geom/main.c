@@ -24,7 +24,7 @@ void draw_triangle(struct Triangle* t)
     draw_line(t->c_x, t->c_y, t->a_x, t->a_y);
 }
 
-float lorenz_product(struct tensor* a, struct tensor* b)
+float lorenz_product(tensor* a, tensor* b)
 {
     float out = 0.f;
     int n = a->shape[0]-1;
@@ -36,7 +36,7 @@ float lorenz_product(struct tensor* a, struct tensor* b)
     return out;
 }
 
-float scalar_product(struct tensor* a, struct tensor* b)
+float scalar_product(tensor* a, tensor* b)
 {
     float out = 0.f;
     for (int i = 0; i < a->shape[0]; i++)
@@ -46,10 +46,10 @@ float scalar_product(struct tensor* a, struct tensor* b)
     return out;
 }
 
-float eucledian_case(struct tensor* x) { return scalar_product(x, x) - 1.f; }
-float hyperbolic_case1(struct tensor* x) { return lorenz_product(x, x) + 1.f; }
-float hyperbolic_case2(struct tensor* x) { return lorenz_product(x, x) - 1.f; }
-float hyperbolic_case3(struct tensor* x) { return lorenz_product(x, x); }
+float eucledian_case(tensor* x) { return scalar_product(x, x) - 1.f; }
+float hyperbolic_case1(tensor* x) { return lorenz_product(x, x) + 1.f; }
+float hyperbolic_case2(tensor* x) { return lorenz_product(x, x) - 1.f; }
+float hyperbolic_case3(tensor* x) { return lorenz_product(x, x); }
 
 void rotating_plot1()
 {

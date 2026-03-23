@@ -9,9 +9,9 @@ struct config
     int frame_count;
     struct frame* frames;
     
-    struct tensor* q;
-    struct tensor* q_max;
-    struct tensor* q_min;
+    tensor* q;
+    tensor* q_max;
+    tensor* q_min;
 };
 
 int config_colliding(struct config* C);

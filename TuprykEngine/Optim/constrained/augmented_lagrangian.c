@@ -8,27 +8,27 @@ struct auglag_context
 {
     struct nlp* nlp_;
 
-    struct tensor* nu;
-    struct tensor* mu;
+    tensor* nu;
+    tensor* mu;
 
     struct nlp_optim_logs* logs;
 };
 
 static struct auglag_context* ctx;
 
-float aug_lagrangian_eval_nlp(struct tensor* x)
+float aug_lagrangian_eval_nlp(tensor* x)
 {
     float out = ctx->nlp_->f(x);
     return out;
 }
 
-void aug_lagrangian_eval2_nlp(struct tensor* x, struct tensor* out)
+void aug_lagrangian_eval2_nlp(tensor* x, tensor* out)
 {
     ctx->nlp_->delta_f(x, out);
 }
 
 void aug_lagrangian_init(
-    struct tensor* x0,
+    tensor* x0,
     struct nlp* nlp_,
     float alpha,
     float tolerance,

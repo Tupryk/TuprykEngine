@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-struct markov_chain* new_markov_chain(struct sparse* st, int start_state)
+struct markov_chain* new_markov_chain(sparse* st, int start_state)
 {
     struct markov_chain* mc = (struct markov_chain*) malloc(sizeof(struct markov_chain));
     

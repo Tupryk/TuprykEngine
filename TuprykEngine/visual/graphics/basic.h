@@ -23,19 +23,19 @@ void draw_3d_point(float x, float y, float z);
 void draw_3d_mark(float x, float y, float z);
 void draw_3d_unit_cube();
 void plot_unit_func(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float area_side
 );
 void plot_unit_func_heat(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float area_side
 );
 void plot_unit_func_3d(
-    float (*func)(struct tensor*),
+    float (*func)(tensor*),
     float center_x,
     float center_y,
     float center_z,
@@ -44,6 +44,6 @@ void plot_unit_func_3d(
 void add_global_rot(float delta_x, float delta_y, float delta_z);
 void set_global_rot(float rot_x, float rot_y, float rot_z);
 void plot_1d_func(float (*func)(float), float from, float to);
-void view_image(struct tensor* im);
+void view_image(tensor* im);
 
 #endif

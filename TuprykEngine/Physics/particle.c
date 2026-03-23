@@ -48,7 +48,7 @@ void particle_sim_free(struct ParticleSim* ps)
     free(ps);
 }
 
-// void rk4_step(struct tensor* x, vector_field dydt)
+// void rk4_step(tensor* x, vector_field dydt)
 // {
 //     k1 = f(t, x)
 //     k2 = f(t + h * 0.5f, x + h * k1 * 0.5f)
@@ -58,9 +58,9 @@ void particle_sim_free(struct ParticleSim* ps)
 //     x += (h/6) * (k1 + 2.f * k2 + 2.f * k3 + k4)
 // }
 
-void particle_sim_step(struct ParticleSim* ps, void (*dydt)(struct ParticleSim*, struct tensor*))
+void particle_sim_step(struct ParticleSim* ps, void (*dydt)(struct ParticleSim*, tensor*))
 {
-    struct tensor* tmp = tensor_copy_shape(ps->pos);
+    tensor* tmp = tensor_copy_shape(ps->pos);
 
     // Position update
     tensor_scalar_mult(ps->vel, ps->tau, tmp);

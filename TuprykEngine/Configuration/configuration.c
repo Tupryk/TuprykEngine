@@ -9,7 +9,7 @@ int config_colliding(struct config* C)
         {
             struct frame* b = &C->frames[j];
 
-            struct tensor* diff = tensor_sub_give(a->pos, b->pos);
+            tensor* diff = tensor_sub_give(a->pos, b->pos);
             float dist = tensor_norm(diff);
             if (dist <= a->r + b->r)
             {

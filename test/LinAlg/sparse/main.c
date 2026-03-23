@@ -10,11 +10,11 @@ int test_basic()
 {
     int n = 4;
     int shape[] = {n, n};
-    struct tensor* t = new_tensor(shape, 2, NULL);
+    tensor* t = new_tensor(shape, 2, NULL);
     tensor_identity(t);
     
-    struct sparse* st = sparse_from_tensor(t);
-    struct tensor* t0 = tensor_from_sparse(st);
+    sparse* st = sparse_from_tensor(t);
+    tensor* t0 = tensor_from_sparse(st);
     
     print_tensor(t);
     print_sparse(st);
