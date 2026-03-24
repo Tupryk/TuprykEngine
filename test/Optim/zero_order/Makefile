@@ -10,7 +10,9 @@ SRCS = main.c \
 	../functions.c \
 	../../../TuprykEngine/Optim/meta.c \
 	../../../TuprykEngine/visual/graphics/basic.c \
-	../../../TuprykEngine/visual/graphics/window.c
+	../../../TuprykEngine/visual/graphics/window.c \
+	../../../TuprykEngine/Algos/lists.c \
+	../../../TuprykEngine/Stochastic/sample.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

@@ -8,7 +8,8 @@ SRCS = main.c \
 	../../TuprykEngine/LinAlg/sparse.c \
 	../../TuprykEngine/visual/prints/linalg.c \
 	../../TuprykEngine/visual/prints/stoch.c \
-	../../TuprykEngine/Stochastic/pascal.c
+	../../TuprykEngine/Stochastic/pascal.c \
+	../../TuprykEngine/Stochastic/sample.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

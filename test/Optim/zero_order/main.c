@@ -9,6 +9,7 @@
 #include "../../../TuprykEngine/Optim/meta.h"
 #include "../../../TuprykEngine/Optim/zero_order/genetic.h"
 
+
 float task1_eval(float* input, float* predicted_out)
 {
     float real_out[2];
@@ -25,7 +26,7 @@ int main()
     int in_dim = 3;
     int out_dim = 2;
 
-    struct population* pop = init_population(in_dim, out_dim);
+    population* pop = init_population(in_dim, out_dim);
 
     for (int i = 0; i < generation_count; i++)
     {

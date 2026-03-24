@@ -4,6 +4,7 @@
 #include "../../TuprykEngine/Stochastic/markov.h"
 #include "../../TuprykEngine/Stochastic/pdfs.h"
 #include "../../TuprykEngine/Stochastic/pascal.h"
+#include "../../TuprykEngine/Stochastic/sample.h"
 #include "../../TuprykEngine/visual/prints/stoch.h"
 #include "../../TuprykEngine/LinAlg/sparse.h"
 #include "../../TuprykEngine/LinAlg/tensor.h"
@@ -46,12 +47,24 @@ int test_pascal()
     return 0;
 }
 
+int test_sampling()
+{
+    printf("--------- TESTING UNIFORM SAMPLING ---------\n");
+    for (int i = 0; i < 100; i++)
+    {
+        float value = rand_uni(-1.f, 1.f);
+        printf("%f\n", value);
+    }
+    return 0;
+}
+
 int main()
 {
     int failures_count = 0;
 
     failures_count += test_basic();
     failures_count += test_pascal();
+    failures_count += test_sampling();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

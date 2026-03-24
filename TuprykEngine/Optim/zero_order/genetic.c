@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "genetic.h"
+#include "../../Stochastic/sample.h"
 
 
 struct int_queue
@@ -44,14 +45,13 @@ float relu(float x)
     return x < 0.f ? x : 0.f;
 }
 
-struct gene* basic_layer_gene(int dim)
+gene basic_layer_gene(int dim)
 {
-    struct gene* g = (struct gene*) malloc(sizeof(struct gene));
-    g->type = 0;
-    g->next = NULL;
+    gene g;
+    g.type = 0;
 
-    g->data = (struct new_nodes_gene*) malloc(sizeof(struct new_nodes_gene));
-    struct new_nodes_gene* data_ = (struct new_nodes_gene*) g->data;
+    g.data = (new_nodes_gene*) malloc(sizeof(new_nodes_gene));
+    new_nodes_gene* data_ = (new_nodes_gene*) g.data;
     data_->count = dim;
     data_->connection_count = 0;
     data_->connections = NULL;  // Indices of entire network, not just mutation set!
@@ -64,7 +64,7 @@ struct gene* basic_layer_gene(int dim)
     return g;
 }
 
-void reset_agent(struct agent* a)
+void reset_agent(agent* a)
 {
     for (int i = 0; i < a->node_count; i++)
     {
@@ -73,7 +73,7 @@ void reset_agent(struct agent* a)
     }
 }
 
-void build_agent_network(struct population* pop, struct agent* a)
+void build_agent_network(population* pop, agent* a)
 {
     // Initial allocation based on node count
     int node_count = a->node_count;
@@ -96,7 +96,11 @@ void build_agent_network(struct population* pop, struct agent* a)
     // Counting weights
     for (int i = 0; i < a->gene_count; i++)
     {
-        if (pop->ge)
+        gene check_gene = *(gene*)vector_get(&pop->innovations, i);
+        if (check_gene.type == 0)
+        {
+
+        }
     }
 
     // Allocate memory for weights
@@ -121,7 +125,7 @@ void build_agent_network(struct population* pop, struct agent* a)
     }
 }
 
-void free_agent_network(struct agent* a)
+void free_agent_network(agent* a)
 {
     free(a->activations);
     free(a->activation_count);
@@ -141,26 +145,28 @@ void free_agent_network(struct agent* a)
     free(a->connection_weight);
 }
 
-struct agent* mutate_agent(struct population* pop, struct agent* parent)
+agent* mutate_agent(population* pop, agent* parent)
 {
     // Copy parent on child
-    struct agent* child = (struct agent*) malloc(sizeof(struct agent));
+    agent* child = (agent*) malloc(sizeof(agent));
 
     child->node_count = parent->node_count;
 
     child->gene_count = parent->gene_count;
-    child->genes = (struct gene**) malloc(sizeof(struct gene*) * parent->gene_count);
+    child->genes = (int*) malloc(sizeof(int) * parent->gene_count);
     for (int i = 0; i < parent->gene_count; i++)
     {
         child->genes[i] = parent->genes[i];
     }
 
     // Mutate child
+    gene new_gene;
     int mutation_done = 0;
     while (!mutation_done)
     {
         mutation_done = 1;
         int mutation_type = rand() % 3;
+        new_gene.type = mutation_type;
         switch (mutation_type)
         {
         case 0:
@@ -168,25 +174,15 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
             // Add weight
             int start_node = rand() % child->node_count;
             int end_node = rand() % child->node_count;
-            float weight = (((float)(rand() % 10000)) * 0.0001) * 2.f - 1.f;  // TODO: put this into a utils func
+            float weight = rand_uni(-1.f, 1.f);
 
-            // TODO: this should be removed
-            child->connection_counts[start_node]++;
-            int cc = child->connection_counts[start_node];
-            if (child->connections[start_node] != NULL)
-            {
-                free(child->connections[start_node]);
-                free(child->connection_weight[start_node]);
-            }
-            child->connections[start_node] = (int*) malloc(sizeof(int) * cc);
-            child->connection_weight[start_node] = (float*) malloc(sizeof(float) * cc);
-            for (int i = 0; i < cc-1; i++)
-            {
-                child->connections[start_node][i] = parent->connections[start_node][i];
-                child->connection_weight[start_node][i] = parent->connection_weight[start_node][i];
-            }
-            child->connections[start_node][cc-1] = end_node;
-            child->connection_weight[start_node][cc-1] = weight;
+            new_weight_gene* gene_data = (new_weight_gene*) malloc(sizeof(new_weight_gene));
+            gene_data->start_idx = start_node;
+            gene_data->end_idx = end_node;
+            gene_data->weight = weight;
+
+            new_gene->data = gene_data;
+
             break;
         }
     
@@ -198,17 +194,24 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
             if (cc > 0)
             {
                 int connection_idx = rand() % cc;
-                child->connection_weight[start_node][connection_idx] = (((float)(rand() % 10000)) * 0.0001) * 2.f - 1.f;
+                float new_weight = rand_uni(-1.f, 1.f);
+
+                weight_perturvation_gene* gene_data = (weight_perturvation_gene*) malloc(sizeof(weight_perturvation_gene));
+                gene_data->start_idx = start_node;
+                gene_data->connection_idx = connection_idx;
+                gene_data->new_weight = new_weight;
+
+                new_gene->data = gene_data;
             }
             else mutation_done = 0;
             break;
         }
 
-        case 2:
-        {
-            child->node_count++;
-            break;
-        }
+        // case 2:
+        // {
+        //     child->node_count++;
+        //     break;
+        // }
         
         default:
             #ifdef DEBUG
@@ -218,38 +221,40 @@ struct agent* mutate_agent(struct population* pop, struct agent* parent)
             break;
         }
     }
+    vector_push(&pop->innovations, &new_gene);
 
     return child;
 }
 
-struct population* init_population(int in_dim, int out_dim)
+population* init_population(int in_dim, int out_dim)
 {
-    struct population* pop = (struct population*) malloc(sizeof(struct population));
+    population* pop = (population*) malloc(sizeof(population));
     
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
-    pop->max_size = 90;
-    pop->keep_best_n = 30;
+    pop->max_size = 300;
+    pop->keep_best_n = 100;
     pop->current_size = pop->keep_best_n;
-    pop->innovation_count = 2;
     pop->agent_children_count = 2;
     
-    pop->innovations = basic_layer_gene(in_dim);
-    pop->innovations->next = basic_layer_gene(out_dim);
-    pop->latest_innovation = pop->innovations->next;
+    pop->innovations = vector_create(sizeof(gene));
+    gene in_gene = basic_layer_gene(in_dim);
+    gene out_gene = basic_layer_gene(out_dim);
+    vector_push(&pop->innovations, &in_gene);
+    vector_push(&pop->innovations, &out_gene);
 
-    pop->agents = (struct agent**) malloc(sizeof(struct agent*) * pop->max_size);
+    pop->agents = (agent**) malloc(sizeof(agent*) * pop->max_size);
     
     int initial_node_count = in_dim + out_dim;
     for (int i = 0; i < pop->current_size; i++)
     {
-        struct agent* new_agent = (struct agent*) malloc(sizeof(struct agent)); 
+        agent* new_agent = (agent*) malloc(sizeof(agent)); 
         new_agent->node_count = initial_node_count;
         
         new_agent->gene_count = 2;
-        new_agent->genes = (struct gene**) malloc(sizeof(struct gene*) * 2);
-        new_agent->genes[0] = pop->innovations;
-        new_agent->genes[1] = pop->innovations->next;
+        new_agent->genes = (int*) malloc(sizeof(int) * 2);
+        new_agent->genes[0] = 0;
+        new_agent->genes[1] = 1;
 
         pop->agents[i] = new_agent;
     }
@@ -259,7 +264,7 @@ struct population* init_population(int in_dim, int out_dim)
     return pop;
 }
 
-void population_mutate(struct population* pop)
+void population_mutate(population* pop)
 {
     int idx = 0;
     int parent_idxs[pop->keep_best_n];
@@ -296,12 +301,11 @@ void population_mutate(struct population* pop)
                 #endif
             }
             pop->agents[latest_null] = mutate_agent(pop, pop->agents[parent_idxs[i]]);
-            pop->innovation_count++;
         }
     }
 }
 
-void population_kill_weak(struct population* pop, float* scores)
+void population_kill_weak(population* pop, float* scores)
 {
     float best_scores[pop->keep_best_n];
     int best_indices[pop->keep_best_n];
@@ -353,7 +357,7 @@ void population_kill_weak(struct population* pop, float* scores)
     #endif
 }
 
-float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
+float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
 {
     #if DEBUG
     if (a->activations == NULL)
@@ -428,7 +432,7 @@ float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim)
     return out;
 }
 
-float** population_feed_all_agents(struct population* pop, float* input)
+float** population_feed_all_agents(population* pop, float* input)
 {
     float** out = (float**) malloc(sizeof(float*) * pop->max_size);
     for (int i = 0; i < pop->max_size; i++)
@@ -447,15 +451,11 @@ float** population_feed_all_agents(struct population* pop, float* input)
     return out;
 }
 
-void population_free(struct population* pop)
+void population_free(population* pop)
 {
-    struct gene* current_gene = pop->innovations;
-    struct gene* next_gene = current_gene->next;
-    while (current_gene != NULL)
+    for (size_t i = 0; i < pop->innovations.size; i++)
     {
-        gene_free(current_gene);
-        current_gene = next_gene;
-        next_gene = current_gene->next;
+        gene_free(*(gene*)vector_get(&pop->innovations, i));
     }
     
     for (int i = 0; i < pop->current_size; i++)
@@ -465,7 +465,7 @@ void population_free(struct population* pop)
     free(pop);
 }
 
-void agent_free(struct agent* a)
+void agent_free(agent* a)
 {
     if (a->activations != NULL)
     {
@@ -475,24 +475,19 @@ void agent_free(struct agent* a)
     free(a);
 }
 
-void gene_free(struct gene* g)
+void gene_free(gene g)
 {
-    switch(g->type)
+    switch(g.type)
     {
     case 0:
-        // struct new_nodes_gene* data_ = (struct new_nodes_gene*) init_gene->data;
-        // int count;
-        // int connection_count;
-        // int** connections;
-        // float* connection_weights;
-        // int* activation_type;
+        free(g.data);
         break;
 
     case 1:
+        free(g.data);
         break;
 
     case 2:
         break;
     }
-    free(g);
 }

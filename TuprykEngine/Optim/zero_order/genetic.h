@@ -1,8 +1,10 @@
 #ifndef GENETIC
 #define GENETIC
 
+#include "../../Algos/lists.h"
 
-struct new_nodes_gene
+
+typedef struct
 {
     int noisy;  // Adds gaussian noise to outputs
     int count;
@@ -10,44 +12,57 @@ struct new_nodes_gene
     int** connections;  // Indices of entire network, not just mutation set!
     float* connection_weights;
     int* activation_type;
-};
+} new_nodes_gene;
 
-struct new_weights_gene
+typedef struct
 {
     int count;
     int** connections;
     float* connection_weights;
-};
+} new_weights_gene;
+
+typedef struct
+{
+    int start_idx;
+    int end_idx;
+    float weight;
+} new_weight_gene;
+
+typedef struct
+{
+    int start_idx;
+    int connection_idx;
+    float new_weight;
+} weight_perturvation_gene;
 
 // TODO: Add a noise as input mechanism to the network, ie. like in diffusion models
 // TODO: Add dropout somehow
 // TODO: Adaptime uniman schedule that only moves when the population is ready (above a certain success threshhold)
 
-struct node_perturvation_gene
+typedef struct
 {
     int node_count;
     int* new_activation;
     float* bias_perturvation;
-};
+} node_perturvation_gene;
 
-struct weight_perturvation_gene
+typedef struct
 {
     int weigth_count;
     float* weight_perturvations;
-};
+} weights_perturvation_gene;
 
-struct gene
+typedef struct
 {
     int type;
     void* data;
-    struct gene* next;
-};
+} gene;
 
-struct agent
+typedef struct
 {
     int gene_count;
     int node_count;
-    struct gene** genes;
+    int* genes;
     
     // TODO: this should be part of a different struct (network struct) maybe...
     float* activations;
@@ -57,29 +72,27 @@ struct agent
     int* connection_counts;
     int** connections;
     float** connection_weight;
-};
+} agent;
 
-struct population
+typedef struct
 {
     int in_dim;
     int out_dim;
     int max_size;
     int current_size;
     int keep_best_n;
-    int innovation_count;
     int agent_children_count;
-    struct gene* innovations;
-    struct gene* latest_innovation;
-    struct agent** agents;
-};
+    vector innovations;  // Type: gene
+    agent** agents;
+} population;
 
-struct population* init_population(int in_dim, int out_dim);
-void population_mutate(struct population* pop);
-void population_kill_weak(struct population* pop, float* scores);
-float* feed_agent(struct agent* a, float* input, int in_dim, int out_dim);
-float** population_feed_all_agents(struct population* pop, float* input);
-void population_free(struct population* pop);
-void agent_free(struct agent* a);
-void gene_free(struct gene* g);
+population* init_population(int in_dim, int out_dim);
+void population_mutate(population* pop);
+void population_kill_weak(population* pop, float* scores);
+float* feed_agent(agent* a, float* input, int in_dim, int out_dim);
+float** population_feed_all_agents(population* pop, float* input);
+void population_free(population* pop);
+void agent_free(agent* a);
+void gene_free(gene g);
 
 #endif
