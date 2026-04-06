@@ -84,6 +84,7 @@ typedef struct
     int max_size;
     int keep_best_n;
     int agent_children_count;
+    float network_size_cost_weight;
     vector innovations;  // Type: gene
     agent** agents;
 } population;
@@ -94,6 +95,8 @@ void population_kill_weak(population* pop, float* scores);
 float* feed_agent(agent* a, float* input, int in_dim, int out_dim);
 float** population_feed_all_agents(population* pop, float* input);
 void population_free(population* pop);
+void build_agent_network(population* pop, agent* a);
+void free_agent_network(agent* a);
 void agent_free(agent* a);
 void gene_free(gene g);
 

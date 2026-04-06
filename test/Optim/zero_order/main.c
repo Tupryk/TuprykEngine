@@ -8,6 +8,7 @@
 #include "../functions.h"
 #include "../../../TuprykEngine/Optim/meta.h"
 #include "../../../TuprykEngine/Optim/zero_order/genetic.h"
+#include "../../../TuprykEngine/visual/prints/vis_genetic.h"
 
 
 float task1_eval(float* input, float* predicted_out)
@@ -27,11 +28,11 @@ int main()
     int out_dim = 2;
 
     population* pop = init_population(in_dim, out_dim);
-
+    
+    float scores[pop->max_size];
     for (int i = 0; i < generation_count; i++)
     {
         float max_score = -1e6;
-        float scores[pop->max_size];
         for (int j = 0; j < pop->max_size; j++)
         {
             scores[j] = 0.f;
@@ -67,6 +68,7 @@ int main()
         population_kill_weak(pop, scores);
         population_mutate(pop);
     }
+    print_population_best_agent(pop, scores);
     // population_free(pop);
     return 0;
 }
