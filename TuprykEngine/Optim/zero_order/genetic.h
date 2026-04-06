@@ -1,6 +1,7 @@
 #ifndef GENETIC
 #define GENETIC
 
+#include "../../global.h"
 #include "../../Algos/lists.h"
 
 
@@ -38,6 +39,8 @@ typedef struct
 // TODO: Add a noise as input mechanism to the network, ie. like in diffusion models
 // TODO: Add dropout somehow
 // TODO: Adaptime uniman schedule that only moves when the population is ready (above a certain success threshhold)
+// TODO: Evolve a reward model
+// TODO: Can agents be sepparated into a diferent file?
 
 typedef struct
 {
@@ -54,7 +57,7 @@ typedef struct
 
 typedef struct
 {
-    int type;
+    int type;  // 0: 
     void* data;
 } gene;
 
@@ -79,7 +82,6 @@ typedef struct
     int in_dim;
     int out_dim;
     int max_size;
-    int current_size;
     int keep_best_n;
     int agent_children_count;
     vector innovations;  // Type: gene
@@ -90,7 +92,7 @@ population* init_population(int in_dim, int out_dim);
 void population_mutate(population* pop);
 void population_kill_weak(population* pop, float* scores);
 float* feed_agent(agent* a, float* input, int in_dim, int out_dim);
-float** population_feed_all_agents(population* pop, float* input);
+float** population_feed_all_agents(population* pop, float* input, int print);
 void population_free(population* pop);
 void agent_free(agent* a);
 void gene_free(gene g);

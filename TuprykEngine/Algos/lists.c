@@ -31,3 +31,24 @@ void* vector_get(vector *v, size_t index)
 {
     return (char*)v->data + index * v->elem_size;
 }
+
+struct int_queue* queue_add_val(struct int_queue* queue, int value)
+{
+    struct int_queue* new_start = (struct int_queue*) malloc(sizeof(struct int_queue));
+    new_start->value = value;
+    new_start->next = queue;
+    
+    return new_start;
+}
+
+int value_in_queue(struct int_queue* queue, int value)
+{
+    struct int_queue* tmp = queue;
+    while (tmp != NULL)
+    {
+        if (tmp->value == value) return 1;
+        tmp = tmp->next;
+    }
+    
+    return 0;
+}

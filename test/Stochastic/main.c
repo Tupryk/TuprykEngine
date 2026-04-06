@@ -49,6 +49,12 @@ int test_pascal()
 
 int test_sampling()
 {
+    // printf("--------- TESTING INTEGER SAMPLING ---------\n");
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     int value = rand_int(-10, 10);
+    //     printf("%f\n", value);
+    // }
     printf("--------- TESTING UNIFORM SAMPLING ---------\n");
     for (int i = 0; i < 100; i++)
     {
