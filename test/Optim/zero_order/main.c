@@ -1,4 +1,4 @@
-#define DEBUG
+// #define DEBUG
 #define OPTIM_VERBOSE
 
 #include <math.h>
@@ -43,15 +43,9 @@ int main()
                 ((float)(rand() % 1000)) * 0.001f * 2.f - 1.f,
                 ((float)(rand() % 1000)) * 0.001f * 2.f - 1.f
             };
-            float** outputs = population_feed_all_agents(pop, input);
+            float** outputs = population_feed_all_agents(pop, input, i+1==30);
             for (int k = 0; k < pop->max_size; k++)
             {
-                // printf("Output of agent %d: ", k);
-                // for (int o = 0; o < out_dim; o++)
-                // {
-                //     printf("%f, ", outputs[k][o]);
-                // }
-                // printf("\n");
                 scores[k] += task1_eval(input, outputs[k]);
                 free(outputs[k]);
             }
@@ -64,9 +58,9 @@ int main()
             {
                 max_score = scores[k];
             }
-            printf("Score for agent %d: %f\n", k, scores[k]);
+            // printf("Score for agent %d: %f\n", k, scores[k]);
         }
-        if ((i + 1) % 100 == 0)
+        if ((i + 1) % 1 == 0)
         {
             printf("Best score for generation %d: %f\n", i+1, max_score);
         }

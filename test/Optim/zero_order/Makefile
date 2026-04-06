@@ -6,7 +6,9 @@ SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
 	../../../TuprykEngine/LinAlg/sparse.c \
 	../../../TuprykEngine/visual/prints/linalg.c \
+	../../../TuprykEngine/visual/prints/vis_genetic.c \
 	../../../TuprykEngine/Optim/zero_order/genetic.c \
+	../../../TuprykEngine/Funcs/funcs.c \
 	../functions.c \
 	../../../TuprykEngine/Optim/meta.c \
 	../../../TuprykEngine/visual/graphics/basic.c \
