@@ -9,5 +9,6 @@ void print_agents(agent** agents, int count);
 void print_agent(agent* a);
 void print_agent_genes(vector* innovations, agent* a);
 void print_population_best_agent(population* pop, float* scores);
+void print_activation_name(int act_id);
 
 #endif

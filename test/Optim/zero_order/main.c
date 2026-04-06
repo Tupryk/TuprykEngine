@@ -20,6 +20,15 @@ float task1_eval(float* input, float* predicted_out)
     return -1.f * (pow(predicted_out[0] - real_out[0], 2) + pow(predicted_out[1] - real_out[1], 2));
 }
 
+float task2_eval(float* input, float* predicted_out)
+{
+    float real_out[2];
+    real_out[0] = sin(0.5 * input[0]) + input[1] * -0.1;
+    real_out[1] = -2.f * cos(input[2] * 0.3);
+
+    return -1.f * (pow(predicted_out[0] - real_out[0], 2) + pow(predicted_out[1] - real_out[1], 2));
+}
+
 int main()
 {
     int generation_count = 100;
@@ -47,7 +56,7 @@ int main()
             float** outputs = population_feed_all_agents(pop, input);
             for (int k = 0; k < pop->max_size; k++)
             {
-                scores[k] += task1_eval(input, outputs[k]);
+                scores[k] += task2_eval(input, outputs[k]);
                 free(outputs[k]);
             }
             free(outputs);

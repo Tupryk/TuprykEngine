@@ -13,7 +13,23 @@ typedef struct
     int** connections;  // Indices of entire network, not just mutation set!
     float* connection_weights;
     int* activation_type;
+    float* activation_biases;
 } new_nodes_gene;
+
+typedef struct
+{
+    int weight_start_idx;
+    int weight_connection_idx;
+    int activation_type;  // 0: Linear, 1: ReLU, 2: LeakyReLU, 3: Sigmoid
+    float bias;
+} new_node_gene;
+
+typedef struct
+{
+    int neuron_id;
+    int activation_type;
+    float bias;
+} node_perturvation_gene;
 
 typedef struct
 {
@@ -33,7 +49,7 @@ typedef struct
 {
     int start_idx;
     int connection_idx;
-    float new_weight;
+    float weight_perturvation;
 } weight_perturvation_gene;
 
 // TODO: Add a noise as input mechanism to the network, ie. like in diffusion models
@@ -47,7 +63,7 @@ typedef struct
     int node_count;
     int* new_activation;
     float* bias_perturvation;
-} node_perturvation_gene;
+} nodes_perturvation_gene;
 
 typedef struct
 {
@@ -65,12 +81,14 @@ typedef struct
 {
     int gene_count;
     int node_count;
+    int weight_count;
     int* genes;
     
     // TODO: this should be part of a different struct (network struct) maybe...
     float* activations;
     int* activation_count;
     int* activation_funcs;
+    float* activation_biases;
 
     int* connection_counts;
     int** connections;

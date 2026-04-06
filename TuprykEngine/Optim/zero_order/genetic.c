@@ -6,9 +6,9 @@
 #include "genetic.h"
 #include "../../Funcs/funcs.h"
 #include "../../Stochastic/sample.h"
-// #ifdef DEBUG
+#ifdef DEBUG
 #include "../../visual/prints/vis_genetic.h"
-// #endif
+#endif
 
 
 gene basic_layer_gene(int dim)
@@ -23,9 +23,11 @@ gene basic_layer_gene(int dim)
     data_->connections = NULL;  // Indices of entire network, not just mutation set!
     data_->connection_weights = NULL;
     data_->activation_type = (int*) malloc(sizeof(int) * data_->count);
+    data_->activation_biases = (float*) malloc(sizeof(float) * data_->count);
     for (int i = 0; i < data_->count; i++)
     {
         data_->activation_type[i] = 0;
+        data_->activation_biases[i] = 0.f;
     }
     return g;
 }
@@ -47,6 +49,7 @@ void build_agent_network(population* pop, agent* a)
     a->activations = (float*) malloc(sizeof(float) * node_count);
     a->activation_count = (int*) malloc(sizeof(int) * node_count);
     a->activation_funcs = (int*) malloc(sizeof(int) * node_count);
+    a->activation_biases = (float*) malloc(sizeof(float) * node_count);
     
     int con_counting[node_count];
     a->connection_counts = (int*) malloc(sizeof(int) * node_count);
@@ -59,16 +62,37 @@ void build_agent_network(population* pop, agent* a)
         a->activations[i] = 0.f;
         a->activation_count[i] = 0;
         a->activation_funcs[i] = 0;
+        a->activation_biases[i] = 0.f;
     }
     
-    // Counting weights
+    // Counting weights and setting up nodes
+    int node_counting = 0;
     for (int i = 0; i < a->gene_count; i++)
     {
         gene check_gene = *(gene*)vector_get(&pop->innovations, a->genes[i]);
-        if (check_gene.type == 1)
+        if (check_gene.type == 0)
         {
-            new_weight_gene* wg = (new_weight_gene*) check_gene.data;
-            a->connection_counts[wg->start_idx]++;
+            new_nodes_gene* gene_data = (new_nodes_gene*) check_gene.data;
+            node_counting += gene_data->count;
+        }
+        else if (check_gene.type == 1)
+        {
+            new_weight_gene* gene_data = (new_weight_gene*) check_gene.data;
+            a->connection_counts[gene_data->start_idx]++;
+        }
+        else if (check_gene.type == 3)
+        {
+            new_node_gene* gene_data = (new_node_gene*) check_gene.data;
+            a->activation_funcs[node_counting] = gene_data->activation_type;
+            a->activation_biases[node_counting] = gene_data->bias;
+            a->connection_counts[node_counting]++;
+            node_counting++;
+        }
+        else if (check_gene.type == 4)
+        {
+            node_perturvation_gene* gene_data = (node_perturvation_gene*) check_gene.data;
+            a->activation_funcs[gene_data->neuron_id] = gene_data->activation_type;
+            a->activation_biases[gene_data->neuron_id] += gene_data->bias;
         }
     }
     
@@ -88,9 +112,15 @@ void build_agent_network(population* pop, agent* a)
     }
     
     // Set weight values
+    node_counting = 0;
     for (int i = 0; i < a->gene_count; i++)
     {
         gene check_gene = *(gene*)vector_get(&pop->innovations, a->genes[i]);
+        if (check_gene.type == 0)
+        {
+            new_nodes_gene* gene_data = (new_nodes_gene*) check_gene.data;
+            node_counting += gene_data->count;
+        }
         if (check_gene.type == 1)
         {
             new_weight_gene* wg = (new_weight_gene*) check_gene.data;
@@ -104,7 +134,23 @@ void build_agent_network(population* pop, agent* a)
         else if (check_gene.type == 2)
         {
             weight_perturvation_gene* wp = (weight_perturvation_gene*) check_gene.data;
-            a->connection_weight[wp->start_idx][wp->connection_idx] = wp->new_weight;
+            a->connection_weight[wp->start_idx][wp->connection_idx] += wp->weight_perturvation;
+        }
+        else if (check_gene.type == 3)
+        {
+            new_node_gene* gene_data = (new_node_gene*) check_gene.data;
+
+            int osn = gene_data->weight_start_idx;
+            int ocn = gene_data->weight_connection_idx;
+
+            a->connections[node_counting][0] = a->connections[osn][ocn];
+            a->connection_weight[node_counting][0] = a->connection_weight[osn][ocn];
+
+            a->connections[osn][ocn] = node_counting;
+            a->connection_weight[osn][ocn] = 1.f;
+
+            con_counting[node_counting]++;
+            node_counting++;
         }
     }
 }
@@ -115,6 +161,7 @@ void free_agent_network(agent* a)
     a->activations = NULL;
     free(a->activation_count);
     free(a->activation_funcs);
+    free(a->activation_biases);
 
     for (int i = 0; i < a->node_count; i++)
     {
@@ -136,6 +183,7 @@ agent* mutate_agent(population* pop, agent* parent)
     agent* child = (agent*) malloc(sizeof(agent));
 
     child->node_count = parent->node_count;
+    child->weight_count = parent->weight_count;
 
     child->gene_count = parent->gene_count + 1;
     child->genes = (int*) malloc(sizeof(int) * child->gene_count);
@@ -153,20 +201,22 @@ agent* mutate_agent(population* pop, agent* parent)
     while (!mutation_done)
     {
         mutation_done = 1;
-        int mutation_type = rand() % 3;
+        int mutation_type = rand() % 5;
         new_gene.type = mutation_type;
         switch (mutation_type)
         {
         case 0:
         {
             // child->node_count++;
-            // printf("Add node");
+            // printf("Add nodes");
             mutation_done = 0;
             break;
         }
         case 1:
         {
             // Add weight
+            child->weight_count++;
+
             int start_node = rand() % child->node_count;
             int end_node = rand() % child->node_count;
             float weight = rand_uni(-1.f, 1.f);
@@ -192,20 +242,62 @@ agent* mutate_agent(population* pop, agent* parent)
             if (cc > 0)
             {
                 int connection_idx = rand() % cc;
-                float new_weight = rand_uni(-1.f, 1.f);
+                float weight_perturvation = rand_uni(-1.f, 1.f);
 
                 weight_perturvation_gene* gene_data = (weight_perturvation_gene*) malloc(sizeof(weight_perturvation_gene));
                 gene_data->start_idx = start_node;
                 gene_data->connection_idx = connection_idx;
-                gene_data->new_weight = new_weight;
+                gene_data->weight_perturvation = weight_perturvation;
 
                 new_gene.data = gene_data;
 
                 #ifdef DEBUG
-                printf("Mutate weights (%d -> c%d: %f)", gene_data->start_idx, gene_data->connection_idx, gene_data->new_weight);
+                printf("Mutate weights (%d -> c%d: %f)", gene_data->start_idx, gene_data->connection_idx, gene_data->weight_perturvation);
                 #endif
             }
             else mutation_done = 0;
+            break;
+        }
+
+        case 3:
+        {
+            // Add neuron
+            int start_node = rand() % child->node_count;
+            int cc = parent->connection_counts[start_node];
+            if (cc > 0)
+            {
+                child->node_count++;
+                child->weight_count++;
+
+                new_node_gene* gene_data = (new_node_gene*) malloc(sizeof(new_node_gene));
+                gene_data->weight_start_idx = start_node;
+                gene_data->weight_connection_idx = rand() % cc;
+                gene_data->activation_type = 2;
+                gene_data->bias = rand_uni(-1.f, 1.f);
+
+                new_gene.data = gene_data;
+
+                #ifdef DEBUG
+                printf("Add neuron (%d -> c%d: %f)", gene_data->start_idx, gene_data->connection_idx, gene_data->weight_perturvation);
+                #endif
+            }
+            else mutation_done = 0;
+            break;
+        }
+
+        case 4:
+        {
+            // Perturb neuron
+            node_perturvation_gene* gene_data = (node_perturvation_gene*) malloc(sizeof(node_perturvation_gene));
+            gene_data->neuron_id = rand() % child->node_count;
+            gene_data->activation_type = rand() % 4;
+            gene_data->bias = rand_uni(-1.f, 1.f);
+            
+            new_gene.data = gene_data;
+
+            #ifdef DEBUG
+            printf("Perturb neuron (%d: %d(%f))", gene_data->neuron_id, gene_data->activation_type, gene_data->bias);
+            #endif
             break;
         }
         
@@ -236,7 +328,8 @@ population* init_population(int in_dim, int out_dim)
     pop->max_size = 300;
     pop->keep_best_n = 100;
     pop->agent_children_count = 2;
-    pop->network_size_cost_weight = 0.1;
+    // pop->network_size_cost_weight = 0.0000001;
+    pop->network_size_cost_weight = 0.0;
     
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
@@ -261,6 +354,7 @@ population* init_population(int in_dim, int out_dim)
     {
         agent* new_agent = (agent*) malloc(sizeof(agent)); 
         new_agent->node_count = initial_node_count;
+        new_agent->weight_count = 0;
         
         new_agent->gene_count = 2;
         new_agent->genes = (int*) malloc(sizeof(int) * 2);
@@ -268,7 +362,7 @@ population* init_population(int in_dim, int out_dim)
         new_agent->genes[1] = 1;
 
         pop->agents[i] = new_agent;
-        // build_agent_network(pop, pop->agents[i]);
+        build_agent_network(pop, pop->agents[i]);
     }
     #ifdef DEBUG
     printf("First 10 agents before first mutation:\n");
@@ -326,10 +420,8 @@ void population_mutate(population* pop)
             #ifdef DEBUG
             printf("Mutating child %d with parent %d\n", latest_null, parent_idxs[i]);
             #endif
-            build_agent_network(pop, pop->agents[parent_idxs[i]]);
             pop->agents[latest_null] = mutate_agent(pop, pop->agents[parent_idxs[i]]);
-            free_agent_network(pop->agents[parent_idxs[i]]);
-            // build_agent_network(pop, pop->agents[latest_null]);
+            build_agent_network(pop, pop->agents[latest_null]);
         }
     }
     #ifdef DEBUG
@@ -357,7 +449,8 @@ void population_kill_weak(population* pop, float* scores)
         int is_good = 0;
         for (int j = 0; j < pop->keep_best_n; j++)
         {
-            float net_size_cost = (float) (pop->agents[i]->gene_count * pop->agents[i]->gene_count);
+            int total_params = pop->agents[i]->node_count + pop->agents[i]->weight_count;
+            float net_size_cost = (float) -1 * (total_params * total_params);
             float total_cost = scores[i] + pop->network_size_cost_weight * net_size_cost;
             if(total_cost >= best_scores[j])
             {
@@ -397,6 +490,8 @@ void population_kill_weak(population* pop, float* scores)
 
 float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
 {
+    reset_agent(a);
+
     #ifdef DEBUG
     if (a->activations == NULL)
     {
@@ -431,7 +526,7 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
         int node_id = queue->value;
         // Pass through non-linearity
         float node_activation = a->activations[node_id];
-        float forward_act = node_activation;
+        float forward_act = node_activation + a->activation_biases[node_id];
         switch (a->activation_funcs[node_id])
         {
         case 0:
@@ -527,13 +622,6 @@ float** population_feed_all_agents(population* pop, float* input)
         
         #ifdef DEBUG
         printf("+------------------------+\n");
-        printf("Building agent %d in population with %zu innovations\n", i, pop->innovations.size);
-        print_agent_genes(&pop->innovations, pop->agents[i]);
-        #endif
-
-        build_agent_network(pop, pop->agents[i]);
-
-        #ifdef DEBUG
         print_agent(pop->agents[i]);
         printf("Feeding agent %d: \n", i);
         #endif
@@ -546,7 +634,7 @@ float** population_feed_all_agents(population* pop, float* input)
         {
             printf("%f, ", input[j]);
         }
-        printf("]\nThe agent outputs: [");
+        printf("]\nAgent outputs: [");
         for (int j = 0; j < pop->out_dim; j++)
         {
             printf("%f, ", out[i][j]);
@@ -554,14 +642,13 @@ float** population_feed_all_agents(population* pop, float* input)
         printf("]\n");
         printf("+------------------------+\n");
         #endif
-
-        free_agent_network(pop->agents[i]);
     }
     return out;
 }
 
 void population_free(population* pop)
 {
+    // TODO:
     for (size_t i = 0; i < pop->innovations.size; i++)
     {
         gene_free(*(gene*)vector_get(&pop->innovations, i));
@@ -581,6 +668,7 @@ void agent_free(agent* a)
 
 void gene_free(gene g)
 {
+    // TODO:
     switch(g.type)
     {
     case 0:
