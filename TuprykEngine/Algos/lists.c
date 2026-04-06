@@ -1,6 +1,7 @@
 #include "lists.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 vector vector_create(size_t elem_size)
@@ -32,7 +33,7 @@ void* vector_get(vector *v, size_t index)
     return (char*)v->data + index * v->elem_size;
 }
 
-struct int_queue* queue_add_val(struct int_queue* queue, int value)
+struct int_queue* queue_push(struct int_queue* queue, int value)
 {
     struct int_queue* new_start = (struct int_queue*) malloc(sizeof(struct int_queue));
     new_start->value = value;
@@ -41,7 +42,7 @@ struct int_queue* queue_add_val(struct int_queue* queue, int value)
     return new_start;
 }
 
-int value_in_queue(struct int_queue* queue, int value)
+int queue_contains(struct int_queue* queue, int value)
 {
     struct int_queue* tmp = queue;
     while (tmp != NULL)

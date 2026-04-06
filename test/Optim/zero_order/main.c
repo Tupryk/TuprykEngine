@@ -21,7 +21,7 @@ float task1_eval(float* input, float* predicted_out)
 
 int main()
 {
-    int generation_count = 1000;
+    int generation_count = 100;
     int task_trials = 100;
     int in_dim = 3;
     int out_dim = 2;
@@ -43,7 +43,7 @@ int main()
                 ((float)(rand() % 1000)) * 0.001f * 2.f - 1.f,
                 ((float)(rand() % 1000)) * 0.001f * 2.f - 1.f
             };
-            float** outputs = population_feed_all_agents(pop, input, i+1==30);
+            float** outputs = population_feed_all_agents(pop, input);
             for (int k = 0; k < pop->max_size; k++)
             {
                 scores[k] += task1_eval(input, outputs[k]);

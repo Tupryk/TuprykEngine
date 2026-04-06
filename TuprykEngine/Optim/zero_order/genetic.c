@@ -159,7 +159,7 @@ agent* mutate_agent(population* pop, agent* parent)
         case 0:
         {
             // child->node_count++;
-            // printf("Add nodes");
+            // printf("Add node");
             mutation_done = 0;
             break;
         }
@@ -178,7 +178,7 @@ agent* mutate_agent(population* pop, agent* parent)
             new_gene.data = gene_data;
 
             #ifdef DEBUG
-            printf("Add weights (%d -> %d: %f)\n", gene_data->start_idx, gene_data->end_idx, gene_data->weight);
+            printf("Add weight (%d -> %d: %f)\n", gene_data->start_idx, gene_data->end_idx, gene_data->weight);
             #endif
             break;
         }
@@ -398,20 +398,30 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
     }
     #endif
 
+    #ifdef DEBUG
+    printf("Initializing activations...\n");
+    #endif
+
     // Initialize the input layer
     struct int_queue* queue = NULL;
     for (int i = 0; i < in_dim; i++)
     {
         a->activations[i] = input[i];
-        queue = queue_add_val(queue, i);
+        a->activation_count[i] = 1;
+        queue = queue_push(queue, i);
     }
+
+    #ifdef DEBUG
+    int propagation_count = 1;
+    printf("Starting propagation 1, nodes... ");
+    #endif
 
     // Forward through the network
     struct int_queue* next_queue = NULL;
     while (queue != NULL)
     {
+        
         int node_id = queue->value;
-        a->activation_count[node_id]++;
         // Pass through non-linearity
         float node_activation = a->activations[node_id];
         float forward_act = node_activation;
@@ -433,18 +443,22 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
             break;
         }
 
+        #ifdef DEBUG
+        printf("%d", node_id);
+        #endif
         for (int i = 0; i < a->connection_counts[node_id]; i++)
         {
             int forward_node = a->connections[node_id][i];
             float w = a->connection_weight[node_id][i];
             a->activations[forward_node] += w * forward_act;
-            if (!value_in_queue(next_queue, i) && !a->activation_count[i])
+            if (!a->activation_count[forward_node] && !queue_contains(next_queue, forward_node))
             {
-                next_queue = queue_add_val(next_queue, i);
+                a->activation_count[forward_node]++;
+                next_queue = queue_push(next_queue, forward_node);
             }
         }
 
-        struct int_queue* tmp = queue->next;
+        struct int_queue* tmp = queue->next;  // TODO: should this be a queue_pop func?
         free(queue);
         queue = tmp;
 
@@ -452,7 +466,25 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
         {
             queue = next_queue;
             next_queue = NULL;
+            #ifdef DEBUG
+            printf("\n");
+            if (queue != NULL)
+            {
+                propagation_count++;
+                printf("Starting propagation %d, nodes... ", propagation_count);
+            }
+            else
+            {
+                printf("Finished propagating.\n");
+            }
+            #endif
         }
+        #ifdef DEBUG
+        else
+        {
+            printf(", ");
+        }
+        #endif
     }
 
     // Write to output array
@@ -465,7 +497,7 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
     return out;
 }
 
-float** population_feed_all_agents(population* pop, float* input, int print)
+float** population_feed_all_agents(population* pop, float* input)
 {
     float** out = (float**) malloc(sizeof(float*) * pop->max_size);
     for (int i = 0; i < pop->max_size; i++)
@@ -478,44 +510,35 @@ float** population_feed_all_agents(population* pop, float* input, int print)
         }
         #endif
         
-        // #ifdef DEBUG
-        if (print)
-        {
-            printf("+------------------------+\n");
-            printf("Building agent %d in population with %zu innovations\n", i, pop->innovations.size);
-            print_agent_genes(&pop->innovations, pop->agents[i]);
-        }
-        // #endif
+        #ifdef DEBUG
+        printf("+------------------------+\n");
+        printf("Building agent %d in population with %zu innovations\n", i, pop->innovations.size);
+        print_agent_genes(&pop->innovations, pop->agents[i]);
+        #endif
 
         build_agent_network(pop, pop->agents[i]);
 
-        // #ifdef DEBUG
-        if (print)
-        {
-            printf("Feeding agent %d: \n", i);
-            print_agent(pop->agents[i]);
-        }
-        // #endif
+        #ifdef DEBUG
+        print_agent(pop->agents[i]);
+        printf("Feeding agent %d: \n", i);
+        #endif
 
         out[i] = feed_agent(pop->agents[i], input, pop->in_dim, pop->out_dim);
 
-        // #ifdef DEBUG
-        if (print)
+        #ifdef DEBUG
+        printf("Given input: [");
+        for (int j = 0; j < pop->in_dim; j++)
         {
-            printf("Given input: [");
-            for (int j = 0; j < pop->in_dim; j++)
-            {
-                printf("%f, ", input[j]);
-            }
-            printf("]\nThe agent outputs: [");
-            for (int j = 0; j < pop->out_dim; j++)
-            {
-                printf("%f, ", out[i][j]);
-            }
-            printf("]\n");
-            printf("+------------------------+\n");
+            printf("%f, ", input[j]);
         }
-        // #endif
+        printf("]\nThe agent outputs: [");
+        for (int j = 0; j < pop->out_dim; j++)
+        {
+            printf("%f, ", out[i][j]);
+        }
+        printf("]\n");
+        printf("+------------------------+\n");
+        #endif
 
         free_agent_network(pop->agents[i]);
     }

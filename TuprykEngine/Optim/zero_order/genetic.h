@@ -92,7 +92,7 @@ population* init_population(int in_dim, int out_dim);
 void population_mutate(population* pop);
 void population_kill_weak(population* pop, float* scores);
 float* feed_agent(agent* a, float* input, int in_dim, int out_dim);
-float** population_feed_all_agents(population* pop, float* input, int print);
+float** population_feed_all_agents(population* pop, float* input);
 void population_free(population* pop);
 void agent_free(agent* a);
 void gene_free(gene g);

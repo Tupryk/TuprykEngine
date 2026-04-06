@@ -20,7 +20,7 @@ struct int_queue
     struct int_queue* next;
 };
 
-struct int_queue* queue_add_val(struct int_queue* queue, int value);
-int value_in_queue(struct int_queue* queue, int value);
+struct int_queue* queue_push(struct int_queue* queue, int value);
+int queue_contains(struct int_queue* queue, int value);
 
 #endif
