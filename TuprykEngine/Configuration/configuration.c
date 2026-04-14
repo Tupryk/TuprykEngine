@@ -1,27 +1,29 @@
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "configuration.h"
 
-int config_colliding(struct config* C)
+
+int config_colliding(config* C)
 {
+    // TODO: KD_Tree
     for (int i = 0; i < C->frame_count; i++)
     {
-        struct frame* a = &C->frames[i];
+        frame* a = C->frames[i];
         for (int j = 0; j < C->frame_count; j++)
         {
-            struct frame* b = &C->frames[j];
-
-            tensor* diff = tensor_sub_give(a->pos, b->pos);
-            float dist = tensor_norm(diff);
-            if (dist <= a->r + b->r)
-            {
-                return 1;
-            }
+            frame* b = C->frames[j];
         }
     }
     return 0;
 }
 
-void config_free(struct config* C)
+void config_free(config* C)
 {
+    for (int i = 0; i < C->frame_count; i++)
+    {
+        frame_free(C->frames[i]);
+    }
     tensor_free(C->q);
     tensor_free(C->q_max);
     tensor_free(C->q_min);

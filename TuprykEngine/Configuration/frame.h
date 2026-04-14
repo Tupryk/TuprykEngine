@@ -4,19 +4,19 @@
 #include "../LinAlg/tensor.h"
 
 
-struct frame
+typedef struct
 {
     tensor* pos;
     tensor* rot;
     
-    struct frame* parent;
+    int* children;
 
-    // 0: None, 1: Triangulated, 2: Implicit
-    // There should be different mesh types for collisions and visuals
-    int mesh_type;
-    float r;  // For now just spheres
-};
+    int type;
+    void* data;
+} frame;
 
-void frame_free(struct frame* f);
+void frame_free(frame* f);
+void frame_get_pose_matrix(frame* f, tensor* pose);
+tensor* frame_get_pose_matrix_give(frame* f);
 
 #endif

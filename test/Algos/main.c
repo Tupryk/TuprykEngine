@@ -15,4 +15,5 @@ int main()
     }
 
     print_int_vector(&v);
+    return 0;
 }
