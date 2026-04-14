@@ -33,6 +33,11 @@ void* vector_get(vector *v, size_t index)
     return (char*)v->data + index * v->elem_size;
 }
 
+void vector_free(vector *v)
+{
+    free(v->data);
+}
+
 struct int_queue* queue_push(struct int_queue* queue, int value)
 {
     struct int_queue* new_start = (struct int_queue*) malloc(sizeof(struct int_queue));

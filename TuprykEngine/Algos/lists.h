@@ -13,6 +13,7 @@ typedef struct {
 vector vector_create(size_t elem_size);
 void vector_push(vector *v, void *element);
 void* vector_get(vector *v, size_t index);
+void vector_free(vector *v);
 
 struct int_queue
 {

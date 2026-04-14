@@ -8,8 +8,6 @@
 #include "../visual/prints/linalg.h"
 #endif
 
-// TODO: switch to tensors with over shape dim 2
-
 
 int get_tensor_volume(tensor* t) {
     int volume = 1;
@@ -971,5 +969,32 @@ tensor* tensor_slice(tensor* t, int idx)
         out_idx++;
     }
 
+    return out;
+}
+
+void vector_cross(tensor* a, tensor* b, tensor* out)
+{
+    #ifdef DEBUG
+    if (
+        a->shape_dim != 2 || b->shape_dim != 2 || out->shape_dim != 2 ||
+        a->shape[0] != 3 || a->shape[1] != 1 ||
+        b->shape[0] != 3 || b->shape[1] != 1 ||
+        out->shape[0] != 3 || out->shape[1] != 1
+    ) {
+        printf("Cross product only works with 3D vectors!\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
+    out->values[0] = a->values[1] * b->values[2] - a->values[2] * b->values[1];
+    out->values[1] = a->values[2] * b->values[0] - a->values[0] * b->values[2];
+    out->values[2] = a->values[0] * b->values[1] - a->values[1] * b->values[0];
+}
+
+tensor* vector_cross_give(tensor* a, tensor* b)
+{
+    int shape[] = {3, 1};
+    tensor* out = new_tensor(shape, 2, NULL);
+    vector_cross(a, b, out);
     return out;
 }

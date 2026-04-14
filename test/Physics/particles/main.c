@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../../TuprykEngine/visual/prints/linalg.h"
-#include "../../TuprykEngine/LinAlg/tensor.h"
-#include "../../TuprykEngine/Physics/particle.h"
+#include "../../../TuprykEngine/visual/prints/linalg.h"
+#include "../../../TuprykEngine/LinAlg/tensor.h"
+#include "../../../TuprykEngine/Physics/particle.h"
 
-#include "../../TuprykEngine/visual/graphics/window.h"
-#include "../../TuprykEngine/visual/graphics/basic.h"
+#include "../../../TuprykEngine/visual/graphics/window.h"
+#include "../../../TuprykEngine/visual/graphics/basic.h"
 
 
 static struct ParticleSim* g_ps = NULL;
