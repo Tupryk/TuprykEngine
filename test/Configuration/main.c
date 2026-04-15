@@ -2,11 +2,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../TuprykEngine/Configuration/frame.h"
+#include "../../TuprykEngine/Kinematics/frame.h"
+#include "../../TuprykEngine/Kinematics/configuration.h"
+#include "../../TuprykEngine/scenes/devastator/desert.h"
 #include "../../TuprykEngine/visual/prints/linalg.h"
-#include "../../TuprykEngine/Configuration/configuration.h"
+#include "../../TuprykEngine/visual/prints/config.h"
 
-int main()
+
+int test_frame()
 {
     frame* f = (frame*) malloc(sizeof(frame));
 
@@ -25,5 +28,20 @@ int main()
     tensor_free(f->rot);
     tensor_free(pose);
 
+    return 0;
+}
+
+int test_config()
+{
+    config* C = init_devastator_config();
+    print_config(C);
+    config_free(C);
+    return 0;
+}
+
+int main()
+{
+    // test_frame();
+    test_config();
     return 0;
 }

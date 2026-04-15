@@ -9,6 +9,12 @@ void frame_free(frame* f)
 {
     tensor_free(f->pos);
     tensor_free(f->rot);
+
+    if (f->type == 1)
+    {
+        free(f->data);
+    }
+
     free(f);
 }
 

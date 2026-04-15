@@ -121,7 +121,6 @@ void tensor_transfer_all(tensor* to, tensor* from)
 
 void tensor_free(tensor* t)
 {
-    // TODO: could maybe make this take a list of tensors as input.
     free(t->values);
     free(t->shape);
     free(t);
@@ -997,4 +996,19 @@ tensor* vector_cross_give(tensor* a, tensor* b)
     tensor* out = new_tensor(shape, 2, NULL);
     vector_cross(a, b, out);
     return out;
+}
+
+void vector_normalize(tensor* t)
+{
+    #ifdef DEBUG
+    if (t->shape_dim != 2 || (t->shape[0] != 1 && t->shape[1] != 1)) {
+        printf("Can only normalize vectors!\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    float norm = tensor_norm(t);
+    for (int i = 0; i < t->volume; i++)
+    {
+        t->values[i] /= norm;
+    }
 }

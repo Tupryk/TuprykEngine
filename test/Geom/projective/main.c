@@ -1,9 +1,9 @@
 #define DEBUG
 
 #include <SDL.h>
-#include "../../TuprykEngine/LinAlg/tensor.h"
-#include "../../TuprykEngine/visual/graphics/window.h"
-#include "../../TuprykEngine/visual/graphics/basic.h"
+#include "../../../TuprykEngine/LinAlg/tensor.h"
+#include "../../../TuprykEngine/visual/graphics/window.h"
+#include "../../../TuprykEngine/visual/graphics/basic.h"
 
 struct Triangle
 {

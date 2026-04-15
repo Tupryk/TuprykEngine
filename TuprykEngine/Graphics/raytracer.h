@@ -2,9 +2,9 @@
 #define RAYTRACER
 
 #include "image.h"
-#include "../Configuration/frame.h"
-#include "../Configuration/configuration.h"
+#include "../Kinematics/frame.h"
+#include "../Kinematics/configuration.h"
 
-void raytrace(struct config* C, struct frame* cam, tensor* out);
+void raytrace(config* C, frame* cam, tensor* out);
 
 #endif

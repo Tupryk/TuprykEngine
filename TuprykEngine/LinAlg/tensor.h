@@ -55,6 +55,7 @@ float tensor_trace(tensor* t);
 tensor* tensor_slice(tensor* t, int idx);
 void vector_cross(tensor* a, tensor* b, tensor* out);
 tensor* vector_cross_give(tensor* a, tensor* b);
+void vector_normalize(tensor* t);
 
 
 // void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);

@@ -9,9 +9,11 @@ typedef struct
     tensor* pos;
     tensor* rot;
     
+    int parent;
+    int children_count;
     int* children;
 
-    int type;
+    int type;  // 0: Marker, 1: Ball, 2: Camera, 3: Light
     void* data;
 } frame;
 
