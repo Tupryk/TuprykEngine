@@ -10,20 +10,20 @@ void print_spaces(int count)
 {
     for (int i = 0; i < count; i++)
     {
-        printf("  ");
+        printf("    ");
     }
 }
 
 void print_frame(config* C, frame* f, int depth)
 {
-    if (depth >= 3)
+    if (depth >= 5)
     {
         print_spaces(depth);
         printf("(...)\n");
         return;
     }
     print_spaces(depth);
-    printf("Frame (depth %d):\n", depth);
+    printf("--- Frame (depth %d) ---\n", depth);
     float* pos = f->pos->values;
     float* rot = f->rot->values;
     
@@ -42,7 +42,7 @@ void print_frame(config* C, frame* f, int depth)
             printf("Ball\n");
             float r = *(float*) f->data;
             print_spaces(depth);
-            printf("  -> Radius: %g\n", r);
+            printf("    -> Radius: %g\n", r);
             break;
         case 2:
             printf("Camera\n");

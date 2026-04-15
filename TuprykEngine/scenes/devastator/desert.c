@@ -37,7 +37,7 @@ config* init_devastator_config()
     //---- Ball Frames ----//
     for (int i = 0; i < tentacle_count; i++)
     {
-        root->children[i] = i+1;
+        root->children[i] = i * tentacle_length + 1;
         int prev_piece = -1;
         for (int j = 0; j < tentacle_length; j++)
         {
