@@ -5,6 +5,28 @@
 #include "../Geom/quaternions.h"
 
 
+frame* frame_init(float* pos, float* rot)
+{
+    frame* f = (frame*) malloc(sizeof(frame));
+
+    int pos_shape[] = {3, 1};
+    f->pos = new_tensor(pos_shape, 2, pos);
+
+    int rot_shape[] = {4, 1};
+    f->rot = new_tensor(rot_shape, 2, rot);
+
+    f->children_count = 0;
+    f->children = NULL;
+
+    f->data = NULL;
+    f->mass = 0.f;
+
+    f->parent = 0;
+    f->type = 0;
+
+    return f;
+}
+
 void frame_free(frame* f)
 {
     tensor_free(f->pos);

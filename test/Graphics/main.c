@@ -5,9 +5,12 @@
 
 #include "../../TuprykEngine/Graphics/image.h"
 #include "../../TuprykEngine/Graphics/raytracer.h"
+#include "../../TuprykEngine/Kinematics/configuration.h"
 
+#include "../../TuprykEngine/scenes/devastator/desert.h"
 #include "../../TuprykEngine/visual/graphics/window.h"
 #include "../../TuprykEngine/visual/graphics/basic.h"
+#include "../../TuprykEngine/visual/prints/config.h"
 
 
 int test_raytracer()
@@ -15,11 +18,15 @@ int test_raytracer()
     tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
     tensor_fill_uniform(im, 0.f, 1.f);
 
-    // raytrace(C, cam, im);
-
+    config* C = init_devastator_config();
+    print_config(C);
+    
+    raytrace(C, -1, im);
+    
     view_image(im);
     window_wait();
-
+    
+    config_free(C);
     tensor_free(im);
     return 0;
 }

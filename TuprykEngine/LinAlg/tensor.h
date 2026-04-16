@@ -47,7 +47,6 @@ int tensor_lu_decomp(tensor* A, tensor* P, tensor* L, tensor* U);
 float tensor_determinant(tensor* A);
 void tensor_inverse(tensor* A, tensor* A_inv);
 tensor* tensor_inverse_give(tensor* A);
-float tensor_norm(tensor* t);
 void tensor_flatten(tensor* t);
 float tensor_max(tensor* t);
 float tensor_min(tensor* t);
@@ -55,6 +54,9 @@ float tensor_trace(tensor* t);
 tensor* tensor_slice(tensor* t, int idx);
 void vector_cross(tensor* a, tensor* b, tensor* out);
 tensor* vector_cross_give(tensor* a, tensor* b);
+float vector_dot(tensor* a, tensor* b);
+float vector_norm(tensor* t);
+float vector_squared_norm(tensor* t);
 void vector_normalize(tensor* t);
 
 

@@ -38,18 +38,39 @@ void vector_free(vector *v)
     free(v->data);
 }
 
-struct int_queue* queue_push(struct int_queue* queue, int value)
+stack* stack_init(size_t elem_size)
 {
-    struct int_queue* new_start = (struct int_queue*) malloc(sizeof(struct int_queue));
+    stack* s = (stack*) malloc(sizeof(stack));
+    s->size = 0;
+    s->next = NULL;
+    s->elem_size = elem_size;
+    return s;
+}
+
+void stack_push(stack* stack, void* value)
+{
+    // TODO:
+}
+
+void* stack_pop(stack* stack)
+{
+    // TODO:
+    // struct stack_elem* tmp 
+    // return
+}
+
+struct int_stack* int_stack_push(struct int_stack* stack, int value)
+{
+    struct int_stack* new_start = (struct int_stack*) malloc(sizeof(struct int_stack));
     new_start->value = value;
-    new_start->next = queue;
+    new_start->next = stack;
     
     return new_start;
 }
 
-int queue_contains(struct int_queue* queue, int value)
+int int_stack_contains(struct int_stack* stack, int value)
 {
-    struct int_queue* tmp = queue;
+    struct int_stack* tmp = stack;
     while (tmp != NULL)
     {
         if (tmp->value == value) return 1;

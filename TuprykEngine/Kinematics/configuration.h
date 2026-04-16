@@ -8,6 +8,9 @@ typedef struct
 {
     int frame_count;
     frame** frames;  // Frame at index 0 is always root!!!
+
+    int lights_count;
+    int* lights;
     
     tensor* q;
     tensor* q_max;

@@ -252,12 +252,12 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
     #endif
 
     // Initialize the input layer
-    struct int_queue* queue = NULL;
+    struct int_stack* stack = NULL;
     for (int i = 0; i < in_dim; i++)
     {
         a->activations[i] = input[i];
         a->activation_count[i] = 1;
-        queue = queue_push(queue, i);
+        stack = int_stack_push(stack, i);
     }
 
     #ifdef DEBUG
@@ -266,11 +266,11 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
     #endif
 
     // Forward through the network
-    struct int_queue* next_queue = NULL;
-    while (queue != NULL)
+    struct int_stack* next_stack = NULL;
+    while (stack != NULL)
     {
         
-        int node_id = queue->value;
+        int node_id = stack->value;
         // Pass through non-linearity
         float node_activation = a->activations[node_id];
         float forward_act = node_activation + a->activation_biases[node_id];
@@ -300,24 +300,24 @@ float* feed_agent(agent* a, float* input, int in_dim, int out_dim)
             int forward_node = a->connections[node_id][i];
             float w = a->connection_weight[node_id][i];
             a->activations[forward_node] += w * forward_act;
-            if (!a->activation_count[forward_node] && !queue_contains(next_queue, forward_node))
+            if (!a->activation_count[forward_node] && !int_stack_contains(next_stack, forward_node))
             {
                 a->activation_count[forward_node]++;
-                next_queue = queue_push(next_queue, forward_node);
+                next_stack = int_stack_push(next_stack, forward_node);
             }
         }
 
-        struct int_queue* tmp = queue->next;
-        free(queue);
-        queue = tmp;
+        struct int_stack* tmp = stack->next;
+        free(stack);
+        stack = tmp;
 
-        if (queue == NULL)
+        if (stack == NULL)
         {
-            queue = next_queue;
-            next_queue = NULL;
+            stack = next_stack;
+            next_stack = NULL;
             #ifdef DEBUG
             printf("\n");
-            if (queue != NULL)
+            if (stack != NULL)
             {
                 propagation_count++;
                 printf("Starting propagation %d, nodes... ", propagation_count);

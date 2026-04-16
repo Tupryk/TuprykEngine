@@ -7,8 +7,13 @@ SRCS = main.c \
 	../../TuprykEngine/visual/prints/linalg.c \
 	../../TuprykEngine/visual/graphics/window.c \
 	../../TuprykEngine/visual/graphics/basic.c \
+	../../TuprykEngine/Kinematics/configuration.c \
+	../../TuprykEngine/Kinematics/frame.c \
 	../../TuprykEngine/Graphics/raytracer.c \
-	../../TuprykEngine/Graphics/image.c
+	../../TuprykEngine/visual/prints/config.c \
+	../../TuprykEngine/scenes/devastator/desert.c \
+	../../TuprykEngine/Graphics/image.c \
+	../../TuprykEngine/Algos/lists.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

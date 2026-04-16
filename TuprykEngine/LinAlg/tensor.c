@@ -872,24 +872,6 @@ tensor* tensor_inverse_give(tensor* A)
     return A_inv;
 }
 
-float tensor_norm(tensor* t)
-{
-    // TODO: Make this work for tensors with axis as input like numpy's np.linalg.norm(...).
-    #ifdef DEBUG
-    if (!(t->shape_dim == 1 || (t->shape_dim == 2 && (t->shape[0] == 1 || t->shape[1] == 1))))
-    {
-        printf("Function currently only works for vectors such that t->shape_dim = 1.\n");
-        exit(EXIT_FAILURE);
-    }
-    #endif
-    float magnitude = 0.f;
-    for (int i = 0; i < t->volume; i++) {
-        magnitude += t->values[i] * t->values[i];
-    }
-    magnitude = sqrt(magnitude);
-    return magnitude;
-}
-
 void tensor_flatten(tensor* t)
 {
     free(t->shape);
@@ -998,6 +980,50 @@ tensor* vector_cross_give(tensor* a, tensor* b)
     return out;
 }
 
+float vector_dot(tensor* a, tensor* b)
+{
+    #ifdef DEBUG
+    if (a->shape_dim != 2 || a->shape[1] != 1 || b->shape_dim != 2 || b->shape[1] != 1)
+    {
+        printf("Dot product only works with vectors with shape (n, 1).\n");
+        exit(EXIT_FAILURE);
+    }
+    if (a->shape[0] != b->shape[0])
+    {
+        printf("Vectors need to have the same shape for dot product!\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    float out = 0.f;
+    for (int i = 0; i < a->volume; i++) {
+        out += a->values[i] * b->values[i];
+    }
+    return out;
+}
+
+float vector_norm(tensor* t)
+{
+    float out = vector_squared_norm(t);
+    out = sqrt(out);
+    return out;
+}
+
+float vector_squared_norm(tensor* t)
+{
+    #ifdef DEBUG
+    if (t->shape_dim != 2 || t->shape[1] != 1)
+    {
+        printf("Norm only works with vectors with shape (n, 1).\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    float out = 0.f;
+    for (int i = 0; i < t->volume; i++) {
+        out += t->values[i] * t->values[i];
+    }
+    return out;
+}
+
 void vector_normalize(tensor* t)
 {
     #ifdef DEBUG
@@ -1006,7 +1032,7 @@ void vector_normalize(tensor* t)
         exit(EXIT_FAILURE);
     }
     #endif
-    float norm = tensor_norm(t);
+    float norm = vector_norm(t);
     for (int i = 0; i < t->volume; i++)
     {
         t->values[i] /= norm;

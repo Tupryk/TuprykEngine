@@ -23,7 +23,7 @@ int config_colliding(config* C)
                     tensor* diff = tensor_copy(b->pos);
                     tensor_sub(a->pos, diff, diff);
 
-                    float dist = tensor_norm(diff);
+                    float dist = vector_norm(diff);
                     if (dist < ar || dist < br)
                     {
                         return 1;
@@ -46,6 +46,10 @@ void config_free(config* C)
             frame_free(C->frames[i]);
         }
         free(C->frames);
+    }
+    if (C->lights != NULL)
+    {
+        free(C->lights);
     }
     if (C->q != NULL)
     {

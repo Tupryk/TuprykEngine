@@ -51,7 +51,7 @@ void print_frame(config* C, frame* f, int depth)
             printf("Light\n");
             break;
         default:
-            printf("Unknown\n");
+            printf("Unknown (%d)\n", f->type);
             break;
     }
 
@@ -72,6 +72,12 @@ void print_frame(config* C, frame* f, int depth)
 void print_config(config* C)
 {
     printf("Total frame count: %d\n", C->frame_count);
+    printf("Lights in scene (%d): [", C->lights_count);
+    for (int i = 0; i < C->lights_count; i++)
+    {
+        printf("%d, ", C->lights[i]);
+    }
+    printf("]\n");
     if (C->frame_count)
     {
         print_frame(C, C->frames[0], 0);
