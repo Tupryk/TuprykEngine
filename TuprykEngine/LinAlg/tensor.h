@@ -17,6 +17,7 @@ typedef struct
 tensor* new_tensor(int* shape, int shape_dim, float* values);
 tensor* tensor_copy(tensor* t);
 tensor* tensor_copy_shape(tensor* t);
+void tensor_fill(tensor* t, float value);
 void tensor_fill_uniform(tensor* t, float min, float max);
 void tensor_transfer_values(tensor* to, tensor* from);
 void tensor_free(tensor* t);

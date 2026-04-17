@@ -7,9 +7,41 @@
 
 typedef struct
 {
+    float color[3];
+    float ambient;
+    float diffuse;
+    float specular;
+    float shininess;
+} texture;
+
+typedef struct
+{
+    int type;  // 0: Sphere
+    void* mesh;
+    texture* tex;
+} geom;
+
+typedef struct
+{
+    float mass;
+    float radius;
+} ball_geom;
+
+typedef struct
+{
+    float fx;
+    float fy;
+} camera_t;
+
+typedef struct
+{
+    float intensity;
+} light_t;
+
+typedef struct
+{
     tensor* pos;
     tensor* rot;
-    float mass;
     
     int parent;
     int children_count;

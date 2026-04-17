@@ -3,7 +3,37 @@
 #include <math.h>
 
 #include "raytracer.h"
+#include "../Algos/utils.h"
+#include "../visual/prints/linalg.h"
 
+
+float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float radius, tensor* out)
+{
+    tensor* ball_to_cam = tensor_sub_give(cam_pos, ball_pos);
+
+    float a = vector_squared_norm(ray_dir);
+    float b = 2.f * vector_dot(ray_dir, ball_to_cam);
+    float c = vector_squared_norm(ball_to_cam) - radius * radius;
+
+    tensor_free(ball_to_cam);
+
+    float disc = b*b - 4*a*c;
+    if (disc < 0) return -1.f;
+
+    float sqrt_disc = sqrt(disc);
+
+    float t1 = (-b + sqrt_disc) / (2.f * a);
+    float t2 = (-b - sqrt_disc) / (2.f * a);
+
+    if (t1 < 0 && t2 < 0) return -1.f;
+    float camera_ball_dist = (t2 > 0 && t2 < t1) ? t2 : (t1 > 0 ? t1 : t2);
+    // TODO: camera inside ball case
+
+    tensor_scalar_mult(ray_dir, camera_ball_dist, out);
+    tensor_add(out, cam_pos, out);
+
+    return camera_ball_dist;
+}
 
 void raytrace(config* C, int cam, tensor* out)
 {
@@ -33,6 +63,8 @@ void raytrace(config* C, int cam, tensor* out)
         exit(EXIT_FAILURE);
     }
     #endif
+
+    // TODO: free tensors
     
     int width = out->shape[0];
     int height = out->shape[1];
@@ -40,85 +72,95 @@ void raytrace(config* C, int cam, tensor* out)
 
     frame* cam_frame = C->frames[cam];
     frame* light_frame = C->frames[C->lights[0]];
-    float f = *(float*) cam_frame->data;
+    light_t* light_data = (light_t*) light_frame->data;
+    camera_t* cam_data = (camera_t*) cam_frame->data;
+    float fx = cam_data->fx;
+    float fy = cam_data->fy;
     
     int cam_ray_shape[] = {3, 1};
     tensor* cam_ray = new_tensor(cam_ray_shape, 2, NULL);
-    tensor* ball_to_cam = tensor_copy(cam_ray);
-    tensor* hit1 = tensor_copy(cam_ray);
-    tensor* hit2 = tensor_copy(cam_ray);
-
-    tensor_sub(cam_frame->pos, light_frame->pos, hit1);
-    float camera_light = vector_norm(hit1);
+    tensor* ball_hit = tensor_copy_shape(cam_ray);
 
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
+            depth[x][y] = 1000.0;
+
             int indices[] = {x, y, 0};
             int idx = get_tensor_value_index(out, indices);
 
-            float r = 0.f;
-            float g = 0.f;
-            float b = 0.f;
+            float R = 0.f;
+            float G = 0.f;
+            float B = 0.f;
 
-            cam_ray->values[0] = (((float) x / (float) width) - 0.5f) * f;
+            cam_ray->values[0] = (((float) x / (float) width) - 0.5f) * fx;
             cam_ray->values[1] = 0.1f;
-            cam_ray->values[2] = (((float) y / (float) height) - 0.5f) * f;
+            cam_ray->values[2] = (((float) y / (float) height) - 0.5f) * fy * -1.f;
+            vector_normalize(cam_ray);
 
             for (int i = 0; i < frame_count; i++)
             {
                 frame* ball_frame = C->frames[i];
                 if (ball_frame->type == 1)
                 {
-                    float r2 = *(float*)ball_frame->data;
-                    r2 *= r2;
-                    tensor_sub(cam_frame->pos, ball_frame->pos, ball_to_cam);
-                    float a = vector_squared_norm(cam_ray);
-                    float b = -2.f * vector_dot(cam_ray, ball_to_cam);
-                    float c = vector_squared_norm(ball_to_cam) - r2;
-    
-                    int hit = b*b - 4*a*c >= 0;
-                    if (hit)
+                    geom* ball_geom = (geom*) ball_frame->data;
+                    texture* ball_tex = ball_geom->tex;
+
+                    float  radius   = *(float*)ball_geom->mesh;
+                    float* color    = ball_tex->color;
+                    float  ambient  = ball_tex->ambient;
+                    float  diffuse  = ball_tex->diffuse;
+                    float  specular = ball_tex->specular;
+                    float  shininess = ball_tex->shininess;
+
+                    float camera_ball_dist = ray_ball_hit(cam_frame->pos, cam_ray, ball_frame->pos, radius, ball_hit);
+
+                    if (camera_ball_dist != -1.f && depth[x][y] > camera_ball_dist)
                     {
-                        float t1 = (-b + sqrt( b*b - (4*a*c) )) / (2*a);
-                        float t2 = (-b - sqrt( b*b - (4*a*c) )) / (2*a);
-
-                        tensor_scalar_mult(cam_ray, t1, hit1);
-                        tensor_scalar_mult(cam_ray, t2, hit2);
+                        depth[x][y] = camera_ball_dist;
                         
-                        float distance1 = vector_norm(hit1);
-                        float distance2 = vector_norm(hit2);
+                        tensor* ball_normal = tensor_sub_give(ball_hit, ball_frame->pos);
+                        tensor* light_dir = tensor_sub_give(light_frame->pos, ball_hit);
+                        tensor* cam_dir = tensor_sub_give(cam_frame->pos, ball_hit);
                         
-                        float light_ball;
-                        float camera_ball;
-                        if ( distance1 < distance2 )
-                        {
-                            camera_ball = distance1;
-                            tensor_add(hit1, cam_frame->pos, hit1);
-                            tensor_sub(hit1, light_frame->pos, hit1);
-                            light_ball = vector_norm(hit1);
-                        }
-                        else
-                        {
-                            camera_ball = distance2;
-                            tensor_add(hit2, cam_frame->pos, hit2);
-                            tensor_sub(hit2, light_frame->pos, hit2);
-                            light_ball = vector_norm(hit1);
-                        }
+                        vector_normalize(ball_normal);
+                        vector_normalize(light_dir);
+                        vector_normalize(cam_dir);
+                        
+                        tensor* light_reflect = tensor_copy(ball_normal);
+                        
+                        tensor_scalar_mult(light_reflect, vector_dot(light_dir, ball_normal), light_reflect);
+                        tensor_scalar_mult(light_reflect, 2.f, light_reflect);
+                        tensor_sub(light_reflect, light_dir, light_reflect);
+                        
+                        vector_normalize(light_reflect);
 
-                        float cos = ( pow(light_ball, 2) + pow(camera_ball, 2) - pow(camera_light, 2) ) / ( 2 * camera_ball * light_ball );
+                        float diff = fmax(vector_dot(ball_normal, light_dir), 0.f);
+                        float spec = powf(fmax(vector_dot(light_reflect, cam_dir), 0.f), shininess);
 
-                        r = (1.f - cos) * 10.f;
-                        if (r > 1.f) r = 1.f;
-                        if (r < 0.f) r = 0.f;
+                        float C = diff * diffuse * light_data->intensity + ambient;
+                        C = clip(C, 0.f, 1.f);
+                        
+                        R = color[0] * C + spec * specular;
+                        G = color[1] * C + spec * specular;
+                        B = color[2] * C + spec * specular;
+
+                        R = clip(R, 0.f, 1.f);
+                        G = clip(G, 0.f, 1.f);
+                        B = clip(B, 0.f, 1.f);
+
+                        tensor_free(ball_normal);
+                        tensor_free(light_dir);
+                        tensor_free(cam_dir);
+                        tensor_free(light_reflect);
                     }
                 }
             }
             
-            out->values[idx  ] = r;
-            out->values[idx+1] = g;
-            out->values[idx+2] = b;
+            out->values[idx  ] = R;
+            out->values[idx+1] = G;
+            out->values[idx+2] = B;
         }
     }
 }

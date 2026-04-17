@@ -2,7 +2,31 @@
 #include <stdlib.h>
 
 #include "desert.h"
+#include "../../Stochastic/sample.h"
 
+
+geom* ball_geom_give(float r, float g, float b, float radius)
+{
+    geom* ball_geom = (geom*) malloc(sizeof(geom));
+    
+    ball_geom->type = 0;
+    
+    ball_geom->mesh = (void*) malloc(sizeof(float));
+    *(float*)ball_geom->mesh = radius;
+
+    ball_geom->tex = (texture*) malloc(sizeof(texture));
+
+    ball_geom->tex->color[0] = r;
+    ball_geom->tex->color[1] = g;
+    ball_geom->tex->color[2] = b;
+
+    ball_geom->tex->ambient  = 0.5f;
+    ball_geom->tex->diffuse  = 1.0f;
+    ball_geom->tex->specular = 1.0f;
+    ball_geom->tex->shininess = 100.f;
+
+    return ball_geom;
+}
 
 config* init_devastator_config()
 {
@@ -26,9 +50,7 @@ config* init_devastator_config()
     root->children_count += 2;  // Camera! Light!
     root->children = (int*) malloc(sizeof(int) * root->children_count);
 
-    root->data = (void*) malloc(sizeof(float));
-    *(float*)root->data = 0.2f;
-    root->mass = 0.2f;
+    root->data = (void*) ball_geom_give(1.f, 0.f, 0.f, 0.2f);
 
     root->parent = -1;
     root->type = 1;
@@ -66,9 +88,12 @@ config* init_devastator_config()
                 ball->children[0] = 2 + i * tentacle_length + j;
             }
 
-            ball->data = (void*) malloc(sizeof(float));
-            *(float*)ball->data = 0.1f;
-            root->mass = 0.1f;
+            ball->data = (void*) ball_geom_give(
+                rand_uni(0.f, 1.f),
+                rand_uni(0.f, 1.f),
+                rand_uni(0.f, 1.f),
+                0.1f
+            );
 
             ball->type = 1;
 
@@ -82,14 +107,20 @@ config* init_devastator_config()
     float cam_rot[] = {1.f, 0.f, 0.f, 0.f};
     frame* cam = frame_init(cam_pos, cam_rot);
 
-    cam->data = (void*) malloc(sizeof(float));
-    *(float*)cam->data = 0.1f;
+    camera_t* cam_data = (camera_t*) malloc(sizeof(camera_t));
+    cam_data->fx = 0.1f;
+    cam_data->fy = 0.1f;
+    cam->data = (void*) cam_data;
 
     cam->parent = 0;
     cam->type = 2;
 
-    float light_pos[] = {0.f, 0.f, 1.f};
+    float light_pos[] = {0.f, 0.f, 10.f};
     frame* light = frame_init(light_pos, root_rot);
+
+    light_t* light_data = (light_t*) malloc(sizeof(light_t));
+    light_data->intensity = 1.0f;
+    light->data = (void*) light_data;
 
     light->parent = 0;
     light->type = 3;
@@ -101,6 +132,70 @@ config* init_devastator_config()
     C->frames[cam_idx] = cam;
     C->frames[light_idx] = light;
     C->lights[0] = light_idx;
+    
+    int q_shape[] = {tentacle_count * tentacle_length, 1};
+    C->q = new_tensor(q_shape, 2, NULL);
+    C->q_min = new_tensor(q_shape, 2, NULL);
+    tensor_fill(C->q_min, -1.f);
+    C->q_max = new_tensor(q_shape, 2, NULL);
+    tensor_fill(C->q_max, 1.f);
+
+    return C;
+}
+
+config* init_just_ball_config()
+{
+    config* C = (config*) malloc(sizeof(config));
+
+    C->frame_count = 3;
+    C->frames = (frame**) malloc(sizeof(frame*) * C->frame_count);
+    
+    C->lights_count = 1;
+    C->lights = (int*) malloc(sizeof(int) * C->lights_count);
+
+    //---- Root Frame ----//
+    float root_pos[] = {0.f, 0.f, 0.f};
+    float root_rot[] = {1.f, 0.f, 0.f, 0.f};
+    frame* root = frame_init(root_pos, root_rot);
+
+    root->children_count = 2;
+    root->children = (int*) malloc(sizeof(int) * root->children_count);
+
+    root->data = (void*) ball_geom_give(1.f, 0.f, 0.f, 0.2f);
+
+    root->parent = -1;
+    root->type = 1;
+
+    C->frames[0] = root;
+
+    // Camera
+    float cam_pos[] = {0.f, -2.f, 0.f};
+    float cam_rot[] = {1.f, 0.f, 0.f, 0.f};
+    frame* cam = frame_init(cam_pos, cam_rot);
+
+    camera_t* cam_data = (camera_t*) malloc(sizeof(camera_t));
+    cam_data->fx = 0.1f;
+    cam_data->fy = 0.1f;
+    cam->data = (void*) cam_data;
+
+    cam->parent = 0;
+    cam->type = 2;
+
+    float light_pos[] = {0.f, 0.f, 10.f};
+    frame* light = frame_init(light_pos, root_rot);
+
+    light_t* light_data = (light_t*) malloc(sizeof(light_t));
+    light_data->intensity = 1.0f;
+    light->data = (void*) light_data;
+
+    light->parent = 0;
+    light->type = 3;
+
+    root->children[0] = 1;
+    root->children[1] = 2;
+    C->frames[1] = cam;
+    C->frames[2] = light;
+    C->lights[0] = 2;
     
     C->q = NULL;
     C->q_max = NULL;

@@ -19,6 +19,7 @@ int test_raytracer()
     tensor_fill_uniform(im, 0.f, 1.f);
 
     config* C = init_devastator_config();
+    // config* C = init_just_ball_config();
     print_config(C);
     
     raytrace(C, -1, im);
@@ -33,6 +34,7 @@ int test_raytracer()
 
 int main(void)
 {
+    srand( time( NULL ) );
     init_window();
 
     int failures_count = 0;

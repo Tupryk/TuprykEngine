@@ -19,7 +19,6 @@ frame* frame_init(float* pos, float* rot)
     f->children = NULL;
 
     f->data = NULL;
-    f->mass = 0.f;
 
     f->parent = 0;
     f->type = 0;
@@ -34,8 +33,32 @@ void frame_free(frame* f)
 
     if (f->type == 1)
     {
+        geom* g = (geom*) f->data;
+        if (g->type == 0)
+        {
+            free(g->mesh);
+        }
+        #ifdef DEBUG
+        else
+        {
+            printf("Undefined mesh type %d!\n", g->type);
+            exit(EXIT_FAILURE);
+        }
+        #endif
+        free(g->tex);
+        free(g);
+    }
+    else if (f->type == 2 || f->type == 3)
+    {
         free(f->data);
     }
+    #ifdef DEBUG
+    else if (f->type != 0)
+    {
+        printf("Undefined frame type %d!\n", f->type);
+        exit(EXIT_FAILURE);
+    }
+    #endif
 
     free(f);
 }

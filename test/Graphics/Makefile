@@ -13,7 +13,9 @@ SRCS = main.c \
 	../../TuprykEngine/visual/prints/config.c \
 	../../TuprykEngine/scenes/devastator/desert.c \
 	../../TuprykEngine/Graphics/image.c \
-	../../TuprykEngine/Algos/lists.c
+	../../TuprykEngine/Algos/lists.c \
+	../../TuprykEngine/Stochastic/sample.c \
+	../../TuprykEngine/Algos/utils.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

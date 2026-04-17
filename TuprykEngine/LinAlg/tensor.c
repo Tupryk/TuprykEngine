@@ -77,6 +77,14 @@ tensor* tensor_copy(tensor* t)
     return t_copy;
 }
 
+void tensor_fill(tensor* t, float value)
+{
+    for (int i = 0; i < t->volume; i++)
+    {
+        t->values[i] = value;
+    }
+}
+
 void tensor_fill_uniform(tensor* t, float min, float max)
 {
     for (int i = 0; i < t->volume; i++)

@@ -82,4 +82,34 @@ void print_config(config* C)
     {
         print_frame(C, C->frames[0], 0);
     }
+    if (config_colliding(C))
+    {
+        printf("There are collisions in the scene!\n");
+    }
+    else
+    {
+        printf("There are no collisions in the scene.\n");
+    }
+    if (C->q != NULL)
+    {
+        int q_dim = C->q->volume;
+        printf("q: [");
+        for (int i = 0; i < q_dim; i++)
+        {
+            printf("%g, ", C->q->values[i]);
+        }
+        printf("]\n");
+        printf("q_min: [");
+        for (int i = 0; i < q_dim; i++)
+        {
+            printf("%g, ", C->q_min->values[i]);
+        }
+        printf("]\n");
+        printf("q_max: [");
+        for (int i = 0; i < q_dim; i++)
+        {
+            printf("%g, ", C->q_max->values[i]);
+        }
+        printf("]\n");
+    }
 }
