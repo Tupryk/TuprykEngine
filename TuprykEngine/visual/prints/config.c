@@ -16,7 +16,7 @@ void print_spaces(int count)
 
 void print_frame(config* C, frame* f, int depth)
 {
-    if (depth >= 5)
+    if (depth > 8)
     {
         print_spaces(depth);
         printf("(...)\n");
@@ -24,6 +24,7 @@ void print_frame(config* C, frame* f, int depth)
     }
     print_spaces(depth);
     printf("--- Frame (depth %d) ---\n", depth);
+
     float* pos = f->pos->values;
     float* rot = f->rot->values;
     
@@ -31,24 +32,45 @@ void print_frame(config* C, frame* f, int depth)
     printf("-> Position: [%g, %g, %g]\n", pos[0], pos[1], pos[2]);
     print_spaces(depth);
     printf("-> Rotation: [%g, %g, %g, %g]\n", rot[0], rot[1], rot[2], rot[3]);
+    
+    if (f->parent != -1)
+    {
+        float* pos_rel = f->pos_rel->values;
+        float* rot_rel = f->rot_rel->values;
+        
+        print_spaces(depth);
+        printf("-> Rel. Position: [%g, %g, %g]\n", pos_rel[0], pos_rel[1], pos_rel[2]);
+        print_spaces(depth);
+        printf("-> Rel. Rotation: [%g, %g, %g, %g]\n", rot_rel[0], rot_rel[1], rot_rel[2], rot_rel[3]);
+    }
+
     print_spaces(depth);
     printf("-> Type: ");
     switch(f->type)
     {
+        // TODO: Print properties
         case 0:
             printf("Marker\n");
             break;
         case 1:
             printf("Ball\n");
-            float r = *(float*) f->data;
-            print_spaces(depth);
-            printf("    -> Radius: %g\n", r);
+            // float r = *(float*) f->data;
+            // print_spaces(depth);
+            // printf("    -> Radius: %g\n", r);
             break;
         case 2:
             printf("Camera\n");
             break;
         case 3:
             printf("Light\n");
+            break;
+        case 4:
+            printf("Joint\n");
+            joint_t* joint_data = f->data;
+            print_spaces(depth);
+            printf("    -> Type: %d\n", joint_data->type);
+            print_spaces(depth);
+            printf("    -> q_id: %d\n", joint_data->q_ids[0]);
             break;
         default:
             printf("Unknown (%d)\n", f->type);
@@ -93,6 +115,7 @@ void print_config(config* C)
     if (C->q != NULL)
     {
         int q_dim = C->q->volume;
+        printf("q_dim: %d\n", q_dim);
         printf("q: [");
         for (int i = 0; i < q_dim; i++)
         {

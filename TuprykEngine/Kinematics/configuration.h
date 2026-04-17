@@ -18,6 +18,8 @@ typedef struct
 } config;
 
 int config_colliding(config* C);
+void config_set_q(config* C, float* q);
+void config_update_q(config* C);
 void config_free(config* C);
 
 #endif

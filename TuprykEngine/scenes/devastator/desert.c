@@ -5,7 +5,7 @@
 #include "../../Stochastic/sample.h"
 
 
-geom* ball_geom_give(float r, float g, float b, float radius)
+geom* ball_geom_give(float radius)
 {
     geom* ball_geom = (geom*) malloc(sizeof(geom));
     
@@ -16,25 +16,78 @@ geom* ball_geom_give(float r, float g, float b, float radius)
 
     ball_geom->tex = (texture*) malloc(sizeof(texture));
 
-    ball_geom->tex->color[0] = r;
-    ball_geom->tex->color[1] = g;
-    ball_geom->tex->color[2] = b;
+    ball_geom->tex->color[0] = 1.0f;
+    ball_geom->tex->color[1] = 0.4f;
+    ball_geom->tex->color[2] = 0.f;
 
-    ball_geom->tex->ambient  = 0.5f;
-    ball_geom->tex->diffuse  = 1.0f;
-    ball_geom->tex->specular = 1.0f;
+    ball_geom->tex->ambient   = 0.5;
+    ball_geom->tex->diffuse   = 1.f;
+    ball_geom->tex->specular  = 1.f;
     ball_geom->tex->shininess = 100.f;
 
     return ball_geom;
 }
 
+void add_tentacle_piece_to_config(config* C, float* pos_values, int joint_idx, int parent_idx, int is_leaf, int q_id)
+{
+    tensor* parent_pos = C->frames[parent_idx]->pos;
+    float rot[] = {1.f, 0.f, 0.f, 0.f};
+    int ball_idx = joint_idx + 1;
+
+    // Poses and parents
+    frame* joint = frame_init(parent_pos->values, rot);
+    joint->parent = parent_idx;
+
+    frame* ball = frame_init(pos_values, rot);
+    ball->parent = joint_idx;
+
+    // Relavtive poses
+    joint->pos_rel = tensor_sub_give(joint->pos, parent_pos);
+    joint->rot_rel = tensor_copy(ball->rot);
+    ball->pos_rel  = tensor_sub_give(ball->pos, joint->pos);
+    ball->rot_rel  = tensor_copy(ball->rot);
+    
+    // Children
+    joint->children_count = 1;
+    joint->children = (int*) malloc(sizeof(int));
+    joint->children[0] = ball_idx;
+
+    if (is_leaf)
+    {
+        ball->children_count = 0;
+        ball->children = NULL;
+    }
+    else
+    {
+        ball->children_count = 1;
+        ball->children = (int*) malloc(sizeof(int));
+        ball->children[0] = ball_idx + 1;
+    }
+    
+    // Fill data
+    joint_t* joint_data = (joint_t*) malloc(sizeof(joint_t));
+    joint_data->type = 0;
+    joint_data->q_ids = (int*) malloc(sizeof(int));
+    joint_data->q_ids[0] = q_id;
+    joint->data = (void*) joint_data;
+    ball->data = (void*) ball_geom_give(0.1f);
+    
+    // Set types
+    joint->type = 4;
+    ball->type = 1;
+    
+    // Add to config
+    C->frames[joint_idx] = joint;
+    C->frames[ball_idx] = ball;
+}
+
 config* init_devastator_config()
 {
     config* C = (config*) malloc(sizeof(config));
-    int tentacle_length = 5;
+    int tentacle_length = 3;
     int tentacle_count = 4;
 
-    C->frame_count = 1 + tentacle_length * tentacle_count;
+    C->frame_count = 1 + tentacle_length * tentacle_count * 2;
     C->frame_count += 2;  // Camera! Light!
     C->frames = (frame**) malloc(sizeof(frame*) * C->frame_count);
     
@@ -45,12 +98,14 @@ config* init_devastator_config()
     float root_pos[] = {0.f, 0.f, 0.f};
     float root_rot[] = {1.f, 0.f, 0.f, 0.f};
     frame* root = frame_init(root_pos, root_rot);
+    root->pos_rel = NULL;
+    root->rot_rel = NULL;
 
     root->children_count = tentacle_count;
     root->children_count += 2;  // Camera! Light!
     root->children = (int*) malloc(sizeof(int) * root->children_count);
 
-    root->data = (void*) ball_geom_give(1.f, 0.f, 0.f, 0.2f);
+    root->data = (void*) ball_geom_give(0.2f);
 
     root->parent = -1;
     root->type = 1;
@@ -58,47 +113,25 @@ config* init_devastator_config()
     C->frames[0] = root;
 
     //---- Ball Frames ----//
+    int q_id = 0;
     for (int i = 0; i < tentacle_count; i++)
     {
-        root->children[i] = i * tentacle_length + 1;
+        root->children[i] = (i * tentacle_length * 2) + 1;
         int prev_piece = -1;
         for (int j = 0; j < tentacle_length; j++)
         {
             float pos_values[] = {0.f, 0.f, 0.f};
             int j1 = j+1;
             if (i == 0) pos_values[0] =  0.2f * (float) j1 + 0.1f;
-            if (i == 1) pos_values[1] =  0.2f * (float) j1 + 0.1f;
-            if (i == 2) pos_values[0] = -0.2f * (float) j1 + 0.1f;
-            if (i == 3) pos_values[1] = -0.2f * (float) j1 + 0.1f;
+            if (i == 1) pos_values[2] =  0.2f * (float) j1 + 0.1f;
+            if (i == 2) pos_values[0] = -0.2f * (float) j1 - 0.1f;
+            if (i == 3) pos_values[2] = -0.2f * (float) j1 - 0.1f;
             
-            frame* ball = frame_init(pos_values, root_rot);
-
-            if (prev_piece == -1) ball->parent = 0;
-            else ball->parent = prev_piece;
-
-            if (j == tentacle_length-1)
-            {
-                ball->children_count = 0;
-                ball->children = NULL;
-            }
-            else
-            {
-                ball->children_count = 1;
-                ball->children = (int*) malloc(sizeof(int));
-                ball->children[0] = 2 + i * tentacle_length + j;
-            }
-
-            ball->data = (void*) ball_geom_give(
-                rand_uni(0.f, 1.f),
-                rand_uni(0.f, 1.f),
-                rand_uni(0.f, 1.f),
-                0.1f
-            );
-
-            ball->type = 1;
-
-            prev_piece = 1 + i * tentacle_length + j;
-            C->frames[prev_piece] = ball;
+            int joint_idx = (i * tentacle_length + j) * 2 + 1;
+            int parent_idx = prev_piece == -1 ? 0 : prev_piece;
+            add_tentacle_piece_to_config(C, pos_values, joint_idx, parent_idx, j == tentacle_length-1, q_id);
+            q_id++;
+            prev_piece = joint_idx + 1;
         }
     }
 
@@ -113,9 +146,11 @@ config* init_devastator_config()
     cam->data = (void*) cam_data;
 
     cam->parent = 0;
+    cam->pos_rel = tensor_sub_give(cam->pos, root->pos);
+    cam->rot_rel = tensor_copy(root->rot);
     cam->type = 2;
 
-    float light_pos[] = {0.f, 0.f, 10.f};
+    float light_pos[] = {5.f, -5.f, 5.f};
     frame* light = frame_init(light_pos, root_rot);
 
     light_t* light_data = (light_t*) malloc(sizeof(light_t));
@@ -123,6 +158,8 @@ config* init_devastator_config()
     light->data = (void*) light_data;
 
     light->parent = 0;
+    light->pos_rel = tensor_sub_give(light->pos, root->pos);
+    light->rot_rel = tensor_copy(root->rot);
     light->type = 3;
 
     int cam_idx = C->frame_count-2;
@@ -161,7 +198,7 @@ config* init_just_ball_config()
     root->children_count = 2;
     root->children = (int*) malloc(sizeof(int) * root->children_count);
 
-    root->data = (void*) ball_geom_give(1.f, 0.f, 0.f, 0.2f);
+    root->data = (void*) ball_geom_give(0.2f);
 
     root->parent = -1;
     root->type = 1;

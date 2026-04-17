@@ -37,6 +37,22 @@ int config_colliding(config* C)
     return 0;
 }
 
+void config_set_q(config* C, float* q)
+{
+    int q_dim = C->q->volume;
+    for (int i = 0; i < q_dim; i++)
+    {
+        C->q->values[i] = q[i];
+    }
+    config_update_q(C);
+}
+
+void config_update_q(config* C)
+{
+    // Update relative poses based on q
+    // Update universal poses based on relative poses
+}
+
 void config_free(config* C)
 {
     if (C->frame_count)

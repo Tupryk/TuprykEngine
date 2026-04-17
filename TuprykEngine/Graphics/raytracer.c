@@ -29,8 +29,11 @@ float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float rad
     float camera_ball_dist = (t2 > 0 && t2 < t1) ? t2 : (t1 > 0 ? t1 : t2);
     // TODO: camera inside ball case
 
-    tensor_scalar_mult(ray_dir, camera_ball_dist, out);
-    tensor_add(out, cam_pos, out);
+    if (out != NULL)
+    {
+        tensor_scalar_mult(ray_dir, camera_ball_dist, out);
+        tensor_add(out, cam_pos, out);
+    }
 
     return camera_ball_dist;
 }
@@ -139,16 +142,38 @@ void raytrace(config* C, int cam, tensor* out)
                         float diff = fmax(vector_dot(ball_normal, light_dir), 0.f);
                         float spec = powf(fmax(vector_dot(light_reflect, cam_dir), 0.f), shininess);
 
-                        float C = diff * diffuse * light_data->intensity + ambient;
-                        C = clip(C, 0.f, 1.f);
+                        // TODO: make nicer
+                        float intensity = diff * diffuse * light_data->intensity + ambient;
+                        intensity = clip(intensity, 0.f, 1.f);
                         
-                        R = color[0] * C + spec * specular;
-                        G = color[1] * C + spec * specular;
-                        B = color[2] * C + spec * specular;
+                        R = color[0] * intensity + spec * specular;
+                        G = color[1] * intensity + spec * specular;
+                        B = color[2] * intensity + spec * specular;
 
                         R = clip(R, 0.f, 1.f);
                         G = clip(G, 0.f, 1.f);
                         B = clip(B, 0.f, 1.f);
+
+                        // Check for shadows
+                        tensor* offset = tensor_scalar_mult_give(light_dir, 0.0001);
+                        tensor_add(ball_hit, offset, ball_hit);
+                        tensor_free(offset);
+                        float shadow_scaler = 0.5f;
+                        for (int j = 0; j < frame_count; j++)
+                        {
+                            frame* ball_frame_ = C->frames[j];
+                            if (ball_frame_->type == 1)
+                            {
+                                geom* ball_geom_ = (geom*) ball_frame_->data;
+                                float radius_  = *(float*)ball_geom_->mesh;
+                                float shadower = ray_ball_hit(ball_hit, light_dir, ball_frame_->pos, radius_, NULL);
+                                if (shadower != -1)
+                                {
+                                    R *= shadow_scaler; G *= shadow_scaler; B *= shadow_scaler;
+                                    break;
+                                }
+                            }
+                        }
 
                         tensor_free(ball_normal);
                         tensor_free(light_dir);

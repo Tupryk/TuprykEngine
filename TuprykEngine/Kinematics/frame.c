@@ -15,6 +15,9 @@ frame* frame_init(float* pos, float* rot)
     int rot_shape[] = {4, 1};
     f->rot = new_tensor(rot_shape, 2, rot);
 
+    f->pos_rel = NULL;
+    f->rot_rel = NULL;
+
     f->children_count = 0;
     f->children = NULL;
 
@@ -30,6 +33,12 @@ void frame_free(frame* f)
 {
     tensor_free(f->pos);
     tensor_free(f->rot);
+
+    if (f->parent != -1)
+    {
+        tensor_free(f->pos_rel);
+        tensor_free(f->rot_rel);
+    }
 
     if (f->type == 1)
     {
@@ -50,6 +59,12 @@ void frame_free(frame* f)
     }
     else if (f->type == 2 || f->type == 3)
     {
+        free(f->data);
+    }
+    else if (f->type == 4)
+    {
+        joint_t* joint_data = (joint_t*) f->data;
+        free(joint_data->q_ids);
         free(f->data);
     }
     #ifdef DEBUG

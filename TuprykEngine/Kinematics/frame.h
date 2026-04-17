@@ -5,6 +5,12 @@
 #include "../LinAlg/tensor.h"
 
 
+typedef struct 
+{
+    int type;
+    int* q_ids;
+} joint_t;
+
 typedef struct
 {
     float color[3];
@@ -42,12 +48,15 @@ typedef struct
 {
     tensor* pos;
     tensor* rot;
+
+    tensor* pos_rel;
+    tensor* rot_rel;
     
     int parent;
     int children_count;
     int* children;
 
-    int type;  // 0: Marker, 1: Ball, 2: Camera, 3: Light
+    int type;  // 0: Marker, 1: Ball, 2: Camera, 3: Light, 4: Joint
     void* data;
 
     stack* forces;

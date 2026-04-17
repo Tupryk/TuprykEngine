@@ -20,6 +20,12 @@ int test_raytracer()
 
     config* C = init_devastator_config();
     // config* C = init_just_ball_config();
+    
+    tensor* new_q = tensor_copy_shape(C->q);
+    tensor_fill_uniform(new_q, -1.f, 1.f);
+    config_set_q(C, new_q->values);
+    tensor_free(new_q);
+
     print_config(C);
     
     raytrace(C, -1, im);
