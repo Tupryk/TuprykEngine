@@ -24,14 +24,9 @@ typedef struct
 {
     int type;  // 0: Sphere
     void* mesh;
+    float mass;
     texture* tex;
 } geom;
-
-typedef struct
-{
-    float mass;
-    float radius;
-} ball_geom;
 
 typedef struct
 {

@@ -155,7 +155,7 @@ void raytrace(config* C, int cam, tensor* out)
                         B = clip(B, 0.f, 1.f);
 
                         // Check for shadows
-                        tensor* offset = tensor_scalar_mult_give(light_dir, 0.0001);
+                        tensor* offset = tensor_scalar_mult_give(light_dir, 0.001);
                         tensor_add(ball_hit, offset, ball_hit);
                         tensor_free(offset);
                         float shadow_scaler = 0.5f;

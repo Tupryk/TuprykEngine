@@ -48,21 +48,29 @@ void print_frame(config* C, frame* f, int depth)
     printf("-> Type: ");
     switch(f->type)
     {
-        // TODO: Print properties
         case 0:
             printf("Marker\n");
             break;
         case 1:
             printf("Ball\n");
-            // float r = *(float*) f->data;
-            // print_spaces(depth);
-            // printf("    -> Radius: %g\n", r);
+            geom* ball_geom = f->data;
+            float r = *(float*) ball_geom->mesh;
+            print_spaces(depth);
+            printf("    -> Radius: %g\n", r);
+            print_spaces(depth);
+            printf("    -> Mass: %g\n", ball_geom->mass);
             break;
         case 2:
             printf("Camera\n");
+            camera_t* cam_data = f->data;
+            print_spaces(depth);
+            printf("    -> Fx, Fy: %g, %g\n", cam_data->fx, cam_data->fy);
             break;
         case 3:
             printf("Light\n");
+            light_t* light_data = f->data;
+            print_spaces(depth);
+            printf("    -> Intensity: %g\n", light_data->intensity);
             break;
         case 4:
             printf("Joint\n");
