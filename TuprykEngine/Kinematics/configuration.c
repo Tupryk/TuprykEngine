@@ -75,7 +75,10 @@ void config_update_q(config* C)
         frame* joint_frame = C->frames[joint_id];
         joint_t* joint_data = (joint_t*) joint_frame->data;
         
-        float phi = C->q->values[i];
+        int q_id = joint_data->q_id;
+        float* qs = C->q->values;
+        float phi = qs[i];
+        float* pos_rel = joint_frame->pos_rel->values;
         float* rot_rel = joint_frame->rot_rel->values;
 
         if (joint_data->type == 0)
@@ -89,6 +92,19 @@ void config_update_q(config* C)
         else if (joint_data->type == 2)
         {
             quaternion_z(phi, rot_rel);
+        }
+        else if (joint_data->type == 3)
+        {
+            pos_rel[0] = qs[q_id    ];
+            pos_rel[1] = qs[q_id + 1];
+            pos_rel[2] = qs[q_id + 2];
+
+            rot_rel[0] = qs[q_id + 3];
+            rot_rel[1] = qs[q_id + 4];
+            rot_rel[2] = qs[q_id + 5];
+            rot_rel[3] = qs[q_id + 6];
+
+            vector_normalize(joint_frame->rot_rel);
         }
         #ifdef DEBUG
         else
@@ -126,6 +142,10 @@ void config_free(config* C)
         tensor_free(C->q);
         tensor_free(C->q_max);
         tensor_free(C->q_min);
+    }
+    if (C->q_vel != NULL)
+    {
+        tensor_free(C->q_vel);
     }
     free(C);
 }

@@ -14,7 +14,7 @@ void print_spaces(int count)
     }
 }
 
-void print_frame(config* C, frame* f, int depth)
+void print_frame(config* C, frame* f, int id, int depth)
 {
     if (depth > 8)
     {
@@ -23,7 +23,7 @@ void print_frame(config* C, frame* f, int depth)
         return;
     }
     print_spaces(depth);
-    printf("--- Frame (depth %d) ---\n", depth);
+    printf("--- Frame %d (depth %d) ---\n", id, depth);
 
     float* pos = f->pos->values;
     float* rot = f->rot->values;
@@ -78,7 +78,7 @@ void print_frame(config* C, frame* f, int depth)
             print_spaces(depth);
             printf("    -> Type: %d\n", joint_data->type);
             print_spaces(depth);
-            printf("    -> q_id: %d\n", joint_data->q_ids[0]);
+            printf("    -> q_id: %d\n", joint_data->q_id);
             break;
         default:
             printf("Unknown (%d)\n", f->type);
@@ -95,7 +95,8 @@ void print_frame(config* C, frame* f, int depth)
 
     for (int i = 0; i < f->children_count; i++)
     {
-        print_frame(C, C->frames[f->children[i]], depth+1);
+        int child_id = f->children[i];
+        print_frame(C, C->frames[child_id], child_id, depth+1);
     }
 }
 
@@ -116,7 +117,7 @@ void print_config(config* C)
     printf("]\n");
     if (C->frame_count)
     {
-        print_frame(C, C->frames[0], 0);
+        print_frame(C, C->frames[0], 0, 0);
     }
     if (config_colliding(C))
     {

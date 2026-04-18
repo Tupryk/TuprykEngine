@@ -97,6 +97,7 @@ void raytrace(config* C, int cam, tensor* out)
             float G = 0.f;
             float B = 0.f;
 
+            // TODO: Compute light rays according to camera orientation + use fx and fy properly
             cam_ray->values[0] = (((float) x / (float) width) - 0.5f) * fx;
             cam_ray->values[1] = 0.1f;
             cam_ray->values[2] = (((float) y / (float) height) - 0.5f) * fy * -1.f;

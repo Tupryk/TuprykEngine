@@ -7,8 +7,8 @@
 
 typedef struct 
 {
-    int type;
-    int* q_ids;
+    int type;  // 0: X-Axis, 1: Y-Axis, 2: Z-Axis, 3: Free
+    int q_id;
 } joint_t;
 
 typedef struct

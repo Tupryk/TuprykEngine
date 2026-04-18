@@ -6,6 +6,7 @@
 #include "../../TuprykEngine/Graphics/image.h"
 #include "../../TuprykEngine/Graphics/raytracer.h"
 #include "../../TuprykEngine/Kinematics/configuration.h"
+#include "../../TuprykEngine/Physics/simulation.h"
 
 #include "../../TuprykEngine/scenes/devastator/desert.h"
 #include "../../TuprykEngine/visual/graphics/window.h"
@@ -21,18 +22,19 @@ int test_raytracer()
     config* C = init_devastator_config();
     
     tensor* new_q = tensor_copy_shape(C->q);
+    tensor_fill_uniform(new_q, -1.f, 1.f);
+    new_q->values[2] = 1.f;
+    config_set_q(C, new_q->values);
+    print_config(C);
 
     for (int i = 0; i < 1; i++)
-    {
-        tensor_fill_uniform(new_q, -1.f, 1.f);
-        config_set_q(C, new_q->values);
-        
-        print_config(C);
-        
+    {        
         raytrace(C, -1, im);
         
         view_image(im);
         window_wait();
+
+        sim_step(C, 0.01);
     }
     
     config_free(C);

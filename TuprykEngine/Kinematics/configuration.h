@@ -16,6 +16,7 @@ typedef struct
     int* lights;
     
     tensor* q;
+    tensor* q_vel;
     tensor* q_max;
     tensor* q_min;
 } config;

@@ -57,14 +57,8 @@ void frame_free(frame* f)
         free(g->tex);
         free(g);
     }
-    else if (f->type == 2 || f->type == 3)
+    else if (f->type == 2 || f->type == 3 || f->type == 4)
     {
-        free(f->data);
-    }
-    else if (f->type == 4)
-    {
-        joint_t* joint_data = (joint_t*) f->data;
-        free(joint_data->q_ids);
         free(f->data);
     }
     #ifdef DEBUG
