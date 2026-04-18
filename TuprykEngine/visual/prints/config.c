@@ -102,6 +102,12 @@ void print_frame(config* C, frame* f, int depth)
 void print_config(config* C)
 {
     printf("Total frame count: %d\n", C->frame_count);
+    printf("Joints in scene (%d): [", C->joints_count);
+    for (int i = 0; i < C->joints_count; i++)
+    {
+        printf("%d, ", C->joints[i]);
+    }
+    printf("]\n");
     printf("Lights in scene (%d): [", C->lights_count);
     for (int i = 0; i < C->lights_count; i++)
     {

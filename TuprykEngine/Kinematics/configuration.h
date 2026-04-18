@@ -9,6 +9,9 @@ typedef struct
     int frame_count;
     frame** frames;  // Frame at index 0 is always root!!!
 
+    int joints_count;
+    int* joints;
+
     int lights_count;
     int* lights;
     

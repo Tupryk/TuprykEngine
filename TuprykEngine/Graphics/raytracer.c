@@ -110,11 +110,11 @@ void raytrace(config* C, int cam, tensor* out)
                     geom* ball_geom = (geom*) ball_frame->data;
                     texture* ball_tex = ball_geom->tex;
 
-                    float  radius   = *(float*)ball_geom->mesh;
-                    float* color    = ball_tex->color;
-                    float  ambient  = ball_tex->ambient;
-                    float  diffuse  = ball_tex->diffuse;
-                    float  specular = ball_tex->specular;
+                    float  radius    = *(float*) ball_geom->mesh;
+                    float* color     = ball_tex->color;
+                    float  ambient   = ball_tex->ambient;
+                    float  diffuse   = ball_tex->diffuse;
+                    float  specular  = ball_tex->specular;
                     float  shininess = ball_tex->shininess;
 
                     float camera_ball_dist = ray_ball_hit(cam_frame->pos, cam_ray, ball_frame->pos, radius, ball_hit);
@@ -142,13 +142,14 @@ void raytrace(config* C, int cam, tensor* out)
                         float diff = fmax(vector_dot(ball_normal, light_dir), 0.f);
                         float spec = powf(fmax(vector_dot(light_reflect, cam_dir), 0.f), shininess);
 
-                        // TODO: make nicer
+                        // TODO: make nicer vvvvvv
                         float intensity = diff * diffuse * light_data->intensity + ambient;
                         intensity = clip(intensity, 0.f, 1.f);
                         
                         R = color[0] * intensity + spec * specular;
                         G = color[1] * intensity + spec * specular;
                         B = color[2] * intensity + spec * specular;
+                        // TODO: make nicer ^^^^^^
 
                         R = clip(R, 0.f, 1.f);
                         G = clip(G, 0.f, 1.f);

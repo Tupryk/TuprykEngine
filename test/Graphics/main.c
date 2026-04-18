@@ -19,22 +19,25 @@ int test_raytracer()
     tensor_fill_uniform(im, 0.f, 1.f);
 
     config* C = init_devastator_config();
-    // config* C = init_just_ball_config();
     
     tensor* new_q = tensor_copy_shape(C->q);
-    tensor_fill_uniform(new_q, -1.f, 1.f);
-    config_set_q(C, new_q->values);
-    tensor_free(new_q);
 
-    print_config(C);
-    
-    raytrace(C, -1, im);
-    
-    view_image(im);
-    window_wait();
+    for (int i = 0; i < 1; i++)
+    {
+        tensor_fill_uniform(new_q, -1.f, 1.f);
+        config_set_q(C, new_q->values);
+        
+        print_config(C);
+        
+        raytrace(C, -1, im);
+        
+        view_image(im);
+        window_wait();
+    }
     
     config_free(C);
     tensor_free(im);
+    tensor_free(new_q);
     return 0;
 }
 

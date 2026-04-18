@@ -29,8 +29,15 @@ geom* ball_geom_give(float radius)
     return ball_geom;
 }
 
-void add_tentacle_piece_to_config(config* C, float* pos_values, int joint_idx, int parent_idx, int is_leaf, int q_id, int j)
-{
+void add_tentacle_piece_to_config(
+    config* C,
+    float* pos_values,
+    int joint_idx,
+    int parent_idx,
+    int is_leaf,
+    int q_id,
+    int j, int i
+) {
     tensor* parent_pos = C->frames[parent_idx]->pos;
     float rot[] = {1.f, 0.f, 0.f, 0.f};
     int ball_idx = joint_idx + 1;
@@ -44,7 +51,28 @@ void add_tentacle_piece_to_config(config* C, float* pos_values, int joint_idx, i
 
     // Relavtive poses
     joint->pos_rel = tensor_sub_give(joint->pos, parent_pos);
-    joint->rot_rel = tensor_copy(ball->rot);
+    if (j != -1)
+    {
+        // float rot_joint[] = {0.92388f, 0.38168f, 0.f, 0.f};
+        // float rot_joint[] = {0.92388f, -0.38168f, 0.f, 0.f};
+        // float rot_joint[] = {0.92388f, 0.f, 0.38168f, 0.f};
+        float rot_joint[] = {
+            // 0.92388f, 0.38168f, 0.f, 0.f   //  45 X
+            // 0.92388f, -0.38168f, 0.f, 0.f  // -45 X
+            0.92388f, 0.f, 0.38168f, 0.f   //  45 Y
+            // 0.92388f, 0.f, -0.38168f, 0.f  // -45 Y
+            // 0.92388f, 0.f, 0.f, 0.38168f   //  45 Z
+            // 0.92388f, 0.f, 0.f, -0.38168f  // -45 Z
+        };
+        // float rot_joint[] = {0.92388f, 0.f, 0.f, 0.38168f};
+        // float rot_joint[] = {0.92388f, 0.f, 0.f, -0.38168f};
+        int rot_shape[] = {4, 1};
+        joint->rot_rel = new_tensor(rot_shape, 2, rot_joint);
+    }
+    else
+    {
+        joint->rot_rel = tensor_copy(ball->rot);
+    }
     ball->pos_rel  = tensor_sub_give(ball->pos, joint->pos);
     ball->rot_rel  = tensor_copy(ball->rot);
     
@@ -67,7 +95,7 @@ void add_tentacle_piece_to_config(config* C, float* pos_values, int joint_idx, i
     
     // Fill data
     joint_t* joint_data = (joint_t*) malloc(sizeof(joint_t));
-    joint_data->type = 0;
+    joint_data->type = i % 2 ? 0 : 1;
     joint_data->q_ids = (int*) malloc(sizeof(int));
     joint_data->q_ids[0] = q_id;
     joint->data = (void*) joint_data;
@@ -141,6 +169,8 @@ config* init_devastator_config()
     C->frames[0] = root;
 
     //---- Floor Frame ----//
+    // float floor_radius = 6371000.f;  // Earth
+    // float floor_radius = 1737500.f;  // Moon
     float floor_radius = 1000.f;
     float floor_pos[] = {0.f, 0.f, -floor_radius - 1.f};
     frame* floor = frame_init(floor_pos, root_rot);
@@ -178,7 +208,7 @@ config* init_devastator_config()
             
             int joint_idx = (i * tentacle_length + j) * 2 + 1;
             int parent_idx = prev_piece == -1 ? 0 : prev_piece;
-            add_tentacle_piece_to_config(C, pos_values, joint_idx, parent_idx, j == tentacle_length-1, q_id, j);
+            add_tentacle_piece_to_config(C, pos_values, joint_idx, parent_idx, j == tentacle_length-1, q_id, j, i);
             q_id++;
             prev_piece = joint_idx + 1;
         }
@@ -218,6 +248,29 @@ config* init_devastator_config()
     C->frames[cam_idx] = cam;
     C->frames[light_idx] = light;
     C->lights[0] = light_idx;
+
+    // Fill in joint array
+    C->joints = NULL;
+    for (int i = 0; i < C->frame_count; i++)
+    {
+        if (C->frames[i]->type == 4)
+        {
+            C->joints_count++;
+        }
+    }
+    int index = 0;
+    if (C->joints_count)
+    {
+        C->joints = (int*) malloc(sizeof(int)*C->joints_count);
+        for (int i = 0; i < C->frame_count; i++)
+        {
+            if (C->frames[i]->type == 4)
+            {
+                C->joints[index] = i;
+                index++;
+            }
+        }
+    }
     
     int q_shape[] = {tentacle_count * tentacle_length, 1};
     C->q = new_tensor(q_shape, 2, NULL);
