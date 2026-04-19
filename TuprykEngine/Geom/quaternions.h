@@ -12,5 +12,6 @@ tensor* quaternion_to_matrix_give(float* q);
 void quaternion_conjugate(float* q, float* out);
 void quaternion_product(float* a, float* b, float* out);
 void quaternion_rotate_point(float* q, float* p, float* out);
+void quaternion_normalize(float* q);
 
 #endif

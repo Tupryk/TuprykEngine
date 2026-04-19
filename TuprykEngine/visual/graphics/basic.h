@@ -45,5 +45,6 @@ void add_global_rot(float delta_x, float delta_y, float delta_z);
 void set_global_rot(float rot_x, float rot_y, float rot_z);
 void plot_1d_func(float (*func)(float), float from, float to);
 void view_image(tensor* im);
+void play_video(tensor** frames, int frame_count);
 
 #endif

@@ -1,8 +1,9 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "configuration.h"
 #include "../Geom/quaternions.h"
+#include "../visual/prints/linalg.h"
 
 
 int config_colliding(config* C)
@@ -74,26 +75,27 @@ void config_update_q(config* C)
         int joint_id = C->joints[i];
         frame* joint_frame = C->frames[joint_id];
         joint_t* joint_data = (joint_t*) joint_frame->data;
+        int joint_type = joint_data->type;
         
         int q_id = joint_data->q_id;
         float* qs = C->q->values;
-        float phi = qs[i];
+        float phi = qs[q_id];
         float* pos_rel = joint_frame->pos_rel->values;
         float* rot_rel = joint_frame->rot_rel->values;
 
-        if (joint_data->type == 0)
+        if (joint_type == 0)
         {
             quaternion_x(phi, rot_rel);
         }
-        else if (joint_data->type == 1)
+        else if (joint_type == 1)
         {
             quaternion_y(phi, rot_rel);
         }
-        else if (joint_data->type == 2)
+        else if (joint_type == 2)
         {
             quaternion_z(phi, rot_rel);
         }
-        else if (joint_data->type == 3)
+        else if (joint_type == 3)
         {
             pos_rel[0] = qs[q_id    ];
             pos_rel[1] = qs[q_id + 1];
@@ -104,7 +106,7 @@ void config_update_q(config* C)
             rot_rel[2] = qs[q_id + 5];
             rot_rel[3] = qs[q_id + 6];
 
-            vector_normalize(joint_frame->rot_rel);
+            quaternion_normalize(rot_rel);
         }
         #ifdef DEBUG
         else

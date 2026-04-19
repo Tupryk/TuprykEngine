@@ -75,10 +75,46 @@ void print_frame(config* C, frame* f, int id, int depth)
         case 4:
             printf("Joint\n");
             joint_t* joint_data = f->data;
+            int joint_type = joint_data->type;
+            int q_id = joint_data->q_id;
             print_spaces(depth);
-            printf("    -> Type: %d\n", joint_data->type);
+            printf("    -> Type: ");
+            switch (joint_type)
+            {
+            case 0:
+                printf("Hinge-X");
+                break;
+            case 1:
+                printf("Hinge-Y");
+                break;
+            case 2:
+                printf("Hinge-Z");
+                break;
+            case 3:
+                printf("Free");
+                break;
+            default:
+                printf("Unknown");
+                break;
+            }
+            printf("\n");
             print_spaces(depth);
-            printf("    -> q_id: %d\n", joint_data->q_id);
+            printf("    -> q_id: %d\n", q_id);
+            print_spaces(depth);
+            printf("    -> q_value(s): [");
+            if (joint_type == 0 || joint_type == 1 || joint_type == 2)
+            {
+                printf("%g", C->q->values[q_id]);
+            }
+            else if (joint_type == 3)
+            {
+                float* q = C->q->values;
+                printf(
+                    "%g, %g, %g, %g, %g, %g, %g",
+                    q[q_id], q[q_id+1], q[q_id+2], q[q_id+3], q[q_id+4], q[q_id+5], q[q_id+6]
+                );
+            }
+            printf("]\n");
             break;
         default:
             printf("Unknown (%d)\n", f->type);
@@ -147,6 +183,12 @@ void print_config(config* C)
         for (int i = 0; i < q_dim; i++)
         {
             printf("%g, ", C->q_max->values[i]);
+        }
+        printf("]\n");
+        printf("q_vel: [");
+        for (int i = 0; i < C->q_vel->volume; i++)
+        {
+            printf("%g, ", C->q_vel->values[i]);
         }
         printf("]\n");
     }

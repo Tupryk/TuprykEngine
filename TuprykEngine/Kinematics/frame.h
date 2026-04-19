@@ -8,6 +8,7 @@
 typedef struct 
 {
     int type;  // 0: X-Axis, 1: Y-Axis, 2: Z-Axis, 3: Free
+    int has_limits;
     int q_id;
 } joint_t;
 

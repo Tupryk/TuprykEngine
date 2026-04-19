@@ -113,3 +113,23 @@ void quaternion_rotate_point(float* q, float* p, float* out)
     out[1] = p_q[2];
     out[2] = p_q[3];
 }
+
+void quaternion_normalize(float* q)
+{
+    float norm = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+
+    if (norm == 0.f)
+    {
+        q[0] = 1.f;
+        q[1] = 0.f;
+        q[2] = 0.f;
+        q[3] = 0.f;
+    }
+    else
+    {
+        q[0] /= norm;
+        q[1] /= norm;
+        q[2] /= norm;
+        q[3] /= norm;
+    }
+}

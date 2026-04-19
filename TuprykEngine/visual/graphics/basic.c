@@ -343,3 +343,34 @@ void view_image(tensor* im)
         }
     }
 }
+
+void play_video(tensor** frames, int frame_count)
+{
+    int index = 0;
+    SDL_Event e;
+    int running = 1;
+    
+    while (running)
+    {
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT)
+            running = 0;
+        }
+        
+        view_image(frames[index]);
+
+        SDL_RenderPresent(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_Delay(16); // ~60 FPS
+
+        index++;
+        if (index >= frame_count)
+        {
+            index = 0;
+        }
+    }
+}

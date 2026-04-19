@@ -96,6 +96,7 @@ void add_tentacle_piece_to_config(
     // Fill data
     joint_t* joint_data = (joint_t*) malloc(sizeof(joint_t));
     joint_data->type = i % 2 ? 0 : 1;
+    joint_data->has_limits = 1;
     joint_data->q_id = q_id;
     joint->data = (void*) joint_data;
     
@@ -183,6 +184,7 @@ config* init_devastator_config()
     
     joint_t* joint_data = (joint_t*) malloc(sizeof(joint_t));
     joint_data->type = 3;
+    joint_data->has_limits = 0;
     joint_data->q_id = 0;
     spider_joint->data = (void*) joint_data;
 
@@ -285,13 +287,34 @@ config* init_devastator_config()
         }
     }
 
-    // Fill in joint array
+    // Fill in joint array and qs
+    int q_dim = 0;
+    int q_vel_dim = 0;
     C->joints = NULL;
     for (int i = 0; i < C->frame_count; i++)
     {
         if (C->frames[i]->type == 4)
         {
             C->joints_count++;
+            joint_t* joint_data = C->frames[i]->data;
+            int joint_type = joint_data->type;
+            if (joint_type == 0 || joint_type == 1 || joint_type == 2)
+            {
+                q_dim++;
+                q_vel_dim++;
+            }
+            else if (joint_type == 3)
+            {
+                q_dim += 7;
+                q_vel_dim += 6;
+            }
+            #ifdef DEBUG
+            else
+            {
+                printf("Invalid joint type!\n");
+                exit(EXIT_FAILURE);
+            }
+            #endif
         }
     }
     int index = 0;
@@ -308,12 +331,13 @@ config* init_devastator_config()
         }
     }
     
-    int q_shape[] = {tentacle_count * tentacle_length + 7, 1};
+    int q_shape[] = {q_dim, 1};
     C->q = new_tensor(q_shape, 2, NULL);
-    C->q_vel = NULL;
     C->q_min = new_tensor(q_shape, 2, NULL);
-    tensor_fill(C->q_min, -1.f);
     C->q_max = new_tensor(q_shape, 2, NULL);
+    q_shape[0] = q_vel_dim;
+    C->q_vel = new_tensor(q_shape, 2, NULL);
+    tensor_fill(C->q_min, -1.f);
     tensor_fill(C->q_max, 1.f);
 
     return C;
