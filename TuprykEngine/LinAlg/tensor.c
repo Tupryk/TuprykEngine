@@ -1046,3 +1046,15 @@ void vector_normalize(tensor* t)
         t->values[i] /= norm;
     }
 }
+
+tensor* new_tensor_vector(int dim, float* values)
+{
+    int shape[] = {dim, 1};
+    return new_tensor(shape, 2, values);
+}
+
+tensor* new_tensor_matrix(int cols, int rows, float* values)
+{
+    int shape[] = {cols, rows};
+    return new_tensor(shape, 2, values);
+}

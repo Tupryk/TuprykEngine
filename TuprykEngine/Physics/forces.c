@@ -1,6 +1,11 @@
-#include "forces.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-void center_of_mass(config* C, int root, tensor* com, float* total_mass);
+#include "forces.h"
+#include "../Algos/lists.h"
+
+
+float center_of_mass(config* C, int root, tensor* com)
 {
     #ifdef DEBUG
     if (com->shape_dim != 2 || com->shape[0] != 3 || com->shape[1] != 1)
@@ -9,10 +14,55 @@ void center_of_mass(config* C, int root, tensor* com, float* total_mass);
         exit(EXIT_FAILURE);
     }
     #endif
-    // TODO:
+    
+    float total_mass = 0.f;
+
+    int bodies_count = 0;
+    int body_ids[C->frame_count];
+
+    int_stack* frames_to_check = int_stack_init();
+    int_stack_push(frames_to_check, root);
+
+    while (frames_to_check->next != NULL)
+    {
+        int current_frame_id = int_stack_pop(frames_to_check);
+        frame* current_frame = C->frames[current_frame_id];
+
+        int children_count = current_frame->children_count;
+        for (int i = 0; i < children_count; i++)
+        {
+            int_stack_push(frames_to_check, current_frame->children[i]);
+        }
+        if (current_frame->type == 1)
+        {
+            geom* frame_data = (geom*) current_frame->data;
+            total_mass += frame_data->mass;
+
+            body_ids[bodies_count] = current_frame_id;
+            bodies_count++;
+        }
+    }
+    int_stack_free(frames_to_check);
+
+    tensor* tmp = tensor_copy_shape(com);
+    tensor_fill(com, 0.f);
+
+    for (int i = 0; i < bodies_count; i++)
+    {
+        frame* current_frame = C->frames[body_ids[i]];
+        geom* frame_data = (geom*) current_frame->data;
+
+        float perc = frame_data->mass / total_mass;
+        tensor_scalar_mult(current_frame->pos, perc, tmp);
+        tensor_add(com, tmp, com);
+    }
+
+    tensor_free(tmp);
+
+    return total_mass;
 }
 
-void centroidal_forces(config* C, int root, tensor* force, tensor* torque)
-{
-    // TODO:
-}
+// void centroidal_forces(config* C, int root, tensor* force, tensor* torque)
+// {
+//     // TODO:
+// }

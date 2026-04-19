@@ -52,10 +52,10 @@ typedef struct
     int children_count;
     int* children;
 
-    int type;  // 0: Marker, 1: Ball, 2: Camera, 3: Light, 4: Joint
+    int type;  // 0: Marker, 1: Geometry, 2: Camera, 3: Light, 4: Joint
     void* data;
 
-    stack* forces;
+    // stack* forces;
 } frame;
 
 frame* frame_init(float* pos, float* rot);

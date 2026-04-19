@@ -38,39 +38,71 @@ void vector_free(vector *v)
     free(v->data);
 }
 
-stack* stack_init(size_t elem_size)
+// stack* stack_init(size_t elem_size)
+// {
+//     stack* s = (stack*) malloc(sizeof(stack));
+//     s->size = 0;
+//     s->next = NULL;
+//     s->elem_size = elem_size;
+//     return s;
+// }
+
+// void stack_push(stack* stack, void* value)
+// {
+//     // TODO:
+// }
+
+// void* stack_pop(stack* stack)
+// {
+//     // TODO:
+//     // struct stack_elem* tmp 
+//     // return
+// }
+
+int_stack* int_stack_init()
 {
-    stack* s = (stack*) malloc(sizeof(stack));
-    s->size = 0;
-    s->next = NULL;
-    s->elem_size = elem_size;
-    return s;
+    int_stack* stack = (int_stack*) malloc(sizeof(int_stack));
+    stack->size = 0;
+    stack->next = NULL;
+    return stack;
 }
 
-void stack_push(stack* stack, void* value)
+void int_stack_free(int_stack* stack)
 {
-    // TODO:
+    while (stack->next != NULL)
+    {
+        int_stack_pop(stack);
+    }
+    free(stack);
 }
 
-void* stack_pop(stack* stack)
+void int_stack_push(int_stack* stack, int value)
 {
-    // TODO:
-    // struct stack_elem* tmp 
-    // return
+    struct int_stack_elem* new_elem = (struct int_stack_elem*) malloc(sizeof(struct int_stack_elem));
+    new_elem->value = value;
+    new_elem->next = stack->next;
+    stack->next = new_elem;
+    stack->size++;
 }
 
-struct int_stack* int_stack_push(struct int_stack* stack, int value)
+int int_stack_pop(int_stack* stack)
 {
-    struct int_stack* new_start = (struct int_stack*) malloc(sizeof(struct int_stack));
-    new_start->value = value;
-    new_start->next = stack;
-    
-    return new_start;
+    if (stack->next != NULL)
+    {
+        struct int_stack_elem* poped = stack->next;
+        int value = poped->value;
+        stack->next = poped->next;
+        free(poped);
+
+        stack->size--;
+        return value;
+    }
+    return -1;
 }
 
-int int_stack_contains(struct int_stack* stack, int value)
+int int_stack_contains(int_stack* stack, int value)
 {
-    struct int_stack* tmp = stack;
+    struct int_stack_elem* tmp = stack->next;
     while (tmp != NULL)
     {
         if (tmp->value == value) return 1;

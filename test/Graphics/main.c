@@ -24,33 +24,16 @@ int test_raytracer()
     new_q->values[1] = 0.f;
     new_q->values[2] = 1.f;
     config_set_q(C, new_q->values);
-    tensor_fill_uniform(C->q_vel, -.1f, .1f);
-    C->q_vel->values[0] = 0.f;
-    C->q_vel->values[1] = 0.f;
-    C->q_vel->values[2] = 0.f;
-    C->q_vel->values[3] = 0.f;
-    C->q_vel->values[4] = 0.f;
-    C->q_vel->values[5] = 0.f;
     print_config(C);
     
-    int frame_count = 10;
-    tensor* video_frames[frame_count];
-    for (int i = 0; i < frame_count; i++)
-    {
-        printf("Rendering frame %d...\n", i+1);
-        tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
-        raytrace(C, -1, im);
-        // tensor_fill_uniform(im, 0.f, 1.f);
-        sim_step(C, 0.01);
-        video_frames[i] = im;
-    }
-    play_video(video_frames, frame_count);
+    tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
+    raytrace(C, -1, im);
+    view_image(im);
+
+    window_wait();
     
     config_free(C);
-    for (int i = 0; i < frame_count; i++)
-    {
-        tensor_free(video_frames[i]);
-    }
+    tensor_free(im);
     tensor_free(new_q);
     return 0;
 }
