@@ -33,13 +33,13 @@ int test_centroidal()
     C->q_vel->values[0] = 0.f;
     C->q_vel->values[1] = 0.f;
     C->q_vel->values[2] = 0.f;
-    C->q_vel->values[3] = 0.f;
-    C->q_vel->values[4] = 0.f;
-    C->q_vel->values[5] = 0.f;
+    C->q_vel->values[3] = -10.f;
+    C->q_vel->values[4] = 10.f;
+    C->q_vel->values[5] = 10.f;
     print_config(C);
     
     int frame_count = 10;
-    // tensor* video_frames[frame_count];
+    tensor* video_frames[frame_count];
     tensor* com = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < frame_count; i++)
@@ -49,19 +49,19 @@ int test_centroidal()
         float total_mass = center_of_mass(C, 4, com);
         printf("COM: [%g, %g, %g], Total Mass: %g\n", com->values[0], com->values[1], com->values[2], total_mass);
         
-        // tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
-        // raytrace(C, -1, im);
-        // video_frames[i] = im;
+        tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
+        raytrace(C, -1, im);
+        video_frames[i] = im;
         
         sim_step(C, 0.01);
     }
-    // play_video(video_frames, frame_count);
+    play_video(video_frames, frame_count);
     
     config_free(C);
-    // for (int i = 0; i < frame_count; i++)
-    // {
-    //     tensor_free(video_frames[i]);
-    // }
+    for (int i = 0; i < frame_count; i++)
+    {
+        tensor_free(video_frames[i]);
+    }
     tensor_free(new_q);
     tensor_free(com);
     return 0;
