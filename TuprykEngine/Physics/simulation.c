@@ -9,6 +9,9 @@
 
 void sim_step(config* C, float tau)
 {
+    // Update Velocities
+
+    // Apply Velocities
     int joints_count = C->joints_count;
     
     float* q = C->q->values;
@@ -50,17 +53,29 @@ void sim_step(config* C, float tau)
             );
             float theta = angular_vel * tau;
 
-            float theta_half = theta * 0.5;
-            float sin_theta = sinf(theta_half);
-            float q_delta[4] = {
-                cosf(theta_half),
-                omega_x / angular_vel * sin_theta,
-                omega_y / angular_vel * sin_theta,
-                omega_z / angular_vel * sin_theta
-            };
+            float q_delta[4];
+
+            if (theta > 1e-6)
+            {
+                float theta_half = theta * 0.5;
+                float sin_theta = sinf(theta_half);
+
+                q_delta[0] = cosf(theta_half);
+                q_delta[1] = omega_x / angular_vel * sin_theta;
+                q_delta[2] = omega_y / angular_vel * sin_theta;
+                q_delta[3] = omega_z / angular_vel * sin_theta;
+            }
+            else
+            {
+                q_delta[0] = 1.f;
+                q_delta[1] = 0.f;
+                q_delta[2] = 0.f;
+                q_delta[3] = 0.f;
+            }
 
             float tmp[4];
             quaternion_product(q + q_id + 3, q_delta, tmp);
+            quaternion_normalize(tmp);
 
             q[q_id + 3] = tmp[0];
             q[q_id + 4] = tmp[1];
