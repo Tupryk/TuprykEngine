@@ -15,22 +15,22 @@ void vector_push(vector *v, void *element);
 void* vector_get(vector *v, size_t index);
 void vector_free(vector *v);
 
-// struct stack_elem
-// {
-//     void* data;
-//     struct stack_elem* next;
-// };
+struct stack_elem
+{
+    void* data;
+    struct stack_elem* next;
+};
 
-// typedef struct
-// {
-//     size_t size;
-//     size_t elem_size;
-//     struct stack_elem* next;
-// } stack;
+typedef struct
+{
+    size_t size;
+    struct stack_elem* next;
+} stack;
 
-// stack* stack_init(size_t elem_size);
-// void stack_push(stack* stack, void* value);
-// void* stack_pop(stack* stack);
+stack* stack_init();
+void stack_free(stack* s);
+void stack_push(stack* s, void* data);
+void* stack_pop(stack* s);
 
 struct int_stack_elem
 {
@@ -45,9 +45,9 @@ typedef struct
 } int_stack;
 
 int_stack* int_stack_init();
-void int_stack_free(int_stack* stack);
-void int_stack_push(int_stack* stack, int value);
-int int_stack_pop(int_stack* stack);
-int int_stack_contains(int_stack* stack, int value);
+void int_stack_free(int_stack* s);
+void int_stack_push(int_stack* s, int value);
+int int_stack_pop(int_stack* s);
+int int_stack_contains(int_stack* s, int value);
 
 #endif

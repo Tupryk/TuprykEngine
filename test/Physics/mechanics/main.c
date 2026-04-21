@@ -6,8 +6,10 @@
 #include "../../../TuprykEngine/Graphics/image.h"
 #include "../../../TuprykEngine/Graphics/raytracer.h"
 #include "../../../TuprykEngine/Kinematics/configuration.h"
+#include "../../../TuprykEngine/Kinematics/frame.h"
 #include "../../../TuprykEngine/Physics/simulation.h"
 #include "../../../TuprykEngine/Physics/forces.h"
+#include "../../../TuprykEngine/Algos/lists.h"
 
 #include "../../../TuprykEngine/scenes/devastator/desert.h"
 #include "../../../TuprykEngine/visual/graphics/window.h"
@@ -15,7 +17,7 @@
 #include "../../../TuprykEngine/visual/prints/config.h"
 
 
-int test_centroidal()
+int test_com()
 {
     config* C = init_devastator_config();
     
@@ -39,6 +41,60 @@ int test_centroidal()
     print_config(C);
     
     int frame_count = 10;
+    tensor* com = new_tensor_vector(3, NULL);
+
+    for (int i = 0; i < frame_count; i++)
+    {
+        printf("Rendering frame %d...\n", i+1);
+        
+        float total_mass = center_of_mass(C, 4, com);
+        printf("COM: [%g, %g, %g], Total Mass: %g\n", com->values[0], com->values[1], com->values[2], total_mass);
+        
+        sim_step(C, 0.01);
+    }
+    
+    config_free(C);
+    tensor_free(new_q);
+    tensor_free(com);
+    return 0;
+}
+
+void add_trans_force(config* C, int frame_id, float* force_values, float* poa_values)
+{
+    force_t* f = (force_t*) malloc(sizeof(force_t));
+    f->force = new_tensor_vector(3, force_values);
+    f->torque = NULL;
+    f->poa = new_tensor_vector(3, poa_values);
+    geom* geom_data = (geom*) C->frames[frame_id]->data;
+    stack_push(geom_data->forces, f);
+}
+
+int test_forces()
+{
+    config* C = init_devastator_config();
+    
+    tensor* new_q = tensor_copy_shape(C->q);
+    tensor_fill(new_q, 0.f);
+    new_q->values[2] = 1.f;
+    config_set_q(C, new_q->values);
+    tensor_fill(C->q_vel, 0.f);
+    
+    float force_values[] = {0.f, 0.f, 10.f};
+    float poa_values[] = {0.f, 0.f, -0.1f};
+    add_trans_force(C, 11, force_values, poa_values);
+    add_trans_force(C, 23, force_values, poa_values);
+    float force_values_top[] = {0.f, 0.f, 20.f};
+    add_trans_force(C, 29, force_values_top, poa_values);
+    float force_values_down[] = {-20.f, 0.f, -40.f};
+    float poa_values_body[] = {0.f, 0.f, 0.2f};
+    add_trans_force(C, 5, force_values_down, poa_values_body);
+    float force_values_side[] = {20.f, 0.f, 0.f};
+    float poa_values_side[] = {0.1f, 0.f, 0.f};
+    add_trans_force(C, 17, force_values_side, poa_values_side);
+
+    print_config(C);
+    
+    int frame_count = 64;
     tensor* video_frames[frame_count];
     tensor* com = new_tensor_vector(3, NULL);
 
@@ -73,7 +129,8 @@ int main(void)
     init_window();
 
     int failures_count = 0;
-    failures_count += test_centroidal();
+    // failures_count += test_com();
+    failures_count += test_forces();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

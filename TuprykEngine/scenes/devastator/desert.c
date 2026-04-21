@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "desert.h"
 #include "../../Stochastic/sample.h"
@@ -14,6 +15,10 @@ geom* ball_geom_give(float radius)
     ball_geom->mesh = (void*) malloc(sizeof(float));
     *(float*)ball_geom->mesh = radius;
     ball_geom->mass = radius;
+    
+    float Ii = 2.f/5.f * ball_geom->mass * radius*radius;
+    float inertia_values[] = {Ii, Ii, Ii};
+    ball_geom->inertia = new_tensor_diagonal(3, inertia_values);
 
     ball_geom->tex = (texture*) malloc(sizeof(texture));
 
@@ -25,6 +30,8 @@ geom* ball_geom_give(float radius)
     ball_geom->tex->diffuse   = 1.f;
     ball_geom->tex->specular  = 0.5f;
     ball_geom->tex->shininess = 10.f;
+
+    ball_geom->forces = stack_init();
 
     return ball_geom;
 }
@@ -43,10 +50,14 @@ void add_tentacle_piece_to_config(
     int ball_idx = joint_idx + 1;
 
     // Poses and parents
-    frame* joint = frame_init(parent_pos->values, rot);
+    char *joint_name;
+    asprintf(&joint_name, "joint_%d_%d", i, j);
+    frame* joint = frame_init(joint_name, parent_pos->values, rot);
     joint->parent = parent_idx;
 
-    frame* ball = frame_init(pos_values, rot);
+    char *ball_name;
+    asprintf(&ball_name, "ball_%d_%d", i, j);
+    frame* ball = frame_init(ball_name, pos_values, rot);
     ball->parent = joint_idx;
 
     // Relavtive poses
@@ -154,7 +165,7 @@ config* init_devastator_config()
     C->lights = (int*) malloc(sizeof(int) * C->lights_count);
 
     //---- Root Frame ----//
-    frame* root = frame_init(origin_pos, origin_rot);
+    frame* root = frame_init("root", origin_pos, origin_rot);
     root->pos_rel = NULL;
     root->rot_rel = NULL;
 
@@ -174,7 +185,7 @@ config* init_devastator_config()
 
     //---- Spider Free Joint ----//
     float spider_pos[] = {0.f, 0.f, 1.f};
-    frame* spider_joint = frame_init(spider_pos, origin_rot);
+    frame* spider_joint = frame_init("spider_joint", spider_pos, origin_rot);
     spider_joint->pos_rel = tensor_sub_give(spider_joint->pos, root->pos);
     spider_joint->rot_rel = tensor_copy(root->rot);
 
@@ -194,7 +205,7 @@ config* init_devastator_config()
     C->frames[spider_joint_idx] = spider_joint;
 
     //---- Spider Body ----//
-    frame* spider_body = frame_init(spider_pos, origin_rot);
+    frame* spider_body = frame_init("spider_body", spider_pos, origin_rot);
     spider_body->pos_rel = tensor_sub_give(spider_body->pos, spider_joint->pos);
     spider_body->rot_rel = tensor_copy(root->rot);
 
@@ -217,7 +228,7 @@ config* init_devastator_config()
     // float floor_radius = 1737500.f;  // Moon
     float floor_radius = 1000.f;
     float floor_pos[] = {0.f, 0.f, -floor_radius};
-    frame* floor = frame_init(floor_pos, origin_rot);
+    frame* floor = frame_init("floor", floor_pos, origin_rot);
 
     geom* floor_geom = ball_geom_give(floor_radius);
     floor_geom->tex->color[0] = 1.f;
@@ -234,7 +245,7 @@ config* init_devastator_config()
 
     //---- Camera Frame ----//
     float cam_pos[] = {0.f, -2.f, 1.f};
-    frame* cam = frame_init(cam_pos, origin_rot);
+    frame* cam = frame_init("camera", cam_pos, origin_rot);
 
     camera_t* cam_data = (camera_t*) malloc(sizeof(camera_t));
     cam_data->fx = 0.1f;
@@ -250,7 +261,7 @@ config* init_devastator_config()
 
     //---- Light Frame ----//
     float light_pos[] = {5.f, -5.f, 5.f};
-    frame* light = frame_init(light_pos, origin_rot);
+    frame* light = frame_init("light", light_pos, origin_rot);
 
     light_t* light_data = (light_t*) malloc(sizeof(light_t));
     light_data->intensity = 1.0f;

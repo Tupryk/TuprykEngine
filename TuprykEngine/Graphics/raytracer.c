@@ -6,6 +6,8 @@
 #include "../Algos/utils.h"
 #include "../visual/prints/linalg.h"
 
+// #define SHADOWS
+
 
 float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float radius, tensor* out)
 {
@@ -157,6 +159,7 @@ void raytrace(config* C, int cam, tensor* out)
                         B = clip(B, 0.f, 1.f);
 
                         // Check for shadows
+                        #ifdef SHADOWS
                         tensor* offset = tensor_scalar_mult_give(light_dir, 0.001);
                         tensor_add(ball_hit, offset, ball_hit);
                         tensor_free(offset);
@@ -176,6 +179,7 @@ void raytrace(config* C, int cam, tensor* out)
                                 }
                             }
                         }
+                        #endif
 
                         tensor_free(ball_normal);
                         tensor_free(light_dir);

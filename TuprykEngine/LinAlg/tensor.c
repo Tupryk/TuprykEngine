@@ -62,6 +62,17 @@ tensor* new_tensor(int* shape, int shape_dim, float* values)
     return t;
 }
 
+tensor* new_tensor_diagonal(int dim, float* values)
+{
+    int shape[] = {dim, dim};
+    tensor* t = new_tensor(shape, 2, NULL);
+    for (int i = 0; i < dim; i++)
+    {
+        t->values[i * dim + i] = values[i];
+    }
+    return t;
+}
+
 tensor* tensor_copy_shape(tensor* t)
 {
     tensor* t_copy = new_tensor(t->shape, t->shape_dim, NULL);

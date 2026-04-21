@@ -1,13 +1,24 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "frame.h"
 #include "../Geom/quaternions.h"
 
 
-frame* frame_init(float* pos, float* rot)
+frame* frame_init(const char *name, float* pos, float* rot)
 {
     frame* f = (frame*) malloc(sizeof(frame));
+
+    if (name != NULL)
+    {
+        f->name = malloc(strlen(name) + 1);
+        strcpy(f->name, name);
+    }
+    else
+    {
+        f->name = NULL;
+    }
 
     int pos_shape[] = {3, 1};
     f->pos = new_tensor(pos_shape, 2, pos);
@@ -31,6 +42,10 @@ frame* frame_init(float* pos, float* rot)
 
 void frame_free(frame* f)
 {
+    if (f->name != NULL)
+    {
+        free(f->name);
+    }
     tensor_free(f->pos);
     tensor_free(f->rot);
 
@@ -47,6 +62,10 @@ void frame_free(frame* f)
         {
             free(g->mesh);
         }
+        if (g->inertia != NULL)
+        {
+            tensor_free(g->inertia);
+        }
         #ifdef DEBUG
         else
         {
@@ -55,6 +74,17 @@ void frame_free(frame* f)
         }
         #endif
         free(g->tex);
+
+        if (g->forces != NULL)
+        {
+            while (g->forces->size > 0)
+            {
+                force_t* F = (force_t*) stack_pop(g->forces);
+                force_free(F);
+            }
+            stack_free(g->forces);
+        }
+
         free(g);
     }
     else if (f->type == 2 || f->type == 3 || f->type == 4)
@@ -102,4 +132,25 @@ tensor* frame_get_pose_matrix_give(frame* f)
     tensor* out = new_tensor(shape, 2, NULL);
     frame_get_pose_matrix(f, out);
     return out;
+}
+
+void force_free(force_t* f)
+{
+    if (f->force != NULL) tensor_free(f->force);
+    if (f->torque != NULL) tensor_free(f->torque);
+    if (f->poa != NULL) tensor_free(f->poa);
+    free(f);
+}
+
+void forces_add(force_t* a, force_t* b, force_t* out)
+{
+    if (a->force != NULL && b->force != NULL)
+    {
+        tensor_add(a->force, b->force, out->force);
+    }
+    if (a->torque != NULL && b->torque != NULL)
+    {
+        tensor_add(a->torque, b->torque, out->torque);
+    }
+    // TODO: poa?
 }

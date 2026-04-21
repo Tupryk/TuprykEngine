@@ -15,6 +15,9 @@ typedef struct
 
 // Switch to always using tensor pointers (faster) ei. tensor new_tensor(...); -> tensor* new_tensor(...);
 tensor* new_tensor(int* shape, int shape_dim, float* values);
+tensor* new_tensor_diagonal(int dim, float* values);
+tensor* new_tensor_vector(int dim, float* values);
+tensor* new_tensor_matrix(int cols, int rows, float* values);
 tensor* tensor_copy(tensor* t);
 tensor* tensor_copy_shape(tensor* t);
 void tensor_fill(tensor* t, float value);
@@ -59,8 +62,6 @@ float vector_dot(tensor* a, tensor* b);
 float vector_norm(tensor* t);
 float vector_squared_norm(tensor* t);
 void vector_normalize(tensor* t);
-tensor* new_tensor_vector(int dim, float* values);
-tensor* new_tensor_matrix(int cols, int rows, float* values);
 
 // void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
 // tensor* pseudo_inverse(tensor* target);

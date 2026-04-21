@@ -23,7 +23,10 @@ void print_frame(config* C, frame* f, int id, int depth)
         return;
     }
     print_spaces(depth);
-    printf("--- Frame %d (depth %d) ---\n", id, depth);
+    printf("\033[1;32m--- Frame %d: ", id);
+    if (f->name != NULL) printf("%s", f->name);
+    else printf("-no name-");
+    printf(" (depth %d) ---\033[0m\n", depth);
 
     float* pos = f->pos->values;
     float* rot = f->rot->values;
@@ -59,6 +62,17 @@ void print_frame(config* C, frame* f, int id, int depth)
             printf("    -> Radius: %g\n", r);
             print_spaces(depth);
             printf("    -> Mass: %g\n", ball_geom->mass);
+            print_spaces(depth);
+            printf("    -> Inertia Tensor:\n");
+            float* I = ball_geom->inertia->values;
+            print_spaces(depth);
+            printf("        [%g, %g, %g]\n", I[0], I[1], I[2]);
+            print_spaces(depth);
+            printf("        [%g, %g, %g]\n", I[3], I[4], I[5]);
+            print_spaces(depth);
+            printf("        [%g, %g, %g]\n", I[6], I[7], I[8]);
+            print_spaces(depth);
+            printf("    -> Total Forces on Body: %zu\n", ball_geom->forces->size);
             break;
         case 2:
             printf("Camera\n");
@@ -127,7 +141,7 @@ void print_frame(config* C, frame* f, int id, int depth)
     {
         printf("%d, ", f->children[i]);
     }
-    printf("]\n");
+    printf("]\n\n");
 
     for (int i = 0; i < f->children_count; i++)
     {

@@ -3,8 +3,8 @@
 
 #include <SDL.h>
 
-#define WINDOW_W 480
-#define WINDOW_H 480
+#define WINDOW_W 240
+#define WINDOW_H 240
 
 SDL_Window* window;
 SDL_Renderer* renderer;

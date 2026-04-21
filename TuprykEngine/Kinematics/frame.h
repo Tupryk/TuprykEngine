@@ -25,9 +25,21 @@ typedef struct
 {
     int type;  // 0: Sphere
     void* mesh;
+    
     float mass;
+    tensor* inertia;
+    
     texture* tex;
+    
+    stack* forces;  // force_t
 } geom;
+
+typedef struct
+{
+    tensor* force;
+    tensor* torque;
+    tensor* poa;
+} force_t;  // TODO: Should maybe be in a different filem ie. Physics/forces.h
 
 typedef struct
 {
@@ -42,6 +54,7 @@ typedef struct
 
 typedef struct
 {
+    char* name;
     tensor* pos;
     tensor* rot;
 
@@ -54,13 +67,14 @@ typedef struct
 
     int type;  // 0: Marker, 1: Geometry, 2: Camera, 3: Light, 4: Joint
     void* data;
-
-    // stack* forces;
 } frame;
 
-frame* frame_init(float* pos, float* rot);
+frame* frame_init(const char *name, float* pos, float* rot);
 void frame_free(frame* f);
 void frame_get_pose_matrix(frame* f, tensor* pose);
 tensor* frame_get_pose_matrix_give(frame* f);
+
+void force_free(force_t* f);
+void forces_add(force_t* a, force_t* b, force_t* out);
 
 #endif
