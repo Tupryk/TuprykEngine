@@ -344,11 +344,12 @@ void view_image(tensor* im)
     }
 }
 
-void play_video(tensor** frames, int frame_count)
+void play_video(tensor** frames, int frame_count, float tau)
 {
     int index = 0;
     SDL_Event e;
     int running = 1;
+    int tau_mili = tau * 1000.f;
     
     while (running)
     {
@@ -365,7 +366,7 @@ void play_video(tensor** frames, int frame_count)
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Delay(16); // ~60 FPS
+        SDL_Delay(tau_mili);
 
         index++;
         if (index >= frame_count)

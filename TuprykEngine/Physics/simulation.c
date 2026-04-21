@@ -28,6 +28,8 @@ void sim_step(config* C, float tau)
         int q_id = joint_data->q_id;
         int q_acc_id = q_id + q_acc_offset;
 
+        tensor* com = new_tensor_vector(3, NULL);
+        float total_mass = center_of_mass(C, joint_id, com);
         stack* all_forces = forces_on_body(C, joint_id);
 
         if (joint_type == 0 || joint_type == 1 || joint_type == 2)
@@ -47,12 +49,21 @@ void sim_step(config* C, float tau)
                 force_free(current_force);
                 current_force = (force_t*) stack_pop(all_forces);
             }
+
+            tensor* c_r = tensor_sub_give(com, joint_frame->pos);
+            tensor* gravity = new_tensor_vector(3, NULL);
+            gravity->values[2] = -9.81f * total_mass;
+            tensor* cross = vector_cross_give(c_r, gravity);
+    
+            // TODO: Rotate Hinge axis!!! + Inertia tensor
+            q_acc_v[q_acc_id] += cross->values[joint_type];
+    
+            tensor_free(c_r);
+            tensor_free(cross);
+            tensor_free(gravity);
         }
         else if (joint_type == 3)
         {
-            tensor* com = new_tensor_vector(3, NULL);
-            float total_mass = center_of_mass(C, joint_id, com);
-
             force_t* current_force = (force_t*) stack_pop(all_forces);
             while (current_force != NULL)
             {
@@ -98,9 +109,9 @@ void sim_step(config* C, float tau)
             // q_acc_v[q_acc_id + 2] -= 9.81f;
             
             q_acc_offset--;
-            tensor_free(com);
         }
-
+        
+        tensor_free(com);
         stack_free(all_forces);
     }
     tensor_scalar_mult(q_acc, tau, q_acc);
@@ -125,10 +136,10 @@ void sim_step(config* C, float tau)
         if (joint_type == 0 || joint_type == 1 || joint_type == 2)
         {
             q[q_id] += q_vel[q_vel_id] * tau;
-            if (joint_data->has_limits)
-            {
-                q[q_id] = clip(q[q_id], q_min[q_id], q_max[q_id]);
-            }
+            // if (joint_data->has_limits)
+            // {
+            //     q[q_id] = clip(q[q_id], q_min[q_id], q_max[q_id]);
+            // }
         }
         else if (joint_type == 3)
         {
