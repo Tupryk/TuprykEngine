@@ -10,6 +10,7 @@
 #include "../../../TuprykEngine/Physics/simulation.h"
 #include "../../../TuprykEngine/Physics/forces.h"
 #include "../../../TuprykEngine/Algos/lists.h"
+#include "../../../TuprykEngine/Geom/quaternions.h"
 
 #include "../../../TuprykEngine/scenes/devastator/desert.h"
 #include "../../../TuprykEngine/visual/graphics/window.h"
@@ -71,12 +72,13 @@ void add_trans_force(config* C, int frame_id, float* force_values, float* poa_va
 
 int test_forces()
 {
-    float tau = 0.01f;
+    float tau = 0.02f;
     config* C = init_devastator_config();
     
     tensor* new_q = tensor_copy_shape(C->q);
     tensor_fill(new_q, 0.f);
     new_q->values[2] = 1.f;
+    // quaternion_x(M_PI * 0.55, new_q->values + 3);
     config_set_q(C, new_q->values);
     tensor_fill(C->q_vel, 0.f);
     
@@ -92,6 +94,14 @@ int test_forces()
     float force_values_side[] = {-20.f, 0.f, 0.f};
     float poa_values_side[] = {-0.1f, 0.f, 0.f};
     add_trans_force(C, 17, force_values_side, poa_values_side);
+
+    // force_t* f = (force_t*) malloc(sizeof(force_t));
+    // f->force = NULL;
+    // float torque_values[] = {0.5f, 0.f, 0.f};
+    // f->torque = new_tensor_vector(3, torque_values);
+    // f->poa = NULL;
+    // geom* geom_data = (geom*) C->frames[5]->data;
+    // stack_push(geom_data->forces, f);
 
     print_config(C);
     
@@ -111,6 +121,11 @@ int test_forces()
         video_frames[i] = im;
         
         sim_step(C, tau);
+        // if (i == 48)
+        // {
+        //     force_t* tor = stack_pop(geom_data->forces);
+        //     force_free(tor);
+        // }
     }
     play_video(video_frames, frame_count, tau);
     

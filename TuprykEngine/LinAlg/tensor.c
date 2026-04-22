@@ -118,6 +118,13 @@ void tensor_transfer_values(tensor* to, tensor* from)
     }
 }
 
+void tensor_set_values(tensor* t, float* values)
+{
+    for (int i = 0; i < t->volume; i++) {
+        t->values[i] = values[i];
+    }
+}
+
 void tensor_transfer_all(tensor* to, tensor* from)
 {
     // TODO: should probably implement some safety stuff here...
@@ -302,6 +309,20 @@ void tensor_sub(tensor* a, tensor* b, tensor* out)
 {
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] - b->values[i];
+    }
+}
+
+void tensor_scalar_add(tensor* a, float b, tensor* out)
+{
+    for (int i = 0; i < a->volume; i++) {
+        out->values[i] = a->values[i] + b;
+    }
+}
+
+void tensor_scalar_sub(tensor* a, float b, tensor* out)
+{
+    for (int i = 0; i < a->volume; i++) {
+        out->values[i] = a->values[i] - b;
     }
 }
 

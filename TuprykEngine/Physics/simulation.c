@@ -13,6 +13,7 @@ void sim_step(config* C, float tau)
     int* joints = C->joints;
     int joints_count = C->joints_count;
     tensor* q_vel_ = C->q_vel;
+    float* q_vel = q_vel_->values;
     
     // Update Velocities
     int q_acc_offset = 0;
@@ -29,38 +30,56 @@ void sim_step(config* C, float tau)
         int q_acc_id = q_id + q_acc_offset;
 
         tensor* com = new_tensor_vector(3, NULL);
+        tensor* I_cm = new_tensor_matrix(3, 3, NULL);
         float total_mass = center_of_mass(C, joint_id, com);
+        combined_inertia(C, joint_id, com, I_cm);
+        tensor* I_cm_inv = tensor_inverse_give(I_cm);
+        tensor_free(I_cm);
+        
         stack* all_forces = forces_on_body(C, joint_id);
+
+        tensor* gravity = new_tensor_vector(3, NULL);
+        gravity->values[2] = -9.81f;
+
+        tensor* total_angular_acc = new_tensor_vector(3, NULL);
+        tensor* c_r = new_tensor_vector(3, NULL);
+        tensor* cross = new_tensor_vector(3, NULL);
+
+        float friction = 0.01f;
 
         if (joint_type == 0 || joint_type == 1 || joint_type == 2)
         {
             force_t* current_force = (force_t*) stack_pop(all_forces);
             while (current_force != NULL)
             {
-                tensor* c_r = tensor_sub_give(current_force->poa, joint_frame->pos);
-                tensor* cross = vector_cross_give(c_r, current_force->force);
-        
-                // TODO: Rotate Hinge axis!!! + Inertia tensor
-                q_acc_v[q_acc_id] += cross->values[joint_type];
-        
-                tensor_free(c_r);
-                tensor_free(cross);
+                tensor_sub(current_force->poa, joint_frame->pos, c_r);
+                vector_cross(c_r, current_force->force, cross);
+                
+                tensor_add(total_angular_acc, cross, total_angular_acc);
                 
                 force_free(current_force);
                 current_force = (force_t*) stack_pop(all_forces);
             }
+            
+            float axis[3] = {0.f, 0.f, 0.f};
+            float axis_rotated[3] = {0.f, 0.f, 0.f};
+            axis[joint_type] = 1.f;
+            
+            quaternion_rotate_point(joint_frame->rot->values, axis, axis_rotated);
+            
+            tensor* axis_r = tensor_sub_give(com, joint_frame->pos);
+            tensor* gravity_force = tensor_scalar_mult_give(gravity, total_mass);
+            tensor* cross = vector_cross_give(axis_r, gravity_force);
+            tensor_add(total_angular_acc, cross, total_angular_acc);
+            tensor_scalar_sub(total_angular_acc, friction * q_vel[q_acc_id], total_angular_acc);
 
-            tensor* c_r = tensor_sub_give(com, joint_frame->pos);
-            tensor* gravity = new_tensor_vector(3, NULL);
-            gravity->values[2] = -9.81f * total_mass;
-            tensor* cross = vector_cross_give(c_r, gravity);
+            tensor_mult(I_cm_inv, total_angular_acc, total_angular_acc);
+
+            q_acc_v[q_acc_id] = total_angular_acc->values[joint_type] * axis_rotated[joint_type];
     
-            // TODO: Rotate Hinge axis!!! + Inertia tensor
-            q_acc_v[q_acc_id] += cross->values[joint_type];
-    
-            tensor_free(c_r);
+            tensor_free(axis_r);
             tensor_free(cross);
-            tensor_free(gravity);
+            tensor_free(gravity_force);
         }
         else if (joint_type == 3)
         {
@@ -80,39 +99,44 @@ void sim_step(config* C, float tau)
                 // Torque
                 if (current_force->poa != NULL)
                 {
-                    tensor* c_r = tensor_sub_give(current_force->poa, com);
-                    tensor* cross = vector_cross_give(c_r, current_force->force);
+                    tensor_sub(current_force->poa, com, c_r);
+                    vector_cross(c_r, current_force->force, cross);
 
-                    q_acc_v[q_acc_id + 3] += cross->values[0];
-                    q_acc_v[q_acc_id + 4] += cross->values[1];
-                    q_acc_v[q_acc_id + 5] += cross->values[2];
-
-                    tensor_free(c_r);
-                    tensor_free(cross);
+                    tensor_add(total_angular_acc, cross, total_angular_acc);
                 }
                 if (current_force->torque != NULL)
                 {
-                    float* torque = current_force->torque->values;
-        
-                    q_acc_v[q_acc_id + 3] += torque[0];
-                    q_acc_v[q_acc_id + 4] += torque[1];
-                    q_acc_v[q_acc_id + 5] += torque[2];
+                    tensor_add(total_angular_acc, current_force->torque, total_angular_acc);
                 }
 
                 force_free(current_force);
                 current_force = (force_t*) stack_pop(all_forces);
             }
             
+            // q_acc_v[q_acc_id    ] += gravity->values[0];
+            // q_acc_v[q_acc_id + 1] += gravity->values[1];
+            // q_acc_v[q_acc_id + 2] += gravity->values[2];
+
             q_acc_v[q_acc_id    ] /= total_mass;
             q_acc_v[q_acc_id + 1] /= total_mass;
             q_acc_v[q_acc_id + 2] /= total_mass;
-            // q_acc_v[q_acc_id + 2] -= 9.81f;
+
+            tensor_mult(I_cm_inv, total_angular_acc, total_angular_acc);
+
+            q_acc_v[q_acc_id + 3] = total_angular_acc->values[0];
+            q_acc_v[q_acc_id + 4] = total_angular_acc->values[0];
+            q_acc_v[q_acc_id + 5] = total_angular_acc->values[0];
             
             q_acc_offset--;
         }
         
         tensor_free(com);
         stack_free(all_forces);
+        tensor_free(gravity);
+        tensor_free(c_r);
+        tensor_free(cross);
+        tensor_free(I_cm_inv);
+        tensor_free(total_angular_acc);
     }
     tensor_scalar_mult(q_acc, tau, q_acc);
     tensor_add(q_vel_, q_acc, q_vel_);
@@ -120,7 +144,6 @@ void sim_step(config* C, float tau)
     
     // Apply Velocities
     float* q = C->q->values;
-    float* q_vel = q_vel_->values;
     float* q_min = C->q_min->values;
     float* q_max = C->q_max->values;
 
@@ -136,10 +159,10 @@ void sim_step(config* C, float tau)
         if (joint_type == 0 || joint_type == 1 || joint_type == 2)
         {
             q[q_id] += q_vel[q_vel_id] * tau;
-            // if (joint_data->has_limits)
-            // {
-            //     q[q_id] = clip(q[q_id], q_min[q_id], q_max[q_id]);
-            // }
+            if (joint_data->has_limits)
+            {
+                q[q_id] = clip(q[q_id], q_min[q_id], q_max[q_id]);
+            }
         }
         else if (joint_type == 3)
         {
