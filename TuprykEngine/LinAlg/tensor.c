@@ -1079,6 +1079,22 @@ void vector_normalize(tensor* t)
     }
 }
 
+void vector_reflect(tensor* v, tensor* n, tensor* out)
+{
+    tensor_scalar_mult(n, vector_dot(v, n), out);
+    tensor_scalar_mult(out, 2.f, out);
+    tensor_sub(out, v, out);
+    
+    vector_normalize(out);
+}
+
+tensor* vector_reflect_give(tensor* v, tensor* n)
+{
+    tensor* out = tensor_copy_shape(v);
+    vector_reflect(v, n, out);
+    return out;
+}
+
 tensor* new_tensor_vector(int dim, float* values)
 {
     int shape[] = {dim, 1};

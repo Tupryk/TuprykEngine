@@ -6,7 +6,8 @@
 #include "../Algos/utils.h"
 #include "../visual/prints/linalg.h"
 
-// #define SHADOWS
+#define MIRROR
+#define SHADOWS
 
 
 float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float radius, tensor* out)
@@ -69,14 +70,13 @@ void raytrace(config* C, int cam, tensor* out)
     }
     #endif
 
-    // TODO: free tensors
-    
     int width = out->shape[0];
     int height = out->shape[1];
     float depth[width][height];
 
-    frame* cam_frame = C->frames[cam];
-    frame* light_frame = C->frames[C->lights[0]];
+    frame** frames = C->frames;
+    frame* cam_frame = frames[cam];
+    frame* light_frame = frames[C->lights[0]];
     light_t* light_data = (light_t*) light_frame->data;
     camera_t* cam_data = (camera_t*) cam_frame->data;
     float fx = cam_data->fx;
@@ -90,7 +90,7 @@ void raytrace(config* C, int cam, tensor* out)
     {
         for (int x = 0; x < width; x++)
         {
-            depth[x][y] = 1000.0;
+            depth[x][y] = 1000.f;
 
             int indices[] = {x, y, 0};
             int idx = get_tensor_value_index(out, indices);
@@ -107,7 +107,7 @@ void raytrace(config* C, int cam, tensor* out)
 
             for (int i = 0; i < frame_count; i++)
             {
-                frame* ball_frame = C->frames[i];
+                frame* ball_frame = frames[i];
                 if (ball_frame->type == 1)
                 {
                     geom* ball_geom = (geom*) ball_frame->data;
@@ -134,13 +134,7 @@ void raytrace(config* C, int cam, tensor* out)
                         vector_normalize(light_dir);
                         vector_normalize(cam_dir);
                         
-                        tensor* light_reflect = tensor_copy(ball_normal);
-                        
-                        tensor_scalar_mult(light_reflect, vector_dot(light_dir, ball_normal), light_reflect);
-                        tensor_scalar_mult(light_reflect, 2.f, light_reflect);
-                        tensor_sub(light_reflect, light_dir, light_reflect);
-                        
-                        vector_normalize(light_reflect);
+                        tensor* light_reflect = vector_reflect_give(light_dir, ball_normal);
 
                         float diff = fmax(vector_dot(ball_normal, light_dir), 0.f);
                         float spec = powf(fmax(vector_dot(light_reflect, cam_dir), 0.f), shininess);
@@ -158,15 +152,15 @@ void raytrace(config* C, int cam, tensor* out)
                         G = clip(G, 0.f, 1.f);
                         B = clip(B, 0.f, 1.f);
 
+                        
                         // Check for shadows
                         #ifdef SHADOWS
-                        tensor* offset = tensor_scalar_mult_give(light_dir, 0.001);
-                        tensor_add(ball_hit, offset, ball_hit);
-                        tensor_free(offset);
+                        tensor* shadow_offset = tensor_scalar_mult_give(light_dir, 0.001);
+                        tensor_add(ball_hit, shadow_offset, ball_hit);
                         float shadow_scaler = 0.5f;
                         for (int j = 0; j < frame_count; j++)
                         {
-                            frame* ball_frame_ = C->frames[j];
+                            frame* ball_frame_ = frames[j];
                             if (ball_frame_->type == 1)
                             {
                                 geom* ball_geom_ = (geom*) ball_frame_->data;
@@ -179,8 +173,52 @@ void raytrace(config* C, int cam, tensor* out)
                                 }
                             }
                         }
+                        tensor_sub(ball_hit, shadow_offset, ball_hit);
+                        tensor_free(shadow_offset);
                         #endif
 
+                        #ifdef MIRROR
+                        if (ball_geom->tex->reflectance)
+                        {
+                            float closest = 1000.f;
+                            float reflection_R = 0.f;
+                            float reflection_G = 0.f;
+                            float reflection_B = 0.f;
+                            
+                            tensor* cam_ray_inverted = tensor_scalar_mult_give(cam_ray, -1.f);
+                            tensor* reflected_ray = vector_reflect_give(cam_ray_inverted, ball_normal);
+                            tensor* mirror_offset = tensor_scalar_mult_give(reflected_ray, 0.01);
+                            
+                            tensor_add(ball_hit, mirror_offset, ball_hit);
+    
+                            for (int j = 0; j < frame_count; j++)
+                            {
+                                frame* ball_frame_ = frames[j];
+                                if (ball_frame_->type == 1)
+                                {
+                                    geom* ball_geom_ = (geom*) ball_frame_->data;
+                                    float radius_  = *(float*)ball_geom_->mesh;
+                                    float dist = ray_ball_hit(ball_hit, reflected_ray, ball_frame_->pos, radius_, NULL);
+                                    if (dist != -1 && closest > dist)
+                                    {
+                                        closest = dist;
+                                        reflection_R = ball_geom_->tex->color[0];
+                                        reflection_G = ball_geom_->tex->color[1];
+                                        reflection_B = ball_geom_->tex->color[2];
+                                    }
+                                }
+                            }
+                            float rfc = ball_geom->tex->reflectance;
+                            R = R * (1.f - rfc) + reflection_R * rfc;
+                            G = G * (1.f - rfc) + reflection_G * rfc;
+                            B = B * (1.f - rfc) + reflection_B * rfc;
+                            tensor_sub(ball_hit, mirror_offset, ball_hit);
+                            tensor_free(cam_ray_inverted);
+                            tensor_free(reflected_ray);
+                            tensor_free(mirror_offset);
+                        }
+                        #endif
+                        
                         tensor_free(ball_normal);
                         tensor_free(light_dir);
                         tensor_free(cam_dir);
@@ -194,4 +232,6 @@ void raytrace(config* C, int cam, tensor* out)
             out->values[idx+2] = B;
         }
     }
+    tensor_free(cam_ray);
+    tensor_free(ball_hit);
 }

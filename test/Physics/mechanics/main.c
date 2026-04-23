@@ -66,8 +66,8 @@ void add_trans_force(config* C, int frame_id, float* force_values, float* poa_va
     f->force = new_tensor_vector(3, force_values);
     f->torque = NULL;
     f->poa = new_tensor_vector(3, poa_values);
-    geom* geom_data = (geom*) C->frames[frame_id]->data;
-    stack_push(geom_data->forces, f);
+    f->frame_id = frame_id;
+    stack_push(C->forces, f);
 }
 
 int test_forces()
@@ -82,26 +82,26 @@ int test_forces()
     config_set_q(C, new_q->values);
     tensor_fill(C->q_vel, 0.f);
     
-    float force_values[] = {0.f, 0.f, -10.f};
-    float poa_values[] = {0.f, 0.f, 0.1f};
-    add_trans_force(C, 11, force_values, poa_values);
-    add_trans_force(C, 23, force_values, poa_values);
-    float force_values_top[] = {0.f, 0.f, -20.f};
-    add_trans_force(C, 29, force_values_top, poa_values);
-    float force_values_down[] = {20.f, 0.f, 40.f};
-    float poa_values_body[] = {0.f, 0.f, -0.2f};
-    add_trans_force(C, 5, force_values_down, poa_values_body);
-    float force_values_side[] = {-20.f, 0.f, 0.f};
-    float poa_values_side[] = {-0.1f, 0.f, 0.f};
-    add_trans_force(C, 17, force_values_side, poa_values_side);
+    // float force_values[] = {0.f, 0.f, 1.f};
+    // float poa_values[] = {0.f, 0.f, -0.1f};
+    // add_trans_force(C, 11, force_values, poa_values);
+    // add_trans_force(C, 23, force_values, poa_values);
+    // float force_values_top[] = {0.f, 0.f, -20.f};
+    // add_trans_force(C, 29, force_values_top, poa_values);
+    // float force_values_down[] = {20.f, 0.f, 40.f};
+    // float poa_values_body[] = {0.f, 0.f, -0.2f};
+    // add_trans_force(C, 5, force_values_down, poa_values_body);
+    // float force_values_side[] = {-20.f, 0.f, 0.f};
+    // float poa_values_side[] = {-0.1f, 0.f, 0.f};
+    // add_trans_force(C, 17, force_values_side, poa_values_side);
 
-    // force_t* f = (force_t*) malloc(sizeof(force_t));
-    // f->force = NULL;
-    // float torque_values[] = {0.5f, 0.f, 0.f};
-    // f->torque = new_tensor_vector(3, torque_values);
-    // f->poa = NULL;
-    // geom* geom_data = (geom*) C->frames[5]->data;
-    // stack_push(geom_data->forces, f);
+    force_t* f = (force_t*) malloc(sizeof(force_t));
+    f->force = NULL;
+    float torque_values[] = {10.f, 0.f, 0.f};
+    f->torque = new_tensor_vector(3, torque_values);
+    f->poa = NULL;
+    f->frame_id = 5;
+    stack_push(C->forces, f);
 
     print_config(C);
     
@@ -121,11 +121,11 @@ int test_forces()
         video_frames[i] = im;
         
         sim_step(C, tau);
-        // if (i == 48)
-        // {
-        //     force_t* tor = stack_pop(geom_data->forces);
-        //     force_free(tor);
-        // }
+        if (i == 0)
+        {
+            force_t* tor = stack_pop(C->forces);
+            force_free(tor);
+        }
     }
     play_video(video_frames, frame_count, tau);
     

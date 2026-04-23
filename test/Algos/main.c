@@ -47,9 +47,40 @@ int test_int_stack()
     return 0;
 }
 
+int test_stack()
+{
+    stack* s = stack_init();
+
+    int* v1 = malloc(sizeof(int));
+    v1[0] = 1;
+
+    int* v2 = malloc(sizeof(int));
+    v2[0] = 2;
+
+    int* v3 = malloc(sizeof(int));
+    v3[0] = 3;
+
+    stack_push(s, v1);
+    stack_push(s, v2);
+    stack_push(s, v3);
+
+    for (int i = 0; i < 3; i++)
+    {
+        int v = *(int*) stack_pop_at_index(s, s->size-1);
+        printf("%d\n", v);
+    }
+
+    free(v1);
+    free(v2);
+    free(v3);
+    stack_free(s);
+    return 0;
+}
+
 int main()
 {
     // test_vector();
-    test_int_stack();
+    // test_int_stack();
+    test_stack();
     return 0;
 }

@@ -31,6 +31,7 @@ stack* stack_init();
 void stack_free(stack* s);
 void stack_push(stack* s, void* data);
 void* stack_pop(stack* s);
+void* stack_pop_at_index(stack* s, size_t i);
 
 struct int_stack_elem
 {

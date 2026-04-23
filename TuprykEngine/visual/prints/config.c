@@ -71,8 +71,6 @@ void print_frame(config* C, frame* f, int id, int depth)
             printf("        [%g, %g, %g]\n", I[3], I[4], I[5]);
             print_spaces(depth);
             printf("        [%g, %g, %g]\n", I[6], I[7], I[8]);
-            print_spaces(depth);
-            printf("    -> Total Forces on Body: %zu\n", ball_geom->forces->size);
             break;
         case 2:
             printf("Camera\n");
@@ -206,4 +204,17 @@ void print_config(config* C)
         }
         printf("]\n");
     }
+    printf("Forces on Configuration: %zu\n", C->forces->size);
+    struct stack_elem* current_elem = C->forces->next;
+    while (current_elem != NULL)
+    {
+        force_t* force = (force_t*) current_elem->data;
+        printf("+------- Force on Frame %d -------+\n", force->frame_id);
+        if (force->force != NULL) printf("Force: [%g, %g, %g]\n", force->force->values[0], force->force->values[1], force->force->values[2]);
+        if (force->torque != NULL) printf("Torque: [%g, %g, %g]\n", force->torque->values[0], force->torque->values[1], force->torque->values[2]);
+        if (force->poa != NULL) printf("POA: [%g, %g, %g]\n", force->poa->values[0], force->poa->values[1], force->poa->values[2]);
+
+        current_elem = current_elem->next;
+    }
+    printf("\n");
 }

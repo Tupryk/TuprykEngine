@@ -6,61 +6,6 @@
 #include "../Geom/quaternions.h"
 
 
-stack* forces_on_body(config* C, int root)
-{
-    stack* all_forces = stack_init();
-    int_stack* frames_to_check = int_stack_init();
-    int_stack_push(frames_to_check, root);
-
-    while (frames_to_check->next != NULL)
-    {
-        int current_frame_id = int_stack_pop(frames_to_check);
-        frame* current_frame = C->frames[current_frame_id];
-
-        int children_count = current_frame->children_count;
-        for (int i = 0; i < children_count; i++)
-        {
-            int_stack_push(frames_to_check, current_frame->children[i]);
-        }
-        if (current_frame->type == 1)
-        {
-            geom* frame_data = (geom*) current_frame->data;
-
-            struct stack_elem* current_force = frame_data->forces->next;
-            while (current_force != NULL)
-            {
-                force_t* new_force_body = (force_t*) current_force->data;
-                force_t* new_force_world = (force_t*) malloc(sizeof(force_t));
-
-                if (new_force_body->force != NULL) new_force_world->force = tensor_copy(new_force_body->force);
-                if (new_force_body->torque != NULL) new_force_world->torque = tensor_copy(new_force_body->torque);
-                
-                // POA to world coordinates
-                if (new_force_body->poa != NULL)
-                {
-                    new_force_world->poa = new_tensor_vector(3, NULL);
-                    quaternion_rotate_point(
-                        current_frame->rot->values,
-                        new_force_body->poa->values,
-                        new_force_world->poa->values
-                    );
-                    tensor_add(
-                        current_frame->pos,
-                        new_force_world->poa,
-                        new_force_world->poa
-                    );
-                }
-
-                stack_push(all_forces, new_force_world);
-                current_force = current_force->next;
-            }
-        }
-    }
-    int_stack_free(frames_to_check);
-
-    return all_forces;
-}
-
 float center_of_mass(config* C, int root, tensor* com)
 {
     #ifdef DEBUG

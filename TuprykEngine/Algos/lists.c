@@ -1,3 +1,4 @@
+#include "../global.h"
 #include "lists.h"
 #include <string.h>
 #include <stdlib.h>
@@ -75,6 +76,40 @@ void* stack_pop(stack* s)
 
         s->size--;
         return data;
+    }
+    return NULL;
+}
+
+void* stack_pop_at_index(stack* s, size_t i)
+{
+    #ifdef DEBUG
+    if (i >= s->size)
+    {
+        printf("Stack index out of range!\n");
+        exit(EXIT_FAILURE);
+    }
+    #endif
+    
+    size_t index = 0;
+    struct stack_elem* prev_elem = NULL;
+    struct stack_elem* current_elem = s->next;
+    while (current_elem != NULL)
+    {
+        if (index == i)
+        {
+            void* data = current_elem->data;
+            
+            if (prev_elem == NULL) s->next = current_elem->next;
+            else prev_elem->next = current_elem->next;
+            
+            free(current_elem);
+            s->size--;
+            
+            return data;
+        }
+        prev_elem = current_elem;
+        current_elem = current_elem->next;
+        index++;
     }
     return NULL;
 }

@@ -30,8 +30,7 @@ geom* ball_geom_give(float radius)
     ball_geom->tex->diffuse   = 1.f;
     ball_geom->tex->specular  = 0.5f;
     ball_geom->tex->shininess = 10.f;
-
-    ball_geom->forces = stack_init();
+    ball_geom->tex->reflectance = 0.f;
 
     return ball_geom;
 }
@@ -109,6 +108,8 @@ void add_tentacle_piece_to_config(
     joint_data->type = i % 2 ? 0 : 1;
     joint_data->has_limits = 1;
     joint_data->q_id = q_id;
+    joint_data->q_delta_id = q_id-1;
+    joint_data->friction = 0.1f;
     joint->data = (void*) joint_data;
     
     geom* ball_geom = ball_geom_give(0.1f);
@@ -147,6 +148,10 @@ config* init_devastator_config()
     float origin_rot[] = {1.f, 0.f, 0.f, 0.f};
 
     config* C = (config*) malloc(sizeof(config));
+    C->forces = stack_init();
+    C->gravity = new_tensor_vector(3, NULL);
+    C->gravity->values[2] = -9.81f;
+    
     int tentacle_length = 3;
     int tentacle_count = 4;
 
@@ -169,12 +174,11 @@ config* init_devastator_config()
     root->pos_rel = NULL;
     root->rot_rel = NULL;
 
-    root->children_count = 4;  // Camera, Light, Floor, Spider Joint
+    root->children_count = 3;  // Light, Floor, Spider Joint
     root->children = (int*) malloc(sizeof(int) * root->children_count);
-    root->children[0] = cam_idx;
-    root->children[1] = light_idx;
-    root->children[2] = floor_idx;
-    root->children[3] = spider_joint_idx;
+    root->children[0] = light_idx;
+    root->children[1] = floor_idx;
+    root->children[2] = spider_joint_idx;
     
     root->data = NULL;
 
@@ -190,13 +194,15 @@ config* init_devastator_config()
     spider_joint->rot_rel = tensor_copy(root->rot);
 
     spider_joint->children_count = 1;
-    spider_joint->children = (int*) malloc(sizeof(int));
+    spider_joint->children = (int*) malloc(sizeof(int) * spider_joint->children_count);
     spider_joint->children[0] = spider_body_idx;
     
     joint_t* joint_data = (joint_t*) malloc(sizeof(joint_t));
     joint_data->type = 3;
     joint_data->has_limits = 0;
     joint_data->q_id = 0;
+    joint_data->q_delta_id = 0;
+    joint_data->friction = 0.f;
     spider_joint->data = (void*) joint_data;
 
     spider_joint->parent = 0;
@@ -234,6 +240,7 @@ config* init_devastator_config()
     floor_geom->tex->color[0] = 1.f;
     floor_geom->tex->color[1] = 1.f;
     floor_geom->tex->color[2] = 0.f;
+    floor_geom->tex->reflectance = 0.2f;
     floor->data = (void*) floor_geom;
 
     floor->parent = 0;
@@ -244,7 +251,7 @@ config* init_devastator_config()
     C->frames[floor_idx] = floor;
 
     //---- Camera Frame ----//
-    float cam_pos[] = {0.f, -2.f, 1.f};
+    float cam_pos[] = {0.f, -4.f, 1.f};
     frame* cam = frame_init("camera", cam_pos, origin_rot);
 
     camera_t* cam_data = (camera_t*) malloc(sizeof(camera_t));

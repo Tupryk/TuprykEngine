@@ -5,7 +5,6 @@
 #include "../Kinematics/configuration.h"
 
 
-stack* forces_on_body(config* C, int root);
 void combined_inertia(config* C, int root, tensor* com, tensor* I_cm);
 float center_of_mass(config* C, int root, tensor* com);
 // void centroidal_forces(config* C, int root, tensor* force, tensor* torque);

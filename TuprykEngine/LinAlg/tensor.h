@@ -65,6 +65,8 @@ float vector_dot(tensor* a, tensor* b);
 float vector_norm(tensor* t);
 float vector_squared_norm(tensor* t);
 void vector_normalize(tensor* t);
+void vector_reflect(tensor* v, tensor* n, tensor* out);
+tensor* vector_reflect_give(tensor* v, tensor* n);
 
 // void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
 // tensor* pseudo_inverse(tensor* target);

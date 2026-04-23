@@ -74,22 +74,17 @@ void frame_free(frame* f)
         }
         #endif
         free(g->tex);
-
-        if (g->forces != NULL)
-        {
-            while (g->forces->size > 0)
-            {
-                force_t* F = (force_t*) stack_pop(g->forces);
-                force_free(F);
-            }
-            stack_free(g->forces);
-        }
-
         free(g);
     }
-    else if (f->type == 2 || f->type == 3 || f->type == 4)
+    else if (f->type == 2 || f->type == 3)
     {
         free(f->data);
+    }
+    else if (f->type == 4)
+    {
+        joint_t* joint_data = (joint_t*) f->data;
+        if (joint_data->com != NULL) tensor_free(joint_data->com);
+        if (joint_data->I_cm_inv != NULL) tensor_free(joint_data->I_cm_inv);
     }
     #ifdef DEBUG
     else if (f->type != 0)
@@ -132,25 +127,4 @@ tensor* frame_get_pose_matrix_give(frame* f)
     tensor* out = new_tensor(shape, 2, NULL);
     frame_get_pose_matrix(f, out);
     return out;
-}
-
-void force_free(force_t* f)
-{
-    if (f->force != NULL) tensor_free(f->force);
-    if (f->torque != NULL) tensor_free(f->torque);
-    if (f->poa != NULL) tensor_free(f->poa);
-    free(f);
-}
-
-void forces_add(force_t* a, force_t* b, force_t* out)
-{
-    if (a->force != NULL && b->force != NULL)
-    {
-        tensor_add(a->force, b->force, out->force);
-    }
-    if (a->torque != NULL && b->torque != NULL)
-    {
-        tensor_add(a->torque, b->torque, out->torque);
-    }
-    // TODO: poa?
 }
