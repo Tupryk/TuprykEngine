@@ -72,7 +72,7 @@ void add_trans_force(config* C, int frame_id, float* force_values, float* poa_va
 
 int test_forces()
 {
-    float tau = 0.02f;
+    float tau = 0.005f;
     config* C = init_devastator_config();
     
     tensor* new_q = tensor_copy_shape(C->q);
@@ -82,9 +82,9 @@ int test_forces()
     config_set_q(C, new_q->values);
     tensor_fill(C->q_vel, 0.f);
     
-    // float force_values[] = {0.f, 0.f, 1.f};
-    // float poa_values[] = {0.f, 0.f, -0.1f};
-    // add_trans_force(C, 11, force_values, poa_values);
+    float force_values[] = {0.f, 0.f, 1.f};
+    float poa_values[] = {0.f, 0.f, -0.1f};
+    add_trans_force(C, 11, force_values, poa_values);
     // add_trans_force(C, 23, force_values, poa_values);
     // float force_values_top[] = {0.f, 0.f, -20.f};
     // add_trans_force(C, 29, force_values_top, poa_values);
@@ -95,17 +95,17 @@ int test_forces()
     // float poa_values_side[] = {-0.1f, 0.f, 0.f};
     // add_trans_force(C, 17, force_values_side, poa_values_side);
 
-    force_t* f = (force_t*) malloc(sizeof(force_t));
-    f->force = NULL;
-    float torque_values[] = {10.f, 0.f, 0.f};
-    f->torque = new_tensor_vector(3, torque_values);
-    f->poa = NULL;
-    f->frame_id = 5;
-    stack_push(C->forces, f);
+    // force_t* f = (force_t*) malloc(sizeof(force_t));
+    // f->force = NULL;
+    // float torque_values[] = {0.f, 10.f, 0.f};
+    // f->torque = new_tensor_vector(3, torque_values);
+    // f->poa = NULL;
+    // f->frame_id = 5;
+    // stack_push(C->forces, f);
 
     print_config(C);
     
-    int frame_count = 32;
+    int frame_count = 256;
     tensor* video_frames[frame_count];
     tensor* com = new_tensor_vector(3, NULL);
 
