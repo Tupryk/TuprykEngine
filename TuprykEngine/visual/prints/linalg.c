@@ -97,6 +97,16 @@ void print_tensor_element_flat(tensor* t, int* indices)
     printf("): %f\n", value);
 }
 
+void print_tensor_values(tensor* t)
+{
+    printf("[");
+    for (int i = 0; i < t->volume; i++)
+    {
+        printf("%g, ", t->values[i]);
+    }
+    printf("]\n");
+}
+
 void print_tensor_flat(tensor* t)
 {
     // Main tensor

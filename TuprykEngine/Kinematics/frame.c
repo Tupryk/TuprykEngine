@@ -85,6 +85,8 @@ void frame_free(frame* f)
         joint_t* joint_data = (joint_t*) f->data;
         if (joint_data->com != NULL) tensor_free(joint_data->com);
         if (joint_data->I_cm_inv != NULL) tensor_free(joint_data->I_cm_inv);
+        if (joint_data->accumulated_forces != NULL) tensor_free(joint_data->accumulated_forces);
+        if (joint_data->accumulated_torques != NULL) tensor_free(joint_data->accumulated_torques);
     }
     #ifdef DEBUG
     else if (f->type != 0)

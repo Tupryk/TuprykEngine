@@ -22,6 +22,8 @@ typedef struct
     tensor* point;
     tensor* normal;
     float depth;
+
+    float accumulated_impulse;
 } contact_t;
 
 typedef struct
@@ -49,11 +51,16 @@ stack* config_get_contacts(config* C);
 void contacts_free(stack* s);
 void config_compute_contacts(config* C);
 void config_populate_mass_inertias(config* C);
+void config_q_delta_from_impulse(config* C, int from_frame_id, tensor* impulse_world, tensor* poa_world, tensor* q_delta);
+void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel);
 void config_free_contacts(config* C);
 void config_set_q(config* C, float* q);
 void config_update_q(config* C);
+void config_empty_joints_accumulated_forces(config* C);
+void impulse_to_joints_force(config* C, int from_frame_id, tensor* impulse_world, tensor* poa_world);
 void config_free(config* C);
 void force_free(force_t* f);
 void forces_add(force_t* a, force_t* b, force_t* out);
+int root_joint(config* C, int frame_id);
 
 #endif

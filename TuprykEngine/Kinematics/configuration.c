@@ -43,6 +43,61 @@ int config_colliding(config* C)
     return 0;
 }
 
+void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel)
+{
+    int index = frame_id;
+    float* q_vel = C->q_vel->values;
+    tensor* new_vel = new_tensor_vector(3, NULL);
+    tensor* c_r = new_tensor_vector(3, NULL);
+    while (index != -1)
+    {
+        frame* current_frame = C->frames[index];
+        if (current_frame->type == 4)
+        {
+            joint_t* joint_data = (joint_t*) current_frame->data;
+            int joint_type = joint_data->type;
+            int q_delta_id = joint_data->q_delta_id;
+
+            if (joint_type == 0 || joint_type == 1 || joint_type == 2)
+            {
+                float axis[3] = {0.f, 0.f, 0.f};
+                float axis_world[3] = {0.f, 0.f, 0.f};
+                axis[joint_type] = 1.f;
+                quaternion_rotate_point(current_frame->rot->values, axis, axis_world);
+
+                tensor_sub(point, current_frame->pos, c_r);
+
+                tensor* omega = new_tensor_vector(3, NULL);
+                omega->values[0] = q_vel[q_delta_id] * axis_world[0];
+                omega->values[1] = q_vel[q_delta_id] * axis_world[1];
+                omega->values[2] = q_vel[q_delta_id] * axis_world[2];
+
+                vector_cross(omega, c_r, new_vel);
+            }
+            else if (joint_type == 3)
+            {
+                tensor_sub(point, joint_data->com, c_r);
+                
+                tensor* omega = new_tensor_vector(3, NULL);
+                omega->values[0] = q_vel[q_delta_id + 3];
+                omega->values[1] = q_vel[q_delta_id + 4];
+                omega->values[2] = q_vel[q_delta_id + 5];
+
+                vector_cross(omega, c_r, new_vel);
+                new_vel->values[0] += q_vel[q_delta_id    ];
+                new_vel->values[1] += q_vel[q_delta_id + 1];
+                new_vel->values[2] += q_vel[q_delta_id + 2];
+                
+                tensor_free(omega);
+            }
+            tensor_add(vel, new_vel, vel);
+        }
+        index = current_frame->parent;
+    }
+    tensor_free(new_vel);
+    tensor_free(c_r);
+}
+
 stack* config_get_contacts(config* C)
 {
     // TODO: KD_Tree
@@ -82,6 +137,7 @@ stack* config_get_contacts(config* C)
                         vector_normalize(contact->normal);
                         
                         contact->depth = ar + br - dist;
+                        contact->accumulated_impulse = 0.f;
 
                         stack_push(contacts, contact);
                     }
@@ -113,6 +169,84 @@ void config_populate_mass_inertias(config* C)
         combined_inertia(C, joint_id, joint_data->com, I_cm);
         tensor_inverse(I_cm, joint_data->I_cm_inv);
         tensor_free(I_cm);
+    }
+}
+
+void config_empty_joints_accumulated_forces(config* C)
+{
+    int* joints = C->joints;
+    int joints_count = C->joints_count;
+    frame** frames = C->frames;
+
+    for (int i = 0; i < joints_count; i++)
+    {
+        frame* joint_frame = frames[joints[i]];
+        joint_t* joint_data = (joint_t*) joint_frame->data;
+
+        if (joint_data->accumulated_forces == NULL)
+        {
+            joint_data->accumulated_forces = new_tensor_vector(3, NULL);
+        }
+        else
+        {
+            tensor_fill(joint_data->accumulated_forces, 0.f);
+        }
+
+        if (joint_data->accumulated_torques == NULL)
+        {
+            joint_data->accumulated_torques = new_tensor_vector(3, NULL);
+        }
+        else
+        {
+            tensor_fill(joint_data->accumulated_torques, 0.f);
+        }
+    }
+}
+
+void impulse_to_joint_force(frame* joint_frame, tensor* impulse_world, tensor* poa_world)
+{
+    joint_t* joint_data = (joint_t*) joint_frame->data;
+    
+    int joint_type = joint_data->type;
+    int q_delta_id = joint_data->q_delta_id;
+    
+    tensor* torque = new_tensor_vector(3, NULL);
+    tensor* c_r = new_tensor_vector(3, NULL);
+
+    if (joint_type == 0 || joint_type == 1 || joint_type == 2)  // Hinge Joint
+    {
+        // Torque
+        tensor_sub(poa_world, joint_frame->pos, c_r);
+        vector_cross(c_r, impulse_world, torque);
+        tensor_add(torque, joint_data->accumulated_torques, joint_data->accumulated_torques);
+    }
+    else if (joint_type == 3)  // Free Joint
+    {
+        // Force
+        tensor_add(impulse_world, joint_data->accumulated_forces, joint_data->accumulated_forces);
+
+        // Torque
+        tensor_sub(poa_world, joint_data->com, c_r);
+        vector_cross(c_r, impulse_world, torque);
+        tensor_add(torque, joint_data->accumulated_torques, joint_data->accumulated_torques);
+    }
+
+    tensor_free(torque);
+    tensor_free(c_r);
+}
+
+void impulse_to_joints_force(config* C, int from_frame_id, tensor* impulse_world, tensor* poa_world)
+{
+    int index = from_frame_id;
+    while(index != -1)
+    {
+        frame* current_frame = C->frames[index];
+
+        if (current_frame->type == 4)
+        {
+            impulse_to_joint_force(current_frame, impulse_world, poa_world);
+        }
+        index = current_frame->parent;
     }
 }
 
@@ -269,4 +403,20 @@ void forces_add(force_t* a, force_t* b, force_t* out)
         tensor_add(a->torque, b->torque, out->torque);
     }
     // TODO: poa?
+}
+
+int root_joint(config* C, int frame_id)
+{
+    int index = frame_id;
+    int last_joint_id = -1;
+    while (index != -1)
+    {
+        frame* current_frame = C->frames[index];
+        if (current_frame->type == 4)
+        {
+            last_joint_id = index;
+        }
+        index = current_frame->parent;
+    }
+    return last_joint_id;
 }

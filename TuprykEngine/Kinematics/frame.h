@@ -16,6 +16,9 @@ typedef struct
     float total_mass;
     tensor* com;
     tensor* I_cm_inv;
+
+    tensor* accumulated_forces;
+    tensor* accumulated_torques;
 } joint_t;
 
 typedef struct
