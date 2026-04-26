@@ -1,6 +1,6 @@
 - Apply camera rotation in raytracer
 - Simpler ball renderer
-- Improve vector?
+- Improve algos vector?
 - Add _t to structs
 - Use error printing when encountering errors
 - Plotting tools?
@@ -10,5 +10,5 @@
 - MLP?
 - RRT
 - Documentation
-- Gravity thing
+- Gravity thing with bodies as pullers
 - Friction as part of config

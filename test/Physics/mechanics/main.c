@@ -78,13 +78,13 @@ int test_forces()
     tensor* new_q = tensor_copy_shape(C->q);
     tensor_fill(new_q, 0.f);
     new_q->values[2] = 1.f;
-    quaternion_x(M_PI * 0.55, new_q->values + 3);
+    // quaternion_x(M_PI * 0.55, new_q->values + 3);
     config_set_q(C, new_q->values);
     tensor_fill(C->q_vel, 0.f);
     
-    // float force_values[] = {0.f, 0.f, 1.f};
-    // float poa_values[] = {0.f, 0.f, -0.1f};
-    // add_trans_force(C, 11, force_values, poa_values);
+    float force_values[] = {0.f, 0.f, 1.f};
+    float poa_values[] = {0.f, 0.f, -0.1f};
+    add_trans_force(C, 11, force_values, poa_values);
     // add_trans_force(C, 23, force_values, poa_values);
     // float force_values_top[] = {0.f, 0.f, -20.f};
     // add_trans_force(C, 29, force_values_top, poa_values);
@@ -121,11 +121,11 @@ int test_forces()
         video_frames[i] = im;
         
         sim_step(C, tau);
-        // if (i == 0)
-        // {
-        //     force_t* tor = stack_pop(C->forces);
-        //     force_free(tor);
-        // }
+        if (i == 0)
+        {
+            force_t* tor = stack_pop(C->forces);
+            force_free(tor);
+        }
     }
     play_video(video_frames, frame_count, tau);
     

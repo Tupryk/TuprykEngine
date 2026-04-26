@@ -217,8 +217,6 @@ void impulse_to_joint_force(frame* joint_frame, tensor* impulse_world, tensor* p
     {
         // Torque
         tensor_sub(poa_world, joint_frame->pos, c_r);
-        vector_cross(c_r, impulse_world, torque);
-        tensor_add(torque, joint_data->accumulated_torques, joint_data->accumulated_torques);
     }
     else if (joint_type == 3)  // Free Joint
     {
@@ -227,9 +225,9 @@ void impulse_to_joint_force(frame* joint_frame, tensor* impulse_world, tensor* p
 
         // Torque
         tensor_sub(poa_world, joint_data->com, c_r);
-        vector_cross(c_r, impulse_world, torque);
-        tensor_add(torque, joint_data->accumulated_torques, joint_data->accumulated_torques);
     }
+    vector_cross(c_r, impulse_world, torque);
+    tensor_add(torque, joint_data->accumulated_torques, joint_data->accumulated_torques);
 
     tensor_free(torque);
     tensor_free(c_r);
