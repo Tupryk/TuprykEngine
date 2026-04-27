@@ -9,6 +9,12 @@ float global_x_rot = M_PI * 0.25;
 float global_y_rot = M_PI * 0.0;
 float global_z_rot = 0.0;
 
+
+void set_color(float r, float g, float b)
+{
+    SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), 255);
+}
+
 void draw_pixel(float x, float y, float r, float g, float b)
 {
     SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), 255);
@@ -17,7 +23,7 @@ void draw_pixel(float x, float y, float r, float g, float b)
 
 void draw_line(float start_x, float start_y, float end_x, float end_y)
 {
-    SDL_RenderDrawLine(renderer, start_x * 480.f, start_y * 480.f, end_x * 480.f, end_y * 480.f);
+    SDL_RenderDrawLine(renderer, start_x * WINDOW_W, start_y * WINDOW_H, end_x * WINDOW_W, end_y * WINDOW_H);
 }
 
 struct point_2d unit_3d_to_2d(float x, float y, float z)

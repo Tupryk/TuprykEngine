@@ -9,7 +9,7 @@ typedef struct
 {
     int in;
     int out;
-} gene;
+} gene_t;
 
 typedef struct
 {
@@ -27,7 +27,7 @@ typedef struct
     int* connection_counts;
     int** connections;
     float** connection_weight;
-} agent;
+} agent_t;
 
 typedef struct
 {
@@ -43,18 +43,18 @@ typedef struct
     int node_counter;
     
     vector innovations;  // Type: gene
-    agent** agents;
-} population;
+    agent_t** agents;
+} population_t;
 
-population* init_population(int in_dim, int out_dim);
-void population_mutate(population* pop);
-void population_kill_weak(population* pop, float* scores);
-float* feed_agent(agent* a, float* input, int in_dim, int out_dim);
-float** population_feed_all_agents(population* pop, float* input);
-void population_free(population* pop);
-void build_agent_network(population* pop, agent* a);
-void free_agent_network(agent* a);
-void agent_free(agent* a);
-void gene_free(gene g);
+population_t* init_population(int in_dim, int out_dim);
+void population_mutate(population_t* pop);
+void population_kill_weak(population_t* pop, float* scores);
+float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim);
+float** population_feed_all_agents(population_t* pop, float* input);
+void population_free(population_t* pop);
+void build_agent_network(population_t* pop, agent_t* a);
+void free_agent_network(agent_t* a);
+void agent_free(agent_t* a);
+void gene_free(gene_t g);
 
 #endif

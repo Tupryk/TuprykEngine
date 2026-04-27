@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include "../../functions.h"
 #include "../../../../TuprykEngine/Optim/meta.h"
-#include "../../../../TuprykEngine/Optim/zero_order/genetic.h"
-#include "../../../../TuprykEngine/visual/prints/vis_genetic.h"
+#include "../../../../TuprykEngine/Optim/zero_order/neat.h"
+
+#include "../../../../TuprykEngine/visual/prints/vis_neat.h"
+#include "../../../../TuprykEngine/visual/graphics/genetic.h"
 
 
 float task1_eval(float* input, float* predicted_out)
@@ -36,7 +38,8 @@ int main()
     int in_dim = 3;
     int out_dim = 2;
 
-    population* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim);
+    draw_network(pop, pop->agents[0]);
     
     // float scores[pop->max_size];
     // for (int i = 0; i < generation_count; i++)

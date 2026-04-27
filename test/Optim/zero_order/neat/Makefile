@@ -7,6 +7,7 @@ SRCS = main.c \
 	../../../../TuprykEngine/LinAlg/sparse.c \
 	../../../../TuprykEngine/visual/prints/linalg.c \
 	../../../../TuprykEngine/visual/prints/vis_neat.c \
+	../../../../TuprykEngine/visual/prints/algos.c \
 	../../../../TuprykEngine/Optim/zero_order/neat.c \
 	../../../../TuprykEngine/Funcs/funcs.c \
 	../../functions.c \
@@ -14,6 +15,7 @@ SRCS = main.c \
 	../../../../TuprykEngine/visual/graphics/basic.c \
 	../../../../TuprykEngine/visual/graphics/window.c \
 	../../../../TuprykEngine/Algos/lists.c \
+	../../../../TuprykEngine/visual/graphics/genetic.c \
 	../../../../TuprykEngine/Stochastic/sample.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p

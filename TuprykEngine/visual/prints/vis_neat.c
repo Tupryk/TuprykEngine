@@ -13,18 +13,15 @@ void print_innovations(vector* innovations)
 
 void print_innovation(vector* innovations, size_t i)
 {
-    gene g = *(gene*)vector_get(innovations, i);
-    printf("Gene %zu: %d -> %d (", i, g.in, g.out);
-    if (g.enabled) printf("enabled");
-    else printf("disabled");
-    printf(")\n");
+    gene_t g = *(gene_t*)vector_get(innovations, i);
+    printf("Gene %zu: %d -> %d\n", i, g.in, g.out);
 }
 
-void print_agents(agent** agents, int count)
+void print_agents(agent_t** agents, int count)
 {
     for (int i = 0; i < count; i++)
     {
-        agent* a = agents[i];
+        agent_t* a = agents[i];
         if (a == NULL) {
             continue;
         }
@@ -38,7 +35,7 @@ void print_agents(agent** agents, int count)
     }
 }
 
-void print_agent(agent* a)
+void print_agent(agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
     for (int i = 0; i < a->gene_count; i++)
@@ -62,7 +59,7 @@ void print_agent(agent* a)
     }
 }
 
-void print_agent_genes(vector* innovations, agent* a)
+void print_agent_genes(vector* innovations, agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
     for (int i = 0; i < a->gene_count; i++)
@@ -76,7 +73,7 @@ void print_agent_genes(vector* innovations, agent* a)
     }
 }
 
-void print_population_best_agent(population* pop, float* scores)
+void print_population_best_agent(population_t* pop, float* scores)
 {
     printf("+------------------------+\n");
     float best_score = scores[0];

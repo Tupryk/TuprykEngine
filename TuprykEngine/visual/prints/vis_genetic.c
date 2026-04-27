@@ -13,7 +13,7 @@ void print_innovations(vector* innovations)
 
 void print_innovation(vector* innovations, size_t i)
 {
-    gene g = *(gene*)vector_get(innovations, i);
+    gene g = *(gene_t*)vector_get(innovations, i);
     printf("Gene %zu: ", i);
     printf("Type - ");
     switch (g.type)
@@ -26,21 +26,21 @@ void print_innovation(vector* innovations, size_t i)
 
     case 1:
     {
-        new_weight_gene* gene_data = (new_weight_gene*) g.data;
+        new_weight_gene_t* gene_data = (new_weight_gene_t*) g.data;
         printf("New synapse: (%d -> %d: %f)", gene_data->start_idx, gene_data->end_idx, gene_data->weight);
         break;
     }
 
     case 2:
     {
-        weight_perturvation_gene* gene_data = (weight_perturvation_gene*) g.data;
+        weight_perturvation_gene_t* gene_data = (weight_perturvation_gene_t*) g.data;
         printf("Mutate synapse: (%d -> c%d: %f)", gene_data->start_idx, gene_data->connection_idx, gene_data->weight_perturvation);
         break;
     }
 
     case 3:
     {
-        new_node_gene* gene_data = (new_node_gene*) g.data;
+        new_node_gene_t* gene_data = (new_node_gene_t*) g.data;
         printf("New Neuron: (%d -> c%d: ", gene_data->weight_start_idx, gene_data->weight_connection_idx);
         print_activation_name(gene_data->activation_type);
         printf("(%f)", gene_data->bias);
@@ -49,7 +49,7 @@ void print_innovation(vector* innovations, size_t i)
 
     case 4:
     {
-        node_perturvation_gene* gene_data = (node_perturvation_gene*) g.data;
+        node_perturvation_gene_t* gene_data = (node_perturvation_gene_t*) g.data;
         printf("Perturb Neuron: (%d -> ", gene_data->neuron_id);
         print_activation_name(gene_data->activation_type);
         printf("(%f)", gene_data->bias);
@@ -63,11 +63,11 @@ void print_innovation(vector* innovations, size_t i)
     printf("\n");
 }
 
-void print_agents(agent** agents, int count)
+void print_agents(agent_t** agents, int count)
 {
     for (int i = 0; i < count; i++)
     {
-        agent* a = agents[i];
+        agent_t* a = agents[i];
         if (a == NULL) {
             continue;
         }
@@ -81,7 +81,7 @@ void print_agents(agent** agents, int count)
     }
 }
 
-void print_agent(agent* a)
+void print_agent(agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
     for (int i = 0; i < a->gene_count; i++)
@@ -105,7 +105,7 @@ void print_agent(agent* a)
     }
 }
 
-void print_agent_genes(vector* innovations, agent* a)
+void print_agent_genes(vector* innovations, agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
     for (int i = 0; i < a->gene_count; i++)
@@ -119,7 +119,7 @@ void print_agent_genes(vector* innovations, agent* a)
     }
 }
 
-void print_population_best_agent(population* pop, float* scores)
+void print_population_best_agent(population_t* pop, float* scores)
 {
     printf("+------------------------+\n");
     float best_score = scores[0];

@@ -36,7 +36,7 @@ int main()
     int in_dim = 3;
     int out_dim = 2;
 
-    population* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim);
     
     float scores[pop->max_size];
     for (int i = 0; i < generation_count; i++)

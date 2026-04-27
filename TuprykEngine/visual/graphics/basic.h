@@ -12,6 +12,7 @@ struct point_2d
     float y;
 };
 
+void set_color(float r, float g, float b);
 void draw_pixel(float x, float y, float r, float g, float b);
 void draw_circle(int cx, int cy, int r);
 void draw_line(float start_x, float start_y, float end_x, float end_y);

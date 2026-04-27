@@ -467,7 +467,7 @@ void sim_step(config* C, float tau)
 
     // Update Accelerations
     load_forces_to_joints(C);
-    // load_collision_forces_to_joints(C);
+    load_collision_forces_to_joints(C);
     tensor* q_acc = q_delta_from_forces(C);
     tensor* q_acc_g = q_acc_from_gravity(C);
     // tensor_add(q_acc, q_acc_g, q_acc);
