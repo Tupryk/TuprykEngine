@@ -14,7 +14,7 @@ void print_innovations(vector* innovations)
 void print_innovation(vector* innovations, size_t i)
 {
     gene_t g = *(gene_t*)vector_get(innovations, i);
-    printf("Gene %zu: %d -> %d\n", i, g.in, g.out);
+    printf("Gene %zu: %d -> %d\n", i, g.out, g.in);
 }
 
 void print_agents(agent_t** agents, int count)
@@ -69,7 +69,10 @@ void print_agent_genes(vector* innovations, agent_t* a)
     printf("\n");
     for (int i = 0; i < a->gene_count; i++)
     {
-        print_innovation(innovations, a->genes[i]);
+        gene_t g = *(gene_t*)vector_get(innovations, i);
+        printf("Gene %d: %d -> %d", i, g.out, g.in);
+        if (!a->gene_enabled[i]) printf(" (DISABLED)");
+        printf("\n");
     }
 }
 

@@ -12,3 +12,4 @@
 - Documentation
 - Gravity thing with bodies as pullers
 - Friction as part of config
+- Using size_t instead of int?

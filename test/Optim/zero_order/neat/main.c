@@ -35,13 +35,14 @@ float task2_eval(float* input, float* predicted_out)
 
 int test_init()
 {
-    int generation_count = 100;
-    int task_trials = 100;
     int in_dim = 3;
     int out_dim = 2;
 
     population_t* pop = init_population(in_dim, out_dim);
-    // draw_network(pop, pop->agents[0]);
+
+    print_agent_genes(&pop->innovations, pop->agents[0]);
+    draw_network(pop, pop->agents[0]);
+    
     population_free(pop);
     return 0;
 }

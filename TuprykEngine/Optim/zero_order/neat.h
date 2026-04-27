@@ -41,8 +41,6 @@ typedef struct
     float network_size_cost_weight;
     float mutation_prob;
     
-    int node_counter;
-    
     vector innovations;  // Type: gene
     agent_t** agents;
 } population_t;

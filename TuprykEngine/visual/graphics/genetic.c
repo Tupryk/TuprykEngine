@@ -37,12 +37,16 @@ void draw_network(population_t* pop, agent_t* a)
         node_pos[node_id][0] = (float) in_layer_idx;
         node_pos[node_id][1] = (float) layer_idx;
         in_layer_idx++;
+
+        // TODO: This should not be used for feeding agent as not all values get propagated...
+        // Possibly do more than one iteration?
         
         for (int i = 0; i < a->connection_counts[node_id]; i++)
         {
             int forward_node = a->connections[node_id][i];
-            if (!activation_count[forward_node] && !int_stack_contains(next_stack, forward_node))
+            if (!activation_count[forward_node])
             {
+                activation_count[forward_node]++;
                 int_stack_push(next_stack, forward_node);
             }
         }
@@ -91,9 +95,20 @@ void draw_network(population_t* pop, agent_t* a)
     }
 
     // Draw
-    set_color(1.f, 1.f, 1.f);
     for (int i = 0; i < a->node_count; i++)
     {
+        if (i < pop->in_dim)
+        {
+            set_color(1.f, 0.f, 0.f);
+            draw_circle(node_pos[i][0] * WINDOW_W, node_pos[i][1] * WINDOW_H, 0.04f * WINDOW_W);
+        }
+        else if (i < pop->in_dim + pop->out_dim)
+        {
+            set_color(0.f, 0.f, 1.f);
+            draw_circle(node_pos[i][0] * WINDOW_W, node_pos[i][1] * WINDOW_H, 0.04f * WINDOW_W);
+        }
+
+        set_color(1.f, 1.f, 1.f);
         draw_circle(node_pos[i][0] * WINDOW_W, node_pos[i][1] * WINDOW_H, 0.025f * WINDOW_W);
     }
     

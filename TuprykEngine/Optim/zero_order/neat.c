@@ -23,10 +23,34 @@ void reset_agent(agent_t* a)
 
 void build_agent_network(population_t* pop, agent_t* a)
 {
-    // TODO: Global index to network index
-    // TODO: Calculate node count
-    int node_count = a->node_count;
+    int node_count = pop->in_dim + pop->out_dim;
+    int* genes = a->genes;
+    int gene_count = a->gene_count;
+    int pop_to_agent[pop->innovations.size];
+    memset(pop_to_agent, -1, sizeof(pop_to_agent));
 
+    for (int i = 0; i < pop->in_dim; i++) pop_to_agent[i] = i;
+    for (int i = pop->in_dim; i < node_count; i++) pop_to_agent[i] = i;
+
+    for (int i = 0; i < gene_count; i++)
+    {
+        if (a->gene_enabled[i])
+        {
+            gene_t gene = *(gene_t*) vector_get(&pop->innovations, genes[i]);
+            if (pop_to_agent[gene.out] == -1)
+            {
+                pop_to_agent[gene.out] = node_count;
+                node_count++;
+            }
+            if (pop_to_agent[gene.in] == -1)
+            {
+                pop_to_agent[gene.in] = node_count;
+                node_count++;
+            }
+        }
+    }
+
+    a->node_count = node_count;
     a->activations = (float*) malloc(sizeof(float) * node_count);
     a->activation_count = (int*) malloc(sizeof(int) * node_count);
     a->activation_funcs = (int*) malloc(sizeof(int) * node_count);
@@ -52,7 +76,7 @@ void build_agent_network(population_t* pop, agent_t* a)
     for (int i = 0; i < a->gene_count; i++)
     {
         gene_t gene = *(gene_t*)vector_get(&pop->innovations, a->genes[i]);
-        a->connection_counts[gene.out]++;
+        a->connection_counts[pop_to_agent[gene.out]]++;
     }
 
     for (int i = 0; i < node_count; i++)
@@ -65,11 +89,12 @@ void build_agent_network(population_t* pop, agent_t* a)
     {
         gene_t gene = *(gene_t*) vector_get(&pop->innovations, a->genes[i]);
 
-        int conn_id = connection_counter[gene.out];
-        a->connections[gene.out][conn_id] = gene.in;
-        a->connection_weight[gene.out][conn_id] = rand_uni(-1.f, 1.f);
+        int out = pop_to_agent[gene.out];
+        int conn_id = connection_counter[out];
+        a->connections[out][conn_id] = pop_to_agent[gene.in];
+        a->connection_weight[out][conn_id] = rand_uni(-1.f, 1.f);
 
-        connection_counter[gene.out]++;
+        connection_counter[out]++;
     }
 }
 
@@ -84,7 +109,7 @@ population_t* init_population(int in_dim, int out_dim)
     pop->agent_children_count = 2;
     // pop->network_size_cost_weight = 0.0000001;
     pop->network_size_cost_weight = 0.0;
-    pop->mutation_prob = 0.1;
+    pop->mutation_prob = .1;
     
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
@@ -107,17 +132,13 @@ population_t* init_population(int in_dim, int out_dim)
 
     pop->agents = (agent_t**) malloc(sizeof(agent_t*) * pop->max_size);
     
-    int initial_node_count = in_dim + out_dim;
     int initial_weight_count = in_dim * out_dim;
-
-    pop->node_counter = initial_node_count;
 
     for (int i = 0; i < pop->max_size; i++)
     {
         if (i < pop->keep_best_n)
         {
             agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t)); 
-            new_agent->node_count = initial_node_count;
             new_agent->weight_count = initial_weight_count;
             
             int mutate = rand_uni(0.f, 1.f) < pop->mutation_prob ? 1 : 0;
@@ -131,13 +152,10 @@ population_t* init_population(int in_dim, int out_dim)
                 new_agent->gene_enabled[j] = 1;
             }
     
-            if (mutate)
-            {
-                mutate_agent(pop, new_agent);
-            }
+            if (mutate) mutate_agent(pop, new_agent);
 
+            build_agent_network(pop, new_agent);
             pop->agents[i] = new_agent;
-            // build_agent_network(pop, pop->agents[i]);
         }
         else
         {
