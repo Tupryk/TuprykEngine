@@ -39,6 +39,7 @@ typedef struct
     int agent_children_count;
     
     float network_size_cost_weight;
+    float mutation_prob;
     
     int node_counter;
     
@@ -47,6 +48,7 @@ typedef struct
 } population_t;
 
 population_t* init_population(int in_dim, int out_dim);
+void mutate_agent(population_t* pop, agent_t* a);
 void population_mutate(population_t* pop);
 void population_kill_weak(population_t* pop, float* scores);
 float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim);

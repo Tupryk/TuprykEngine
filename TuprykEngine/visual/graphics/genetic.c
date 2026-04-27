@@ -52,7 +52,6 @@ void draw_network(population_t* pop, agent_t* a)
             int_stack_free(stack);
             stack = next_stack;
             next_stack = int_stack_init();
-            print_int_stack(stack);
 
             layer_widths[layer_idx] = in_layer_idx;
             if (max_layer_width < in_layer_idx) max_layer_width = in_layer_idx;

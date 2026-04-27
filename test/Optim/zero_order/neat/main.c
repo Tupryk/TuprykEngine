@@ -3,8 +3,10 @@
 
 #include <math.h>
 #include <float.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "../../functions.h"
 #include "../../../../TuprykEngine/Optim/meta.h"
 #include "../../../../TuprykEngine/Optim/zero_order/neat.h"
@@ -31,7 +33,7 @@ float task2_eval(float* input, float* predicted_out)
     return -1.f * (pow(predicted_out[0] - real_out[0], 2) + pow(predicted_out[1] - real_out[1], 2));
 }
 
-int main()
+int test_init()
 {
     int generation_count = 100;
     int task_trials = 100;
@@ -39,7 +41,20 @@ int main()
     int out_dim = 2;
 
     population_t* pop = init_population(in_dim, out_dim);
-    draw_network(pop, pop->agents[0]);
+    // draw_network(pop, pop->agents[0]);
+    population_free(pop);
+    return 0;
+}
+
+int test_full()
+{
+    int generation_count = 100;
+    int task_trials = 100;
+    int in_dim = 3;
+    int out_dim = 2;
+
+    population_t* pop = init_population(in_dim, out_dim);
+    // draw_network(pop, pop->agents[0]);
     
     // float scores[pop->max_size];
     // for (int i = 0; i < generation_count; i++)
@@ -82,5 +97,17 @@ int main()
     // }
     // print_population_best_agent(pop, scores);
     population_free(pop);
+    return 0;
+}
+
+int main()
+{
+    srand( time( NULL ) );
+
+    int failure_count = 0;
+
+    failure_count += test_init();
+    // failure_count += test_full();
+    
     return 0;
 }
