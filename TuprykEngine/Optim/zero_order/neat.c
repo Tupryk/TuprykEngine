@@ -21,6 +21,26 @@ void reset_agent(agent_t* a)
     }
 }
 
+agent_t* agent_copy_genome(agent_t* a)
+{
+    agent_t* a_copy = (agent_t*) malloc(sizeof(agent_t));
+    a_copy->gene_count = a->gene_count;
+    
+    int genes_int_size = sizeof(int) * a->gene_count;
+    int genes_float_size = sizeof(float) * a->gene_count;
+
+    a_copy->genes = (int*) malloc(genes_int_size);
+    memcpy(a_copy->genes, a->genes, genes_int_size);
+
+    a_copy->gene_enabled = (int*) malloc(genes_int_size);
+    memcpy(a_copy->gene_enabled, a->gene_enabled, genes_int_size);
+ 
+    a_copy->gene_weights = (float*) malloc(genes_float_size);
+    memcpy(a_copy->gene_weights, a->gene_weights, genes_float_size);
+
+    return a_copy;
+}
+
 void build_agent_network(population_t* pop, agent_t* a)
 {
     int node_count = pop->in_dim + pop->out_dim;
@@ -118,7 +138,7 @@ void population_add_agent(population_t* pop, agent_t* new_agent, int at_index)
     for (int i = pop->species.size-1; i >= 0; i--)
     {
         agent_t* a = *(agent_t**) vector_get(&pop->species, i);
-        if (compatibility_dist(pop, a, new_agent) < pop->speciation_thresh)
+        if (compatibility_dist(a, new_agent) < pop->speciation_thresh)
         {
             pop->agent_to_species[at_index] = i;
             return;
@@ -127,21 +147,7 @@ void population_add_agent(population_t* pop, agent_t* new_agent, int at_index)
 
     // New species!!!
     pop->agent_to_species[at_index] = pop->species.size;
-    agent_t* agent_genome_copy = (agent_t*) malloc(sizeof(agent_t));
-    agent_genome_copy->gene_count = new_agent->gene_count;
-    
-    int genes_int_size = sizeof(int) * new_agent->gene_count;
-    int genes_float_size = sizeof(float) * new_agent->gene_count;
-
-    agent_genome_copy->genes = (int*) malloc(genes_int_size);
-    memcpy(agent_genome_copy->genes, new_agent->genes, genes_int_size);
-
-    agent_genome_copy->gene_enabled = (int*) malloc(genes_int_size);
-    memcpy(agent_genome_copy->gene_enabled, new_agent->gene_enabled, genes_int_size);
- 
-    agent_genome_copy->gene_weights = (float*) malloc(genes_float_size);
-    memcpy(agent_genome_copy->gene_weights, new_agent->gene_weights, genes_float_size);
-
+    agent_t* agent_genome_copy = agent_copy_genome(new_agent);
     vector_push(&pop->species, &agent_genome_copy);
 }
 
@@ -157,7 +163,7 @@ population_t* init_population(int in_dim, int out_dim)
     pop->agent_children_count = 2;
 
     pop->network_size_cost_weight = 0.f;
-    pop->mutation_prob = 0.1f;
+    pop->mutation_prob = 1.f;
     pop->speciation_thresh = 0.5f;
 
     pop->agent_to_species = malloc(sizeof(int) * pop->max_size);
@@ -204,7 +210,7 @@ population_t* init_population(int in_dim, int out_dim)
             new_agent->gene_weights[j] = rand_uni(-1.f, 1.f);
         }
 
-        if (mutate) mutate_agent(pop, new_agent);
+        if (mutate) agent_mutate(pop, new_agent);
 
         build_agent_network(pop, new_agent);
         population_add_agent(pop, new_agent, i);
@@ -217,7 +223,7 @@ population_t* init_population(int in_dim, int out_dim)
     return pop;
 }
 
-float compatibility_dist(population_t* pop, agent_t* agent_a, agent_t* agent_b)
+float compatibility_dist(agent_t* agent_a, agent_t* agent_b)
 {
     float excess_weight = 0.2f;
     float disjoint_weight = 0.2f;
@@ -325,7 +331,7 @@ void agent_insert_gene(agent_t* a, int gene_id)
     }
 }
 
-void mutate_agent(population_t* pop, agent_t* a)
+void agent_mutate(population_t* pop, agent_t* a)
 {
     // Agent network should not be initiated!
     int* genes = a->genes;
@@ -402,6 +408,7 @@ void mutate_agent(population_t* pop, agent_t* a)
     }
 
     // Overwrite genes and return new node count
+    // TODO: Checking if the mutation already exists should be done generation wide and not full history wise.
     int mut_id = population_maybe_add_gene(pop, &mutation1);
     agent_insert_gene(a, mut_id);
 
@@ -411,78 +418,6 @@ void mutate_agent(population_t* pop, agent_t* a)
         agent_insert_gene(a, mut_id);
     }
 }
-
-// agent_t* cross_agents(population_t* pop, agent_t* dominant_parent, agent_t* regular_parent)
-// {
-//     agent_t* new_agent = (agent_t*) malloc(sizeof(agent)); 
-//     new_agent->node_count = ;
-//     new_agent->weight_count = ;
-    
-//     new_agent->gene_count = initial_weight_count;
-//     new_agent->genes = (int*) malloc(sizeof(int) * initial_weight_count);
-//     new_agent->gene_enabled = (int*) malloc(sizeof(int) * initial_weight_count);
-//     for (int j = 0; j < initial_weight_count; j++)
-//     {
-//         new_agent->genes[j] = j;
-//         new_agent->gene_enabled[j] = 1;
-//     }
-
-//     return new_agent;
-// }
-
-// void population_mutate(population_t* pop)
-// {
-//     int idx = 0;
-//     int parent_idxs[pop->keep_best_n];  // TODO: size_t type instead?
-//     for (int i = 0; i < pop->max_size; i++)
-//     {
-//         if (pop->agents[i] != NULL)
-//         {
-//             parent_idxs[idx] = i;
-//             idx++;
-//         }
-//     }
-//     #ifdef DEBUG
-//     if (idx != pop->keep_best_n)
-//     {
-//         printf("Parents not searched correctly! Expected end index %d and got %d.\n", pop->keep_best_n, idx);
-//         exit(EXIT_FAILURE);
-//     }
-//     #endif
-
-//     int latest_null = 0;
-//     for (int i = 0; i < pop->keep_best_n; i++)
-//     {
-//         for (int j = 0; j < pop->agent_children_count; j++)
-//         {
-//             while (pop->agents[latest_null] != NULL)
-//             {
-//                 latest_null++;
-//                 #ifdef DEBUG
-//                 if (latest_null >= pop->max_size)
-//                 {
-//                     printf("Skipping over max population size!\n");
-//                     exit(EXIT_FAILURE);
-//                 }
-//                 #endif
-//             }
-//             #ifdef DEBUG
-//             printf("Mutating child %d with parent %d\n", latest_null, parent_idxs[i]);
-//             #endif
-//             pop->agents[latest_null] = cross_agents(
-//                 pop,
-//                 pop->agents[dominant_parent_idx],
-//                 pop->agents[regular_parent_idx]
-//             );
-//             mutate_agent(pop, pop->agents[latest_null]);
-//             build_agent_network(pop, pop->agents[latest_null]);
-//         }
-//     }
-//     #ifdef DEBUG
-//     printf("Innovations after mutation:\n");
-//     print_innovations(&pop->innovations);
-//     #endif
-// }
 
 float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
 {
@@ -629,6 +564,65 @@ float** population_feed_all_agents(population_t* pop, float* input)
         #endif
     }
     return out;
+}
+
+agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b)
+{
+    // This function assumes that parent_a is more fit than parent_b.
+    agent_t* child = agent_copy_genome(parent_a);
+
+    int a_gene_id = 0;
+    int b_gene_id = 0;
+    
+    while (a_gene_id < parent_a->gene_count)
+    {
+        if (parent_a->genes[a_gene_id] == parent_b->genes[b_gene_id])
+        {
+            if (rand() % 2)
+            {
+                child->gene_weights[a_gene_id] = parent_a->gene_weights[a_gene_id];
+                child->gene_enabled[a_gene_id] = parent_a->gene_enabled[a_gene_id];
+            }
+            else
+            {
+                child->gene_weights[a_gene_id] = parent_b->gene_weights[b_gene_id];
+                child->gene_enabled[a_gene_id] = parent_b->gene_enabled[b_gene_id];
+            }
+            a_gene_id++;
+            b_gene_id++;
+        }
+        else if (parent_a->genes[a_gene_id] < parent_b->genes[b_gene_id])
+        {
+            a_gene_id++;
+        }
+        else
+        {
+            b_gene_id++;
+        }
+    }
+
+    return child;
+}
+
+void population_resample(population_t* pop, float* fitness)
+{
+    float adjusted_fitness[pop->max_size];
+    // TODO: This might be a bit expensive...
+    for (int i = 0; i < pop->max_size; i++)
+    {
+        int current_species = pop->agent_to_species[i];
+        float sum_of_fellows = 1.f;
+        
+        for (int j = 0; j < pop->max_size; j++)
+        {
+            if (i == j) continue;
+            if (current_species != pop->agent_to_species[j]) continue;
+            sum_of_fellows += compatibility_dist(pop->agents[i], pop->agents[j]);
+        }
+        
+        adjusted_fitness[i] = fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
+    }
+    // TODO: Resample
 }
 
 void population_free(population_t* pop)

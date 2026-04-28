@@ -65,9 +65,30 @@ int test_speciation()
     printf("Agent B:\n");
     print_agent_gene_sequence(&pop->innovations, pop->agents[1]);
 
-    float comp_dist = compatibility_dist(pop, pop->agents[0], pop->agents[1]);
+    float comp_dist = compatibility_dist(pop->agents[0], pop->agents[1]);
     printf("Compatibility distance: %g\n", comp_dist);
     
+    population_free(pop);
+    return 0;
+}
+
+int test_crossover()
+{
+    int in_dim = 3;
+    int out_dim = 2;
+
+    population_t* pop = init_population(in_dim, out_dim);
+
+    printf("Parent A:\n");
+    print_agent_gene_sequence(&pop->innovations, pop->agents[0]);
+    printf("Parent B:\n");
+    print_agent_gene_sequence(&pop->innovations, pop->agents[1]);
+
+    agent_t* child = agents_cross(pop->agents[0], pop->agents[1]);
+    printf("Child:\n");
+    print_agent_gene_sequence(&pop->innovations, child);
+    
+    agent_free(child);
     population_free(pop);
     return 0;
 }
@@ -133,7 +154,8 @@ int main()
     int failure_count = 0;
 
     // failure_count += test_init();
-    failure_count += test_speciation();
+    // failure_count += test_speciation();
+    failure_count += test_crossover();
     // failure_count += test_full();
     
     return 0;
