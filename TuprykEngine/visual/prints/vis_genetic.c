@@ -13,7 +13,7 @@ void print_innovations(vector* innovations)
 
 void print_innovation(vector* innovations, size_t i)
 {
-    gene g = *(gene_t*)vector_get(innovations, i);
+    gene g = *(gene*)vector_get(innovations, i);
     printf("Gene %zu: ", i);
     printf("Type - ");
     switch (g.type)
@@ -26,21 +26,21 @@ void print_innovation(vector* innovations, size_t i)
 
     case 1:
     {
-        new_weight_gene_t* gene_data = (new_weight_gene_t*) g.data;
+        new_weight_gene* gene_data = (new_weight_gene*) g.data;
         printf("New synapse: (%d -> %d: %f)", gene_data->start_idx, gene_data->end_idx, gene_data->weight);
         break;
     }
 
     case 2:
     {
-        weight_perturvation_gene_t* gene_data = (weight_perturvation_gene_t*) g.data;
+        weight_perturvation_gene* gene_data = (weight_perturvation_gene*) g.data;
         printf("Mutate synapse: (%d -> c%d: %f)", gene_data->start_idx, gene_data->connection_idx, gene_data->weight_perturvation);
         break;
     }
 
     case 3:
     {
-        new_node_gene_t* gene_data = (new_node_gene_t*) g.data;
+        new_node_gene* gene_data = (new_node_gene*) g.data;
         printf("New Neuron: (%d -> c%d: ", gene_data->weight_start_idx, gene_data->weight_connection_idx);
         print_activation_name(gene_data->activation_type);
         printf("(%f)", gene_data->bias);
@@ -49,7 +49,7 @@ void print_innovation(vector* innovations, size_t i)
 
     case 4:
     {
-        node_perturvation_gene_t* gene_data = (node_perturvation_gene_t*) g.data;
+        node_perturvation_gene* gene_data = (node_perturvation_gene*) g.data;
         printf("Perturb Neuron: (%d -> ", gene_data->neuron_id);
         print_activation_name(gene_data->activation_type);
         printf("(%f)", gene_data->bias);

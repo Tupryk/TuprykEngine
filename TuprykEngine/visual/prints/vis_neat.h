@@ -5,7 +5,7 @@
 
 void print_innovations(vector* innovations);
 void print_innovation(vector* innovations, size_t i);
-void print_agents(agent_t** agents, int count);
+void print_agents(population_t* pop);
 void print_agent(agent_t* a);
 void print_species_info(population_t* pop);
 void print_agent_gene_sequence(vector* innovations, agent_t* a);

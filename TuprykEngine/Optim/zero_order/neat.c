@@ -158,13 +158,17 @@ population_t* init_population(int in_dim, int out_dim)
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
 
-    pop->max_size = 300;
-    pop->keep_best_n = 100;
+    pop->max_size = 150;
+    pop->keep_best_n = 50;
     pop->agent_children_count = 2;
 
     pop->network_size_cost_weight = 0.f;
-    pop->mutation_prob = 1.f;
-    pop->speciation_thresh = 0.5f;
+    pop->new_node_mutation_prob = 0.03f;
+    pop->new_link_mutation_prob = 0.05f;  // Larger population can tolerate a larger number of prospective species -> 0.3f
+    pop->weights_mutation_prob = 0.8f;
+    pop->weights_mutation_prob_resample = 0.1f;
+    pop->speciation_thresh = 3.f;
+    pop->crossover_offspring = pop->max_size / 4;
 
     pop->agent_to_species = malloc(sizeof(int) * pop->max_size);
     memset(pop->agent_to_species, -1, sizeof(int) * pop->max_size);
@@ -197,8 +201,6 @@ population_t* init_population(int in_dim, int out_dim)
     {
         agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t));
         
-        int mutate = rand_uni(0.f, 1.f) < pop->mutation_prob ? 1 : 0;
-
         new_agent->gene_count = initial_weight_count;
         new_agent->genes = (int*) malloc(sizeof(int) * initial_weight_count);
         new_agent->gene_enabled = (int*) malloc(sizeof(int) * initial_weight_count);
@@ -210,24 +212,20 @@ population_t* init_population(int in_dim, int out_dim)
             new_agent->gene_weights[j] = rand_uni(-1.f, 1.f);
         }
 
-        if (mutate) agent_mutate(pop, new_agent);
+        agent_maybe_mutate(pop, new_agent);
 
         build_agent_network(pop, new_agent);
         population_add_agent(pop, new_agent, i);
     }
-    #ifdef DEBUG
-    printf("Initial agents:\n");
-    print_agents(pop->agents, pop->keep_best_n);
-    #endif
 
     return pop;
 }
 
 float compatibility_dist(agent_t* agent_a, agent_t* agent_b)
 {
-    float excess_weight = 0.2f;
-    float disjoint_weight = 0.2f;
-    float weight_diff_weight = 0.2f;
+    float excess_weight = 1.f;
+    float disjoint_weight = 1.f;
+    float weight_diff_weight = 0.4f;
 
     // Agent-A always has the excess genes
     if (agent_a->genes[agent_a->gene_count-1] < agent_b->genes[agent_b->gene_count-1])
@@ -331,7 +329,7 @@ void agent_insert_gene(agent_t* a, int gene_id)
     }
 }
 
-void agent_mutate(population_t* pop, agent_t* a)
+void agent_maybe_mutate(population_t* pop, agent_t* a)
 {
     // Agent network should not be initiated!
     int* genes = a->genes;
@@ -363,59 +361,78 @@ void agent_mutate(population_t* pop, agent_t* a)
     }
     newest_node_in_sequence++;
 
-    gene_t mutation1;
-    gene_t mutation2;
-    int mutating = 1;
-    int mutation_type;
-    while (mutating)
+    int mutate_link = pop->new_link_mutation_prob > rand_uni(0.f, 1.f);
+    int mutate_node = pop->new_node_mutation_prob > rand_uni(0.f, 1.f);
+    int mutate_weights = pop->weights_mutation_prob > rand_uni(0.f, 1.f);
+
+    gene_t link_mutation;
+    if (mutate_link)
     {
-        mutating = 0;
-        mutation_type = rand() % 2;
-        if (mutation_type == 0)
+        int mutating = 1;
+        while (mutating)
         {
-            // Add weight
+            mutating = 0;
+
             int out_node = rand() % node_count;
             int in_node = rand() % (node_count-1);
             if (in_node >= out_node) in_node++;
 
-            mutation1.out = out_node;
-            mutation1.in = in_node;
+            link_mutation.out = node_numbers[out_node];
+            link_mutation.in = node_numbers[in_node];
 
             for (int i = 0; i < gene_count; i++)
             {
                 gene_t gene = *(gene_t*) vector_get(&pop->innovations, genes[i]);
-                if (gene.in == mutation1.in && gene.out == mutation1.out)
+                if (gene.in == link_mutation.in && gene.out == link_mutation.out)
                 {
                     mutating = 1;
                     break;
                 }
             }
         }
-        else if (mutation_type == 1)
+    }
+
+    gene_t node_mutation1;
+    gene_t node_mutation2;
+    if (mutate_node)
+    {
+        int gene_id = rand() % gene_count;
+        gene_t gene = *(gene_t*) vector_get(&pop->innovations, genes[gene_id]);
+
+        a->gene_enabled[gene_id] = 0;
+
+        node_mutation1.out = gene.out;
+        node_mutation1.in = newest_node_in_sequence;
+
+        node_mutation2.out = newest_node_in_sequence;
+        node_mutation2.in = gene.in;
+    }
+
+    if (mutate_weights)
+    {
+        for (int i = 0; i < gene_count; i++)
         {
-            // Add node
-            int gene_id = rand() % gene_count;
-            gene_t gene = *(gene_t*) vector_get(&pop->innovations, genes[gene_id]);
-
-            a->gene_enabled[gene_id] = 0;
-
-            mutation1.out = gene.out;
-            mutation1.in = newest_node_in_sequence;
-
-            mutation2.out = newest_node_in_sequence;
-            mutation2.in = gene.in;
+            if (pop->weights_mutation_prob_resample > rand_uni(0.f, 1.f))
+            {
+                a->gene_weights[i] = rand_uni(-1.f, 1.f);
+            }
+            else
+            {
+                a->gene_weights[i] += rand_uni(-0.1f, 0.1f);
+            }
         }
     }
 
-    // Overwrite genes and return new node count
-    // TODO: Checking if the mutation already exists should be done generation wide and not full history wise.
-    int mut_id = population_maybe_add_gene(pop, &mutation1);
-    agent_insert_gene(a, mut_id);
-
-    if (mutation_type == 1)
+    // Overwrite genes
+    if (mutate_link)
     {
-        mut_id = population_maybe_add_gene(pop, &mutation2);
-        agent_insert_gene(a, mut_id);
+        agent_insert_gene(a, population_maybe_add_gene(pop, &link_mutation));
+    }
+
+    if (mutate_node)
+    {
+        agent_insert_gene(a, population_maybe_add_gene(pop, &node_mutation1));
+        agent_insert_gene(a, population_maybe_add_gene(pop, &node_mutation2));
     }
 }
 

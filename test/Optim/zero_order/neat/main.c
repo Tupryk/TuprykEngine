@@ -9,6 +9,7 @@
 
 #include "../../functions.h"
 #include "../../../../TuprykEngine/Optim/meta.h"
+#include "../../../../TuprykEngine/Stochastic/sample.h"
 #include "../../../../TuprykEngine/Optim/zero_order/neat.h"
 
 #include "../../../../TuprykEngine/visual/prints/vis_neat.h"
@@ -39,6 +40,8 @@ int test_init()
     int out_dim = 2;
 
     population_t* pop = init_population(in_dim, out_dim);
+    printf("Initial agents:\n");
+    print_agents(pop);
 
     print_agent_genes(&pop->innovations, pop->agents[0]);
     draw_network(pop, pop->agents[0]);
@@ -93,14 +96,46 @@ int test_crossover()
     return 0;
 }
 
-int test_full()
+int test_feed_agent()
 {
-    int generation_count = 100;
-    int task_trials = 100;
     int in_dim = 3;
     int out_dim = 2;
 
     population_t* pop = init_population(in_dim, out_dim);
+
+    // TODO:
+
+    population_free(pop);
+    return 0;
+}
+
+int test_resample()
+{
+    int in_dim = 3;
+    int out_dim = 2;
+
+    population_t* pop = init_population(in_dim, out_dim);
+
+    float fitness[pop->max_size];
+    for (int i = 0; i < pop->max_size; i++)
+    {
+        fitness[i] = rand_uni(0.f, 10.f);
+    }
+
+    population_resample(pop, fitness);
+
+    population_free(pop);
+    return 0;
+}
+
+int test_full()
+{
+    // int generation_count = 100;
+    // int task_trials = 100;
+    // int in_dim = 3;
+    // int out_dim = 2;
+
+    // population_t* pop = init_population(in_dim, out_dim);
     // draw_network(pop, pop->agents[0]);
     
     // float scores[pop->max_size];
@@ -143,7 +178,7 @@ int test_full()
     //     population_mutate(pop);
     // }
     // print_population_best_agent(pop, scores);
-    population_free(pop);
+    // population_free(pop);
     return 0;
 }
 
@@ -153,10 +188,17 @@ int main()
 
     int failure_count = 0;
 
-    // failure_count += test_init();
+    failure_count += test_init();
     // failure_count += test_speciation();
-    failure_count += test_crossover();
+    // failure_count += test_crossover();
+    // failure_count += test_feed_agent();
+    // failure_count += test_resample();
     // failure_count += test_full();
     
+    if (failure_count > 0) {
+        printf("\033[1;31mFailed %d test(s)!\033[0m\n", failure_count);
+    } else {
+        printf("\033[1;32mAll tests passed! :)\033[0m\n");
+    }
     return 0;
 }

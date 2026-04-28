@@ -18,11 +18,11 @@ void print_innovation(vector* innovations, size_t i)
     printf("Gene %zu: %d -> %d\n", i, g.out, g.in);
 }
 
-void print_agents(agent_t** agents, int count)
+void print_agents(population_t* pop)
 {
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < pop->max_size; i++)
     {
-        agent_t* a = agents[i];
+        agent_t* a = pop->agents[i];
         if (a == NULL) {
             continue;
         }
