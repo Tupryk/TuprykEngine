@@ -23,7 +23,7 @@ typedef struct
     float* activations;
     int* activation_count;
     int* activation_funcs;
-    float* activation_biases;  // TODO:
+    float* activation_biases;
 
     int* connection_counts;
     int** connections;
@@ -41,9 +41,13 @@ typedef struct
     
     float network_size_cost_weight;
     float mutation_prob;
+    float speciation_thresh;
     
-    vector innovations;  // Type: gene
+    vector innovations;  // Type: gene_t
     agent_t** agents;
+
+    int* agent_to_species;
+    vector species;  // Type: agent_t*
 } population_t;
 
 population_t* init_population(int in_dim, int out_dim);

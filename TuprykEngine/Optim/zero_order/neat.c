@@ -104,18 +104,65 @@ void build_agent_network(population_t* pop, agent_t* a)
     }
 }
 
+void population_add_agent(population_t* pop, agent_t* new_agent, int at_index)
+{
+    if (pop->agents[at_index] != NULL)
+    {
+        // TODO: Some other cleaning maybe?
+        agent_free(pop->agents[at_index]);
+    }
+
+    pop->agents[at_index] = new_agent;
+
+    // Assign to a species
+    for (int i = pop->species.size-1; i >= 0; i--)
+    {
+        agent_t* a = *(agent_t**) vector_get(&pop->species, i);
+        if (compatibility_dist(pop, a, new_agent) < pop->speciation_thresh)
+        {
+            pop->agent_to_species[at_index] = i;
+            return;
+        }
+    }
+
+    // New species!!!
+    pop->agent_to_species[at_index] = pop->species.size;
+    agent_t* agent_genome_copy = (agent_t*) malloc(sizeof(agent_t));
+    agent_genome_copy->gene_count = new_agent->gene_count;
+    
+    int genes_int_size = sizeof(int) * new_agent->gene_count;
+    int genes_float_size = sizeof(float) * new_agent->gene_count;
+
+    agent_genome_copy->genes = (int*) malloc(genes_int_size);
+    memcpy(agent_genome_copy->genes, new_agent->genes, genes_int_size);
+
+    agent_genome_copy->gene_enabled = (int*) malloc(genes_int_size);
+    memcpy(agent_genome_copy->gene_enabled, new_agent->gene_enabled, genes_int_size);
+ 
+    agent_genome_copy->gene_weights = (float*) malloc(genes_float_size);
+    memcpy(agent_genome_copy->gene_weights, new_agent->gene_weights, genes_float_size);
+
+    vector_push(&pop->species, &agent_genome_copy);
+}
+
 population_t* init_population(int in_dim, int out_dim)
 {
     population_t* pop = (population_t*) malloc(sizeof(population_t));
     
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
+
     pop->max_size = 300;
     pop->keep_best_n = 100;
     pop->agent_children_count = 2;
-    // pop->network_size_cost_weight = 0.0000001;
-    pop->network_size_cost_weight = 0.0;
-    pop->mutation_prob = 1;
+
+    pop->network_size_cost_weight = 0.f;
+    pop->mutation_prob = 0.1f;
+    pop->speciation_thresh = 0.5f;
+
+    pop->agent_to_species = malloc(sizeof(int) * pop->max_size);
+    memset(pop->agent_to_species, -1, sizeof(int) * pop->max_size);
+    pop->species = vector_create(sizeof(agent_t*));
     
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
@@ -142,32 +189,25 @@ population_t* init_population(int in_dim, int out_dim)
 
     for (int i = 0; i < pop->max_size; i++)
     {
-        if (i < pop->keep_best_n)
-        {
-            agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t)); 
-            
-            int mutate = rand_uni(0.f, 1.f) < pop->mutation_prob ? 1 : 0;
+        agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t));
+        
+        int mutate = rand_uni(0.f, 1.f) < pop->mutation_prob ? 1 : 0;
 
-            new_agent->gene_count = initial_weight_count;
-            new_agent->genes = (int*) malloc(sizeof(int) * initial_weight_count);
-            new_agent->gene_enabled = (int*) malloc(sizeof(int) * initial_weight_count);
-            new_agent->gene_weights = (float*) malloc(sizeof(float) * initial_weight_count);
-            for (int j = 0; j < initial_weight_count; j++)
-            {
-                new_agent->genes[j] = j;
-                new_agent->gene_enabled[j] = 1;
-                new_agent->gene_weights[j] = rand_uni(-1.f, 1.f);
-            }
-    
-            if (mutate) mutate_agent(pop, new_agent);
-
-            build_agent_network(pop, new_agent);
-            pop->agents[i] = new_agent;
-        }
-        else
+        new_agent->gene_count = initial_weight_count;
+        new_agent->genes = (int*) malloc(sizeof(int) * initial_weight_count);
+        new_agent->gene_enabled = (int*) malloc(sizeof(int) * initial_weight_count);
+        new_agent->gene_weights = (float*) malloc(sizeof(float) * initial_weight_count);
+        for (int j = 0; j < initial_weight_count; j++)
         {
-            pop->agents[i] = NULL;
+            new_agent->genes[j] = j;
+            new_agent->gene_enabled[j] = 1;
+            new_agent->gene_weights[j] = rand_uni(-1.f, 1.f);
         }
+
+        if (mutate) mutate_agent(pop, new_agent);
+
+        build_agent_network(pop, new_agent);
+        population_add_agent(pop, new_agent, i);
     }
     #ifdef DEBUG
     printf("Initial agents:\n");
@@ -601,6 +641,13 @@ void population_free(population_t* pop)
         }
     }
     vector_free(&pop->innovations);
+    for (size_t i = 0; i < pop->species.size; i++)
+    {
+        agent_t* a = *(agent_t**) vector_get(&pop->species, i);
+        agent_free(a);
+    }
+    vector_free(&pop->species);
+    free(pop->agent_to_species);
     free(pop);
 }
 

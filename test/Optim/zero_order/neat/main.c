@@ -54,6 +54,12 @@ int test_speciation()
 
     population_t* pop = init_population(in_dim, out_dim);
 
+    for (int i = 0; i < pop->max_size; i++)
+    {
+        printf("Agent %d species: %d\n", i, pop->agent_to_species[i]);
+    }
+    print_species_info(pop);
+
     printf("Agent A:\n");
     print_agent_gene_sequence(&pop->innovations, pop->agents[0]);
     printf("Agent B:\n");

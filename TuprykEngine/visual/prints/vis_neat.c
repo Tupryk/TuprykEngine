@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "vis_neat.h"
 
@@ -56,6 +57,26 @@ void print_agent(agent_t* a)
             printf("%d (%f), ", a->connections[i][j], a->connection_weight[i][j]);
         }
         printf("\n");
+    }
+}
+
+void print_species_info(population_t* pop)
+{
+    int species_sizes[pop->species.size];
+    memset(species_sizes, 0, sizeof(species_sizes));
+
+    printf("Total species: %zu\n", pop->species.size);
+    for (int i = 0; i < pop->max_size; i++)
+    {
+        int species_id = pop->agent_to_species[i];
+        if (species_id != -1)
+        {
+            species_sizes[species_id]++;
+        }
+    }
+    for (size_t i = 0; i < pop->species.size; i++)
+    {
+        printf("Species %zu size: %d\n", i, species_sizes[i]);
     }
 }
 
