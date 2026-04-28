@@ -183,13 +183,14 @@ float compatibility_dist(population_t* pop, agent_t* agent_a, agent_t* agent_b)
     float disjoint_weight = 0.2f;
     float weight_diff_weight = 0.2f;
 
-    // Agent-A always has the longer genome
+    // Agent-A always has the excess genes
     if (agent_a->genes[agent_a->gene_count-1] < agent_b->genes[agent_b->gene_count-1])
     {
         agent_t* tmp = agent_a;
         agent_a = agent_b;
         agent_b = tmp;
     }
+    int larger_genome = agent_a->gene_count > agent_b->gene_count ? agent_a->gene_count : agent_b->gene_count;
 
     int excess_count = 0;
     int disjoint_count = 0;
@@ -226,8 +227,8 @@ float compatibility_dist(population_t* pop, agent_t* agent_a, agent_t* agent_b)
     avg_weight_diff /= (float) matching_genes;
 
     float dist = (
-        ((float) excess_count) / ((float) agent_a->gene_count) * excess_weight +
-        ((float) disjoint_count) / ((float) agent_a->gene_count) * disjoint_weight +
+        ((float) excess_count) / ((float) larger_genome) * excess_weight +
+        ((float) disjoint_count) / ((float) larger_genome) * disjoint_weight +
         avg_weight_diff * weight_diff_weight
     );
     return dist;
