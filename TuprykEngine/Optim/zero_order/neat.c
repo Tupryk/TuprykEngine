@@ -97,7 +97,7 @@ void build_agent_network(population_t* pop, agent_t* a)
             int out = pop_to_agent[gene.out];
             int conn_id = connection_counter[out];
             a->connections[out][conn_id] = pop_to_agent[gene.in];
-            a->connection_weight[out][conn_id] = rand_uni(-1.f, 1.f);
+            a->connection_weight[out][conn_id] = a->gene_weights[i];
     
             connection_counter[out]++;
         }
@@ -145,17 +145,18 @@ population_t* init_population(int in_dim, int out_dim)
         if (i < pop->keep_best_n)
         {
             agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t)); 
-            new_agent->weight_count = initial_weight_count;
             
             int mutate = rand_uni(0.f, 1.f) < pop->mutation_prob ? 1 : 0;
 
             new_agent->gene_count = initial_weight_count;
             new_agent->genes = (int*) malloc(sizeof(int) * initial_weight_count);
             new_agent->gene_enabled = (int*) malloc(sizeof(int) * initial_weight_count);
+            new_agent->gene_weights = (float*) malloc(sizeof(float) * initial_weight_count);
             for (int j = 0; j < initial_weight_count; j++)
             {
                 new_agent->genes[j] = j;
                 new_agent->gene_enabled[j] = 1;
+                new_agent->gene_weights[j] = rand_uni(-1.f, 1.f);
             }
     
             if (mutate) mutate_agent(pop, new_agent);
@@ -176,6 +177,62 @@ population_t* init_population(int in_dim, int out_dim)
     return pop;
 }
 
+float compatibility_dist(population_t* pop, agent_t* agent_a, agent_t* agent_b)
+{
+    float excess_weight = 0.2f;
+    float disjoint_weight = 0.2f;
+    float weight_diff_weight = 0.2f;
+
+    // Agent-A always has the longer genome
+    if (agent_a->genes[agent_a->gene_count-1] < agent_b->genes[agent_b->gene_count-1])
+    {
+        agent_t* tmp = agent_a;
+        agent_a = agent_b;
+        agent_b = tmp;
+    }
+
+    int excess_count = 0;
+    int disjoint_count = 0;
+
+    int matching_genes = 0;
+    float avg_weight_diff = 0.f;
+
+    int a_gene_id = 0;
+    int b_gene_id = 0;
+    
+    while (1)
+    {
+        if (b_gene_id >= agent_b->gene_count)
+        {
+            excess_count++;
+            a_gene_id++;
+            if (a_gene_id >= agent_a->gene_count) break;
+        }
+        else if (agent_a->genes[a_gene_id] == agent_b->genes[b_gene_id])
+        {
+            avg_weight_diff += fabsf(agent_a->gene_weights[a_gene_id] - agent_b->gene_weights[b_gene_id]);
+            matching_genes++;
+
+            a_gene_id++;
+            b_gene_id++;
+        }
+        else
+        {
+            disjoint_count++;
+            if (agent_a->genes[a_gene_id] > agent_b->genes[b_gene_id]) b_gene_id++;
+            else a_gene_id++;
+        }
+    }
+    avg_weight_diff /= (float) matching_genes;
+
+    float dist = (
+        ((float) excess_count) / ((float) agent_a->gene_count) * excess_weight +
+        ((float) disjoint_count) / ((float) agent_a->gene_count) * disjoint_weight +
+        avg_weight_diff * weight_diff_weight
+    );
+    return dist;
+}
+
 int population_maybe_add_gene(population_t* pop, gene_t* mutation)
 {
     // If the gene already exists, return its corresponding index, otherwise create a new gene.
@@ -189,6 +246,42 @@ int population_maybe_add_gene(population_t* pop, gene_t* mutation)
     }
     vector_push(&pop->innovations, mutation);
     return pop->innovations.size-1;
+}
+
+void agent_insert_gene(agent_t* a, int gene_id)
+{
+    a->gene_count++;
+    int gene_count = a->gene_count;
+
+    a->genes = realloc(a->genes, sizeof(int) * gene_count);
+    a->gene_enabled = realloc(a->gene_enabled, sizeof(int) * gene_count);
+    a->gene_weights = realloc(a->gene_weights, sizeof(float) * gene_count);
+
+    int shift_id = a->gene_count-1;
+    while (1)
+    {
+        if (shift_id <= 0) break;
+        if (a->genes[shift_id-1] < gene_id) break;
+        shift_id--;
+    }
+
+    int prev_id = gene_id;
+    int prev_enabled = 1;
+    float prev_weight = rand_uni(-1.f, 1.f);
+    for (int i = shift_id; i < gene_count; i++)
+    {
+        int tmp_i = a->genes[i];
+        a->genes[i] = prev_id;
+        prev_id = tmp_i;
+
+        int tmp_e = a->gene_enabled[i];
+        a->gene_enabled[i] = prev_enabled;
+        prev_enabled = tmp_e;
+
+        float tmp_w = a->gene_weights[i];
+        a->gene_weights[i] = prev_weight;
+        prev_weight = tmp_w;
+    }
 }
 
 void mutate_agent(population_t* pop, agent_t* a)
@@ -231,7 +324,7 @@ void mutate_agent(population_t* pop, agent_t* a)
     {
         mutating = 0;
         mutation_type = rand() % 2;
-        if (mutation_type)
+        if (mutation_type == 0)
         {
             // Add weight
             int out_node = rand() % node_count;
@@ -251,7 +344,7 @@ void mutate_agent(population_t* pop, agent_t* a)
                 }
             }
         }
-        else
+        else if (mutation_type == 1)
         {
             // Add node
             int gene_id = rand() % gene_count;
@@ -268,23 +361,14 @@ void mutate_agent(population_t* pop, agent_t* a)
     }
 
     // Overwrite genes and return new node count
-    gene_count += mutation_type ? 1 : 2;
-    
-    genes = realloc(genes, sizeof(int) * gene_count);
-    a->gene_enabled = realloc(a->gene_enabled, sizeof(int) * gene_count);
-    if (mutation_type)
+    int mut_id = population_maybe_add_gene(pop, &mutation1);
+    agent_insert_gene(a, mut_id);
+
+    if (mutation_type == 1)
     {
-        genes[gene_count-1] = population_maybe_add_gene(pop, &mutation1);
-        a->gene_enabled[gene_count-1] = 1;
+        mut_id = population_maybe_add_gene(pop, &mutation2);
+        agent_insert_gene(a, mut_id);
     }
-    else
-    {
-        genes[gene_count-2] = population_maybe_add_gene(pop, &mutation1);
-        genes[gene_count-1] = population_maybe_add_gene(pop, &mutation2);
-        a->gene_enabled[gene_count-2] = 1;
-        a->gene_enabled[gene_count-1] = 1;
-    }
-    a->gene_count = gene_count;
 }
 
 // agent_t* cross_agents(population_t* pop, agent_t* dominant_parent, agent_t* regular_parent)
@@ -549,5 +633,6 @@ void agent_free(agent_t* a)
     }
     free(a->genes);
     free(a->gene_enabled);
+    free(a->gene_weights);
     free(a);
 }

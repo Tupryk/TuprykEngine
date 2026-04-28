@@ -44,7 +44,7 @@ void print_agent(agent_t* a)
     }
     printf("\n");
     printf("Total Nodes: %d\n", a->node_count);
-    printf("Total Weights: %d\n", a->weight_count);
+    printf("Total Genes: %d\n", a->gene_count);
     printf("Agent Node Connections: \n");
     for (int i = 0; i < a->node_count; i++)
     {
@@ -59,6 +59,37 @@ void print_agent(agent_t* a)
     }
 }
 
+void print_agent_gene_sequence(vector* innovations, agent_t* a)
+{
+    for (int i = 0; i < a->gene_count; i++)
+    {
+        printf("|    ");
+        if (a->genes[i] < 10) printf(" ");
+        printf("(%d)    ", a->genes[i]);
+    }
+    printf("|\n");
+    for (int i = 0; i < a->gene_count; i++)
+    {
+        gene_t g = *(gene_t*) vector_get(innovations, a->genes[i]);
+        printf("|  %d  ->  %d  ", g.out, g.in);
+    }
+    printf("|\n");
+    for (int i = 0; i < a->gene_count; i++)
+    {
+        float w = a->gene_weights[i];
+        printf("|   ");
+        if (w >= 0.f) printf(" ");
+        printf("%.2f    ", w);
+    }
+    printf("|\n");
+    for (int i = 0; i < a->gene_count; i++)
+    {
+        if (!a->gene_enabled[i]) printf("| (DISABLED) ");
+        else printf("|            ");
+    }
+    printf("|\n");
+}
+
 void print_agent_genes(vector* innovations, agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
@@ -67,13 +98,7 @@ void print_agent_genes(vector* innovations, agent_t* a)
         printf("%d, ", a->genes[i]);
     }
     printf("\n");
-    for (int i = 0; i < a->gene_count; i++)
-    {
-        gene_t g = *(gene_t*)vector_get(innovations, i);
-        printf("Gene %d: %d -> %d", i, g.out, g.in);
-        if (!a->gene_enabled[i]) printf(" (DISABLED)");
-        printf("\n");
-    }
+    print_agent_gene_sequence(innovations, a);
 }
 
 void print_population_best_agent(population_t* pop, float* scores)

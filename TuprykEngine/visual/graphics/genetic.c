@@ -81,12 +81,13 @@ void draw_network(population_t* pop, agent_t* a)
         node_pos[i][1] = y;
     }
 
-    set_color(1.f, 0.f, 0.f);
     for (int i = 0; i < a->node_count; i++)
     {
         for (int j = 0; j < a->connection_counts[i]; j++)
         {
             int k = a->connections[i][j];
+            float w = (a->connection_weight[i][j] + 1.f) * .5f;
+            set_color(1.f - w, 0.f, w);
             draw_line(
                 node_pos[i][0], node_pos[i][1],
                 node_pos[k][0], node_pos[k][1]
@@ -99,12 +100,12 @@ void draw_network(population_t* pop, agent_t* a)
     {
         if (i < pop->in_dim)
         {
-            set_color(1.f, 0.f, 0.f);
+            set_color(0.f, 1.f, 0.f);
             draw_circle(node_pos[i][0] * WINDOW_W, node_pos[i][1] * WINDOW_H, 0.04f * WINDOW_W);
         }
         else if (i < pop->in_dim + pop->out_dim)
         {
-            set_color(0.f, 0.f, 1.f);
+            set_color(1.f, 1.f, 0.f);
             draw_circle(node_pos[i][0] * WINDOW_W, node_pos[i][1] * WINDOW_H, 0.04f * WINDOW_W);
         }
 

@@ -15,14 +15,15 @@ typedef struct
 {
     int gene_count;
     int node_count;
-    int weight_count;
+    
     int* genes;
     int* gene_enabled;
+    float* gene_weights;
     
     float* activations;
     int* activation_count;
     int* activation_funcs;
-    float* activation_biases;
+    float* activation_biases;  // TODO:
 
     int* connection_counts;
     int** connections;
@@ -46,6 +47,7 @@ typedef struct
 } population_t;
 
 population_t* init_population(int in_dim, int out_dim);
+float compatibility_dist(population_t* pop, agent_t* agent_a, agent_t* agent_b);
 void mutate_agent(population_t* pop, agent_t* a);
 void population_mutate(population_t* pop);
 void population_kill_weak(population_t* pop, float* scores);

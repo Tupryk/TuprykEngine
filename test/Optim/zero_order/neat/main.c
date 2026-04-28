@@ -47,6 +47,25 @@ int test_init()
     return 0;
 }
 
+int test_speciation()
+{
+    int in_dim = 3;
+    int out_dim = 2;
+
+    population_t* pop = init_population(in_dim, out_dim);
+
+    printf("Agent A:\n");
+    print_agent_gene_sequence(&pop->innovations, pop->agents[0]);
+    printf("Agent B:\n");
+    print_agent_gene_sequence(&pop->innovations, pop->agents[1]);
+
+    float comp_dist = compatibility_dist(pop, pop->agents[0], pop->agents[1]);
+    printf("Compatibility distance: %g\n", comp_dist);
+    
+    population_free(pop);
+    return 0;
+}
+
 int test_full()
 {
     int generation_count = 100;
@@ -107,7 +126,8 @@ int main()
 
     int failure_count = 0;
 
-    failure_count += test_init();
+    // failure_count += test_init();
+    failure_count += test_speciation();
     // failure_count += test_full();
     
     return 0;
