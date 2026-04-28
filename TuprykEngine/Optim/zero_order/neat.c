@@ -173,7 +173,7 @@ population_t* init_population(int in_dim, int out_dim)
     pop->agent_to_species = malloc(sizeof(int) * pop->max_size);
     memset(pop->agent_to_species, -1, sizeof(int) * pop->max_size);
     pop->species = vector_create(sizeof(agent_t*));
-    
+        
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
     #endif
@@ -194,6 +194,7 @@ population_t* init_population(int in_dim, int out_dim)
     #endif
 
     pop->agents = (agent_t**) malloc(sizeof(agent_t*) * pop->max_size);
+    for (int i = 0; i < pop->max_size; i++) pop->agents[i] = NULL;
     
     int initial_weight_count = in_dim * out_dim;
 

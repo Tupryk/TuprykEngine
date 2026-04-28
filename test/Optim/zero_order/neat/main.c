@@ -188,11 +188,11 @@ int main()
 
     int failure_count = 0;
 
-    failure_count += test_init();
+    // failure_count += test_init();
     // failure_count += test_speciation();
     // failure_count += test_crossover();
     // failure_count += test_feed_agent();
-    // failure_count += test_resample();
+    failure_count += test_resample();
     // failure_count += test_full();
     
     if (failure_count > 0) {
