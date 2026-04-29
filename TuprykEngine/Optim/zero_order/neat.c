@@ -41,7 +41,7 @@ agent_t* agent_copy_genome(agent_t* a)
     return a_copy;
 }
 
-void build_agent_network(population_t* pop, agent_t* a)
+void agent_build_network(population_t* pop, agent_t* a)
 {
     int node_count = pop->in_dim + pop->out_dim;
     int* genes = a->genes;
@@ -138,7 +138,7 @@ void population_add_agent(population_t* pop, agent_t* new_agent, int at_index)
     for (int i = pop->species.size-1; i >= 0; i--)
     {
         agent_t* a = *(agent_t**) vector_get(&pop->species, i);
-        if (compatibility_dist(a, new_agent) < pop->speciation_thresh)
+        if (agent_compatibility_dist(a, new_agent) < pop->speciation_thresh)
         {
             pop->agent_to_species[at_index] = i;
             return;
@@ -216,14 +216,14 @@ population_t* init_population(int in_dim, int out_dim)
 
         agent_maybe_mutate(pop, new_agent);
 
-        build_agent_network(pop, new_agent);
+        agent_build_network(pop, new_agent);
         population_add_agent(pop, new_agent, i);
     }
 
     return pop;
 }
 
-float compatibility_dist(agent_t* agent_a, agent_t* agent_b)
+float agent_compatibility_dist(agent_t* agent_a, agent_t* agent_b)
 {
     float excess_weight = 1.f;
     float disjoint_weight = 1.f;
@@ -438,151 +438,31 @@ void agent_maybe_mutate(population_t* pop, agent_t* a)
     }
 }
 
-float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
+void agent_feed(agent_t* a, int in_dim, int out_dim, float* input, float* output)
 {
     reset_agent(a);
 
-    #ifdef DEBUG
-    if (a->activations == NULL)
-    {
-        printf("Agent network was not initialized!\n");
-        exit(EXIT_FAILURE);
-    }
-    #endif
-
-    #ifdef DEBUG
-    printf("Initializing activations...\n");
-    #endif
-
-    // Initialize the input layer
-    int_stack* stack = int_stack_init();
-    for (int i = 0; i < in_dim; i++)
-    {
-        a->activations[i] = input[i];
-        a->activation_count[i] = 1;
-        int_stack_push(stack, i);
-    }
-
-    #ifdef DEBUG
-    int propagation_count = 1;
-    printf("Starting propagation 1, nodes... ");
-    #endif
-
-    // Forward through the network
-    // TODO: Stack usage is wrong here, look at graphics implementation
-    int_stack* next_stack = int_stack_init();
-    while (stack->size > 0)
-    {
-        int node_id = int_stack_pop(stack);
-        // Pass through non-linearity
-        float node_activation = a->activations[node_id];
-        float forward_act = node_activation + a->activation_biases[node_id];
-        switch (a->activation_funcs[node_id])
-        {
-        case 0:
-            // Linear
-            break;
-
-        case 1:
-            forward_act = relu(forward_act);
-            break;
-
-        default:
-            #ifdef DEBUG
-            printf("Invalid node activation function!\n");
-            exit(EXIT_FAILURE);
-            #endif
-            break;
-        }
-
-        #ifdef DEBUG
-        printf("%d", node_id);
-        #endif
-        for (int i = 0; i < a->connection_counts[node_id]; i++)
-        {
-            int forward_node = a->connections[node_id][i];
-            float w = a->connection_weight[node_id][i];
-            a->activations[forward_node] += w * forward_act;
-            if (!a->activation_count[forward_node] && !int_stack_contains(next_stack, forward_node))
-            {
-                a->activation_count[forward_node]++;
-                int_stack_push(next_stack, forward_node);
-            }
-        }
-
-        if (stack->size <= 0)
-        {
-            int_stack_free(stack);
-            stack = next_stack;
-            next_stack = NULL;
-            #ifdef DEBUG
-            printf("\n");
-            if (stack != NULL)
-            {
-                propagation_count++;
-                printf("Starting propagation %d, nodes... ", propagation_count);
-            }
-            else
-            {
-                printf("Finished propagating.\n");
-            }
-            #endif
-        }
-        #ifdef DEBUG
-        else
-        {
-            printf(", ");
-        }
-        #endif
-    }
-
     // Write to output array
-    float* out = (float*) malloc(sizeof(float) * out_dim);
     for (int i = 0; i < out_dim; i++)
     {
-        out[i] = a->activations[in_dim+i];
+        output[i] = a->activations[in_dim+i];
     }
-
-    return out;
 }
 
-float** population_feed_all_agents(population_t* pop, float* input)
+void population_feed_all_agents_same(population_t* pop, float* input, float** output)
 {
-    float** out = (float**) malloc(sizeof(float*) * pop->size);
     for (int i = 0; i < pop->size; i++)
     {
-        #ifdef DEBUG
-        if (pop->agents[i] == NULL)
-        {
-            printf("Agents should not be NULL!\n");
-            exit(EXIT_FAILURE);
-        }
-        #endif
-        
-        #ifdef DEBUG
-        printf("+------------------------+\n");
-        print_agent(pop->agents[i]);
-        printf("Feeding agent %d: \n", i);
-        #endif
-
-        out[i] = feed_agent(pop->agents[i], input, pop->in_dim, pop->out_dim);
-
-        #ifdef DEBUG
-        printf("Given input: [");
-        for (int j = 0; j < pop->in_dim; j++)
-        {
-            printf("%f, ", input[j]);
-        }
-        printf("]\nAgent outputs: [");
-        for (int j = 0; j < pop->out_dim; j++)
-        {
-            printf("%f, ", out[i][j]);
-        }
-        printf("]\n");
-        printf("+------------------------+\n");
-        #endif
+        agent_feed(pop->agents[i], pop->in_dim, pop->out_dim, input, output[i]);
     }
-    return out;
+}
+
+void population_feed_all_agents(population_t* pop, float** input, float** output)
+{
+    for (int i = 0; i < pop->size; i++)
+    {
+        agent_feed(pop->agents[i], pop->in_dim, pop->out_dim, input[i], output[i]);
+    }
 }
 
 agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b)
@@ -649,7 +529,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
         {
             if (i == j) continue;
             if (current_species != pop->agent_to_species[j]) continue;
-            sum_of_fellows += compatibility_dist(pop->agents[i], pop->agents[j]);
+            sum_of_fellows += agent_compatibility_dist(pop->agents[i], pop->agents[j]);
         }
         
         adjusted_fitness[i] = fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
@@ -783,7 +663,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
                 
                 agent_maybe_mutate(pop, child);
             }
-            build_agent_network(pop, child);
+            agent_build_network(pop, child);
             population_add_agent(pop, child, agent_index);
             agent_index++;
         }
@@ -828,7 +708,7 @@ void population_free(population_t* pop)
     free(pop);
 }
 
-void free_agent_network(agent_t* a)
+void agent_free_network(agent_t* a)
 {
     free(a->activations);
     a->activations = NULL;
@@ -854,7 +734,7 @@ void agent_free(agent_t* a)
 {
     if (a->activations != NULL)
     {
-        free_agent_network(a);
+        agent_free_network(a);
     }
     free(a->genes);
     free(a->gene_enabled);

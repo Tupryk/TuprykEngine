@@ -68,7 +68,7 @@ int test_speciation()
     printf("Agent B:\n");
     print_agent_gene_sequence(&pop->innovations, pop->agents[1]);
 
-    float comp_dist = compatibility_dist(pop->agents[0], pop->agents[1]);
+    float comp_dist = agent_compatibility_dist(pop->agents[0], pop->agents[1]);
     printf("Compatibility distance: %g\n", comp_dist);
     
     population_free(pop);
@@ -100,10 +100,28 @@ int test_feed_agent()
 {
     int in_dim = 3;
     int out_dim = 2;
+    float input[3] = {1.f, 0.f, 0.f};
+    float output[2];
 
     population_t* pop = init_population(in_dim, out_dim);
 
-    // TODO:
+    int agent_idx = 0;
+    print_agent(pop->agents[agent_idx]);
+    printf("Feeding agent %d: \n", agent_idx);
+
+    agent_feed(pop->agents[agent_idx], in_dim, out_dim, input, output);
+
+    printf("Given input: [");
+    for (int i = 0; i < pop->in_dim; i++)
+    {
+        printf("%g, ", input[i]);
+    }
+    printf("]\nAgent outputs: [");
+    for (int i = 0; i < pop->out_dim; i++)
+    {
+        printf("%g, ", output[i]);
+    }
+    printf("]\n");
 
     population_free(pop);
     return 0;
@@ -113,7 +131,7 @@ int test_resample()
 {
     int in_dim = 3;
     int out_dim = 2;
-    int generation_count = 100000;
+    int generation_count = 1000;
 
     population_t* pop = init_population(in_dim, out_dim);
     printf("Initial agents:\n");
@@ -202,8 +220,8 @@ int main()
     // failure_count += test_init();
     // failure_count += test_speciation();
     // failure_count += test_crossover();
-    // failure_count += test_feed_agent();
-    failure_count += test_resample();
+    failure_count += test_feed_agent();
+    // failure_count += test_resample();
     // failure_count += test_full();
     
     if (failure_count > 0) {

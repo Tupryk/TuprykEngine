@@ -59,15 +59,17 @@ typedef struct
 } population_t;
 
 population_t* init_population(int in_dim, int out_dim);
-float compatibility_dist(agent_t* agent_a, agent_t* agent_b);
-void agent_maybe_mutate(population_t* pop, agent_t* a);
-float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim);
-float** population_feed_all_agents(population_t* pop, float* input);
-agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b);
+void population_feed_all_agents_same(population_t* pop, float* input, float** output);
+void population_feed_all_agents(population_t* pop, float** input, float** output);
 void population_resample(population_t* pop, float* fitness);
 void population_free(population_t* pop);
-void build_agent_network(population_t* pop, agent_t* a);
-void free_agent_network(agent_t* a);
+
+void agent_feed(agent_t* a, int in_dim, int out_dim, float* input, float* output);
+void agent_maybe_mutate(population_t* pop, agent_t* a);
+void agent_build_network(population_t* pop, agent_t* a);
+void agent_free_network(agent_t* a);
 void agent_free(agent_t* a);
+float agent_compatibility_dist(agent_t* agent_a, agent_t* agent_b);
+agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b);
 
 #endif
