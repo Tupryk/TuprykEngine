@@ -29,6 +29,12 @@ void vector_push(vector *v, void *element)
     v->size++;
 }
 
+void vector_set(vector *v, size_t index, void *element)
+{
+    void *dest = (char*)v->data + index * v->elem_size;
+    memcpy(dest, element, v->elem_size);
+}
+
 void* vector_get(vector *v, size_t index)
 {
     return (char*)v->data + index * v->elem_size;

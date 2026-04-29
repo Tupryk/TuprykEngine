@@ -57,7 +57,7 @@ int test_speciation()
 
     population_t* pop = init_population(in_dim, out_dim);
 
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < pop->size; i++)
     {
         printf("Agent %d species: %d\n", i, pop->agent_to_species[i]);
     }
@@ -113,16 +113,27 @@ int test_resample()
 {
     int in_dim = 3;
     int out_dim = 2;
+    int generation_count = 100000;
 
     population_t* pop = init_population(in_dim, out_dim);
+    printf("Initial agents:\n");
+    print_agents(pop);
 
-    float fitness[pop->max_size];
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < generation_count; i++)
     {
-        fitness[i] = rand_uni(0.f, 10.f);
+        float fitness[pop->size];
+        for (int j = 0; j < pop->size; j++)
+        {
+            fitness[j] = rand_uni(0.f, 10.f);
+        }
+    
+        population_resample(pop, fitness);
+    
+        if ((i+1) % 100 == 0)
+        {
+            printf("Generation %d species count: %zu\n", i+1, pop->species.size);
+        }
     }
-
-    population_resample(pop, fitness);
 
     population_free(pop);
     return 0;

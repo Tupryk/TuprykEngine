@@ -39,7 +39,7 @@ typedef struct
     int in_dim;
     int out_dim;
 
-    int max_size;
+    int size;
     int keep_best_n;
     int agent_children_count;
     
@@ -49,7 +49,7 @@ typedef struct
     float weights_mutation_prob;
     float weights_mutation_prob_resample;
     float speciation_thresh;
-    int crossover_offspring;
+    float crossover_offspring_prob;
     
     vector innovations;  // Type: gene_t
     agent_t** agents;

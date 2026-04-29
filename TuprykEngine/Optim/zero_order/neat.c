@@ -158,20 +158,21 @@ population_t* init_population(int in_dim, int out_dim)
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
 
-    pop->max_size = 150;
+    pop->size = 150;
     pop->keep_best_n = 50;
     pop->agent_children_count = 2;
 
+    // TODO: neat_opt struct and default struct
     pop->network_size_cost_weight = 0.f;
     pop->new_node_mutation_prob = 0.03f;
     pop->new_link_mutation_prob = 0.05f;  // Larger population can tolerate a larger number of prospective species -> 0.3f
     pop->weights_mutation_prob = 0.8f;
     pop->weights_mutation_prob_resample = 0.1f;
     pop->speciation_thresh = 3.f;
-    pop->crossover_offspring = pop->max_size / 4;
+    pop->crossover_offspring_prob = 0.25f;
 
-    pop->agent_to_species = malloc(sizeof(int) * pop->max_size);
-    memset(pop->agent_to_species, -1, sizeof(int) * pop->max_size);
+    pop->agent_to_species = malloc(sizeof(int) * pop->size);
+    memset(pop->agent_to_species, -1, sizeof(int) * pop->size);
     pop->species = vector_create(sizeof(agent_t*));
         
     #ifdef DEBUG
@@ -193,12 +194,12 @@ population_t* init_population(int in_dim, int out_dim)
     print_innovations(&pop->innovations);
     #endif
 
-    pop->agents = (agent_t**) malloc(sizeof(agent_t*) * pop->max_size);
-    for (int i = 0; i < pop->max_size; i++) pop->agents[i] = NULL;
+    pop->agents = (agent_t**) malloc(sizeof(agent_t*) * pop->size);
+    for (int i = 0; i < pop->size; i++) pop->agents[i] = NULL;
     
     int initial_weight_count = in_dim * out_dim;
 
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < pop->size; i++)
     {
         agent_t* new_agent = (agent_t*) malloc(sizeof(agent_t));
         
@@ -547,8 +548,8 @@ float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
 
 float** population_feed_all_agents(population_t* pop, float* input)
 {
-    float** out = (float**) malloc(sizeof(float*) * pop->max_size);
-    for (int i = 0; i < pop->max_size; i++)
+    float** out = (float**) malloc(sizeof(float*) * pop->size);
+    for (int i = 0; i < pop->size; i++)
     {
         #ifdef DEBUG
         if (pop->agents[i] == NULL)
@@ -594,7 +595,13 @@ agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b)
     
     while (a_gene_id < parent_a->gene_count)
     {
-        if (parent_a->genes[a_gene_id] == parent_b->genes[b_gene_id])
+        if (b_gene_id >= parent_b->gene_count)
+        {
+            child->gene_weights[a_gene_id] = parent_a->gene_weights[a_gene_id];
+            child->gene_enabled[a_gene_id] = parent_a->gene_enabled[a_gene_id];
+            a_gene_id++;
+        }
+        else if (parent_a->genes[a_gene_id] == parent_b->genes[b_gene_id])
         {
             if (rand() % 2)
             {
@@ -622,16 +629,23 @@ agent_t* agents_cross(agent_t* parent_a, agent_t* parent_b)
     return child;
 }
 
-void population_resample(population_t* pop, float* fitness)
+void population_resample(population_t* pop, float* fitness)  // TODO: This might be a bit expensive...
 {
-    float adjusted_fitness[pop->max_size];
-    // TODO: This might be a bit expensive...
-    for (int i = 0; i < pop->max_size; i++)
+    size_t prev_gen_species_count = pop->species.size;
+    float adjusted_fitness[pop->size];
+    
+    float avg_adjusted_fitness[prev_gen_species_count];
+    int species_size[prev_gen_species_count];
+    memset(species_size, 0, sizeof(species_size));
+    int species_agent_indices[pop->size][pop->size];
+
+    // Compute adjusted fitness
+    for (int i = 0; i < pop->size; i++)
     {
         int current_species = pop->agent_to_species[i];
         float sum_of_fellows = 1.f;
         
-        for (int j = 0; j < pop->max_size; j++)
+        for (int j = 0; j < pop->size; j++)
         {
             if (i == j) continue;
             if (current_species != pop->agent_to_species[j]) continue;
@@ -639,13 +653,164 @@ void population_resample(population_t* pop, float* fitness)
         }
         
         adjusted_fitness[i] = fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
+        
+        species_agent_indices[current_species][species_size[current_species]] = i;
+        species_size[current_species]++;
+        avg_adjusted_fitness[current_species] += adjusted_fitness[i];
     }
-    // TODO: Resample
+
+    // Compute total adjusted fitness
+    float total_adjusted_fitness = 0.f;
+    for (size_t i = 0; i < prev_gen_species_count; i++)
+    {
+        if (!species_size[i]) continue;
+        avg_adjusted_fitness[i] /= ((float) species_size[i]);
+        total_adjusted_fitness += avg_adjusted_fitness[i];
+    }
+
+    // Allocate species budgets
+    agent_t* species_champions[prev_gen_species_count];
+    for (size_t i = 0; i < prev_gen_species_count; i++) species_champions[i] = NULL;
+    float species_champions_score[prev_gen_species_count];
+    int species_budget[prev_gen_species_count];
+    memset(species_budget, 0, sizeof(species_budget));
+    int total_budget = 0;
+    for (size_t i = 0; i < prev_gen_species_count; i++)
+    {
+        if (!species_size[i]) continue;
+        
+        species_budget[i] = avg_adjusted_fitness[i] / total_adjusted_fitness * ((float) pop->size);
+        total_budget += species_budget[i];
+        
+        for (int j = 0; j < species_size[i]; j++)
+        {
+            int ai = species_agent_indices[i][j];
+            if (avg_adjusted_fitness[ai] > species_champions_score[i] || species_champions[i] == NULL)
+            {
+                species_champions_score[i] = avg_adjusted_fitness[ai];
+                species_champions[i] = pop->agents[ai];
+            }
+        }
+    }
+    int budget_remainder = pop->size - total_budget;
+    size_t species_id = 0;
+    for (int i = 0; i < budget_remainder; i++)
+    {
+        if (!species_size[species_id])
+        {
+            i--;
+            species_id++;
+            continue;
+        }
+        species_budget[species_id]++;
+        species_id++;
+        if (species_id >= prev_gen_species_count) species_id = 0;
+    }
+
+    // Create new generation
+    agent_t* prev_gen[pop->size];
+    for (int i = 0; i < pop->size; i++)
+    {
+        prev_gen[i] = pop->agents[i];
+        pop->agents[i] = NULL;
+    }
+
+    int agent_index = 0;
+    for (size_t i = 0; i < prev_gen_species_count; i++)
+    {
+        int s_size = species_size[i];
+        if (!s_size) continue;
+
+        // TODO: Ignore worst 50%
+        float agent_probs[s_size];
+        float species_scores[s_size];
+        float total_score = 0.f;
+        for (int j = 0; j < s_size; j++)
+        {
+            float score = fitness[species_agent_indices[i][j]];
+            agent_probs[j] = score;
+            species_scores[j] = score;
+            total_score += score;
+        }
+        for (int j = 0; j < s_size; j++)
+        {
+            agent_probs[j] = agent_probs[j] / total_score;
+        }
+        
+        for (int j = 0; j < species_budget[i]; j++)
+        {
+            agent_t* child;
+            if (j == 0)
+            {
+                // Keep champion
+                child = agent_copy_genome(species_champions[i]);
+                
+                // Overwrite species representative
+                agent_t* prev_species_representative = *(agent_t**) vector_get(&pop->species, i);
+                agent_free(prev_species_representative);
+
+                agent_t* new_species_representative = agent_copy_genome(species_champions[i]);
+                vector_set(&pop->species, i, &new_species_representative);
+            }
+            else if (pop->crossover_offspring_prob > rand_uni(0.f, 1.f) && s_size > 1)
+            {
+                // Crossover
+                int parent_a_idx = sample_weighted_elems(agent_probs, s_size);
+                int parent_b_idx = sample_weighted_elems(agent_probs, s_size);
+                while (parent_a_idx == parent_b_idx)
+                {
+                    parent_b_idx = sample_weighted_elems(agent_probs, s_size);
+                }
+
+                if (fitness[parent_b_idx] > fitness[parent_a_idx])
+                {
+                    int tmp = parent_a_idx;
+                    parent_a_idx = parent_b_idx;
+                    parent_b_idx = tmp;
+                }
+
+                agent_t* parent_a = prev_gen[parent_a_idx];  // Better parent
+                agent_t* parent_b = prev_gen[parent_b_idx];
+                
+                child = agents_cross(parent_a, parent_b);
+            }
+            else
+            {
+                // Mutation
+                int parent_idx = sample_weighted_elems(agent_probs, s_size);
+                agent_t* parent = prev_gen[parent_idx];
+                child = agent_copy_genome(parent);
+                
+                agent_maybe_mutate(pop, child);
+            }
+            build_agent_network(pop, child);
+            population_add_agent(pop, child, agent_index);
+            agent_index++;
+        }
+    }
+
+    #ifdef DEBUG
+    if (agent_index != pop->size)
+    {
+        printf("Something went wrong when generating offspring!\n");
+        printf("Desired population size: %d; Last child index: %d\n", agent_index, pop->size);
+        exit(EXIT_FAILURE);
+    }
+    #endif
+
+    // Free old population
+    for (int i = 0; i < pop->size; i++)
+    {
+        if (prev_gen[i] != NULL)
+        {
+            agent_free(prev_gen[i]);
+        }
+    }
 }
 
 void population_free(population_t* pop)
 {
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < pop->size; i++)
     {
         if (pop->agents[i] != NULL)
         {

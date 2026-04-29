@@ -20,14 +20,14 @@ void print_innovation(vector* innovations, size_t i)
 
 void print_agents(population_t* pop)
 {
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < pop->size; i++)
     {
         agent_t* a = pop->agents[i];
         if (a == NULL) {
             continue;
         }
         
-        printf("Agent %d: Genes -> ", i);
+        printf("Agent %d (species %d): Genes -> ", i, pop->agent_to_species[i]);
         for (int j = 0; j < a->gene_count; j++)
         {
             printf("%d, ", a->genes[j]);
@@ -66,7 +66,7 @@ void print_species_info(population_t* pop)
     memset(species_sizes, 0, sizeof(species_sizes));
 
     printf("Total species: %zu\n", pop->species.size);
-    for (int i = 0; i < pop->max_size; i++)
+    for (int i = 0; i < pop->size; i++)
     {
         int species_id = pop->agent_to_species[i];
         if (species_id != -1)
@@ -127,7 +127,7 @@ void print_population_best_agent(population_t* pop, float* scores)
     printf("+------------------------+\n");
     float best_score = scores[0];
     int best_agent_idx = 0;
-    for (int i = 1; i < pop->max_size; i++)
+    for (int i = 1; i < pop->size; i++)
     {
         if (best_score < scores[i])
         {
