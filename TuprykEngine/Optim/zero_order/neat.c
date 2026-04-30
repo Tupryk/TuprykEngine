@@ -513,6 +513,10 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
 {
     size_t prev_gen_species_count = pop->species.size;
     float adjusted_fitness[pop->size];
+    float offset_fitness[pop->size];
+    float min_fitness = fitness[0];
+    for (int i = 1; i < pop->size; i++) if (min_fitness > fitness[i]) min_fitness = fitness[i];
+    for (int i = 0; i < pop->size; i++) offset_fitness[i] = fitness[i] - min_fitness;
     
     float avg_adjusted_fitness[prev_gen_species_count];
     int species_size[prev_gen_species_count];
@@ -532,7 +536,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
             sum_of_fellows += agent_compatibility_dist(pop->agents[i], pop->agents[j]);
         }
         
-        adjusted_fitness[i] = fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
+        adjusted_fitness[i] = offset_fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
         
         species_agent_indices[current_species][species_size[current_species]] = i;
         species_size[current_species]++;
@@ -607,11 +611,12 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
         float total_score = 0.f;
         for (int j = 0; j < s_size; j++)
         {
-            float score = fitness[species_agent_indices[i][j]];
+            float score = offset_fitness[species_agent_indices[i][j]];
             agent_probs[j] = score;
             species_scores[j] = score;
             total_score += score;
         }
+        if (abs(total_score) < 1e-6) total_score = 1.f;
         for (int j = 0; j < s_size; j++)
         {
             agent_probs[j] = agent_probs[j] / total_score;
@@ -629,6 +634,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
                 agent_t* prev_species_representative = *(agent_t**) vector_get(&pop->species, i);
                 agent_free(prev_species_representative);
 
+                // TODO: Don't overwrite current species vector
                 agent_t* new_species_representative = agent_copy_genome(species_champions[i]);
                 vector_set(&pop->species, i, &new_species_representative);
             }
@@ -642,7 +648,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
                     parent_b_idx = sample_weighted_elems(agent_probs, s_size);
                 }
 
-                if (fitness[parent_b_idx] > fitness[parent_a_idx])
+                if (offset_fitness[parent_b_idx] > offset_fitness[parent_a_idx])
                 {
                     int tmp = parent_a_idx;
                     parent_a_idx = parent_b_idx;
