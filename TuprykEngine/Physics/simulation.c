@@ -54,9 +54,9 @@ tensor* q_acc_from_gravity(config* C)
         {
             // TODO: Add air friction here?
 
-            q_acc_v[q_delta_id    ] = gravity->values[0];
-            q_acc_v[q_delta_id + 1] = gravity->values[1];
-            q_acc_v[q_delta_id + 2] = gravity->values[2];
+            // q_acc_v[q_delta_id    ] = gravity->values[0];
+            // q_acc_v[q_delta_id + 1] = gravity->values[1];
+            // q_acc_v[q_delta_id + 2] = gravity->values[2];
 
             tensor_sub(joint_data->com, joint_frame->pos, c_r);
             tensor_scalar_mult(gravity, joint_data->total_mass, gravity_force);
@@ -470,7 +470,7 @@ void sim_step(config* C, float tau)
     load_collision_forces_to_joints(C);
     tensor* q_acc = q_delta_from_forces(C);
     tensor* q_acc_g = q_acc_from_gravity(C);
-    // tensor_add(q_acc, q_acc_g, q_acc);
+    tensor_add(q_acc, q_acc_g, q_acc);
     tensor_free(q_acc_g);
     
     // Integrate Velocites and Positions

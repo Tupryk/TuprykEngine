@@ -40,9 +40,6 @@ typedef struct
     int out_dim;
 
     int size;
-    int keep_best_n;
-    int agent_children_count;
-    
     float network_size_cost_weight;
     float new_node_mutation_prob;
     float new_link_mutation_prob;

@@ -38,9 +38,6 @@ void draw_network(population_t* pop, agent_t* a)
         node_pos[node_id][1] = (float) layer_idx;
         in_layer_idx++;
 
-        // TODO: This should not be used for feeding agent as not all values get propagated...
-        // Possibly do more than one iteration?
-        
         for (int i = 0; i < a->connection_counts[node_id]; i++)
         {
             int forward_node = a->connections[node_id][i];
@@ -63,6 +60,7 @@ void draw_network(population_t* pop, agent_t* a)
             layer_idx++;
         }
     }
+    int_stack_free(stack);
     int_stack_free(next_stack);
     
     int layer_count = layer_idx;

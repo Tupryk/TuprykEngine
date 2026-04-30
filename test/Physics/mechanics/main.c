@@ -72,7 +72,7 @@ void add_trans_force(config* C, int frame_id, float* force_values, float* poa_va
 
 int test_forces()
 {
-    float tau = 0.02f;
+    float tau = 0.001f;
     config* C = init_devastator_config();
     
     tensor* new_q = tensor_copy_shape(C->q);
@@ -105,7 +105,7 @@ int test_forces()
 
     print_config(C);
     
-    int frame_count = 64;
+    int frame_count = 512;
     tensor* video_frames[frame_count];
     tensor* com = new_tensor_vector(3, NULL);
 
@@ -127,7 +127,10 @@ int test_forces()
             force_free(tor);
         }
     }
+
+    init_window();
     play_video(video_frames, frame_count, tau);
+    free_window();
     
     config_free(C);
     for (int i = 0; i < frame_count; i++)
@@ -142,7 +145,6 @@ int test_forces()
 int main(void)
 {
     srand( time( NULL ) );
-    init_window();
 
     int failures_count = 0;
     // failures_count += test_com();
@@ -154,6 +156,5 @@ int main(void)
         printf("\033[1;32mAll tests passed! :)\033[0m\n");
     }
 
-    free_window();
     return 0;
 }

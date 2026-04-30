@@ -162,7 +162,7 @@ int test_full()
 {
     int in_dim = 3;
     int out_dim = 2;
-    int generation_count = 100;
+    int generation_count = 1000;
     int task_trials = 100;
 
     population_t* pop = init_population(in_dim, out_dim);
@@ -181,7 +181,7 @@ int test_full()
             population_feed_all_agents_same(pop, input, output);
             for (int k = 0; k < pop->size; k++)
             {
-                scores[k] += task2_eval(input, output[k]);
+                scores[k] += task1_eval(input, output[k]);
             }
         }
         for (int k = 0; k < pop->size; k++)
@@ -215,9 +215,9 @@ int main()
     // failure_count += test_init();
     // failure_count += test_speciation();
     // failure_count += test_crossover();
-    failure_count += test_feed_agent();
+    // failure_count += test_feed_agent();
     // failure_count += test_resample();
-    // failure_count += test_full();
+    failure_count += test_full();
     
     if (failure_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failure_count);

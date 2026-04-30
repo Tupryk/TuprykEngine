@@ -6,6 +6,17 @@
 #include "../Geom/quaternions.h"
 
 
+tensor* compute_mass_matrix(config* C)
+{
+    // Maps joint accelerations to generalised forces
+    // MuJoCo computes M efficiently via the Composite Rigid Body (CRB) algorithm
+    tensor* M = new_tensor_matrix(C->q->shape[0], C->q_vel->shape[0], NULL);
+
+    // TODO:
+    
+    return M;
+}
+
 float center_of_mass(config* C, int root, tensor* com)
 {
     #ifdef DEBUG

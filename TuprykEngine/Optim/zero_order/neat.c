@@ -158,12 +158,9 @@ population_t* init_population(int in_dim, int out_dim)
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
 
-    pop->size = 150;
-    pop->keep_best_n = 50;
-    pop->agent_children_count = 2;
-
     // TODO: neat_opt struct and default struct
-    pop->network_size_cost_weight = 0.f;
+    pop->size = 150;
+    pop->network_size_cost_weight = 10.f;
     pop->new_node_mutation_prob = 0.03f;
     pop->new_link_mutation_prob = 0.05f;  // Larger population can tolerate a larger number of prospective species -> 0.3f
     pop->weights_mutation_prob = 0.8f;
@@ -440,7 +437,65 @@ void agent_maybe_mutate(population_t* pop, agent_t* a)
 
 void agent_feed(agent_t* a, int in_dim, int out_dim, float* input, float* output)
 {
+    // TODO: This is wrong not all inputs are fed into the neurons
     reset_agent(a);
+
+    // Initialize the input layer
+    int_stack* stack = int_stack_init();
+    for (int i = 0; i < in_dim; i++)
+    {
+        a->activations[i] = input[i];
+        a->activation_count[i]++;
+        int_stack_push(stack, i);
+    }
+
+    // Forward through the network
+    int_stack* next_stack = int_stack_init();
+    while (stack->size > 0)
+    {
+        int node_id = int_stack_pop(stack);
+        // Pass through non-linearity
+        float node_activation = a->activations[node_id];
+        float forward_act = node_activation + a->activation_biases[node_id];
+        switch (a->activation_funcs[node_id])
+        {
+        case 0:
+            // Linear
+            break;
+
+        case 1:
+            forward_act = relu(forward_act);
+            break;
+
+        default:
+            #ifdef DEBUG
+            printf("Invalid node activation function!\n");
+            exit(EXIT_FAILURE);
+            #endif
+            break;
+        }
+
+        for (int i = 0; i < a->connection_counts[node_id]; i++)
+        {
+            int forward_node = a->connections[node_id][i];
+            float w = a->connection_weight[node_id][i];
+            a->activations[forward_node] += w * forward_act;
+            if (!a->activation_count[forward_node])
+            {
+                a->activation_count[forward_node]++;
+                int_stack_push(next_stack, forward_node);
+            }
+        }
+
+        if (stack->size <= 0)
+        {
+            int_stack_free(stack);
+            stack = next_stack;
+            next_stack = int_stack_init();
+        }
+    }
+    int_stack_free(stack);
+    int_stack_free(next_stack);
 
     // Write to output array
     for (int i = 0; i < out_dim; i++)
@@ -616,10 +671,16 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
             species_scores[j] = score;
             total_score += score;
         }
-        if (abs(total_score) < 1e-6) total_score = 1.f;
-        for (int j = 0; j < s_size; j++)
+        if (fabsf(total_score) < 1e-6)
         {
-            agent_probs[j] = agent_probs[j] / total_score;
+            for (int j = 0; j < s_size; j++) agent_probs[j] = 1.f / (float) s_size;
+        }
+        else
+        {
+            for (int j = 0; j < s_size; j++)
+            {
+                agent_probs[j] = agent_probs[j] / total_score;
+            }
         }
         
         for (int j = 0; j < species_budget[i]; j++)
