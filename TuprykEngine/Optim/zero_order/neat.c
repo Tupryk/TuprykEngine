@@ -591,7 +591,7 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
             sum_of_fellows += agent_compatibility_dist(pop->agents[i], pop->agents[j]);
         }
         
-        adjusted_fitness[i] = offset_fitness[i] / sum_of_fellows + ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
+        adjusted_fitness[i] = offset_fitness[i] / sum_of_fellows - ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
         
         species_agent_indices[current_species][species_size[current_species]] = i;
         species_size[current_species]++;
