@@ -1,17 +1,16 @@
 #ifndef RRT
 #define RRT
 
+#include "../../Algos/lists.h"
 #include "../../LinAlg/tensor.h"
 #include "../../Configuration/configuration.h"
 
-struct rrt_node
+typedef struct
 {
-    int idx;
     tensor* q;
-    struct rrt_node* parent;
-    struct rrt_node* next;
-};
+    int parent;
+} rrt_node;
 
-tensor* rrt_find_path(struct config* C, tensor* q0, tensor* qT, float stepsize);
+stack* rrt_find_path(config* C, tensor* q0, tensor* qT, float stepsize);
 
 #endif

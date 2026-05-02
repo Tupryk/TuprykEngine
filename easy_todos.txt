@@ -10,6 +10,6 @@
 - MLP?
 - RRT
 - Documentation
-- Gravity thing with bodies as pullers
+- Gravity thing with bodies as pullers (planets)
 - Friction as part of config
 - Using size_t instead of int?
