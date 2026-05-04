@@ -30,6 +30,8 @@ struct optim_logs* newton(
     int H_shape[] = {J->shape[0], J->shape[0]};
     tensor* H = new_tensor(H_shape, 2, NULL);
     tensor* H_inv = tensor_copy_shape(H);
+
+    // Make sure inverse exists
     tensor* damping = tensor_copy_shape(H);
     tensor_identity(damping);
     tensor_scalar_mult(damping, 1e-3, damping);

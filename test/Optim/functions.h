@@ -19,6 +19,8 @@ void quadratic_free();
 float quadratic_eval(tensor* x);
 void quadratic_eval2(tensor* x, tensor* out);
 void quadratic_eval3(tensor* x, tensor* out);
-struct nlp* get_nlp0();
+nlp_t* get_nlp0();
+nlp_t* get_nlp1();
+nlp_t* get_nlp2();
 
 #endif

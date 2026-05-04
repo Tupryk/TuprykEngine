@@ -37,7 +37,7 @@ int main()
 
     printf("--- Test 1: Gradient Descent ---\n");
     gradient_descent_init(init_x, quadratic_eval, quadratic_eval2, 1e-1, 1e-2, 100);
-    gradient_descent_run();
+    gradient_descent_run(init_x);
     gradient_descent_free();
 
     printf("--- Test 2: Newton ---\n");

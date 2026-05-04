@@ -7,24 +7,114 @@
 #include "../../../TuprykEngine/Optim/constrained/nlp.h"
 #include "../../../TuprykEngine/Optim/constrained/augmented_lagrangian.h"
 
+#include "../../../TuprykEngine/visual/graphics/basic.h"
+#include "../../../TuprykEngine/visual/graphics/window.h"
 
-int main()
+
+void draw_x(nlp_t* nlp, tensor* x)
 {
-    int shape[] = {2, 1};
+    int feasible = nlp_feasible(nlp, x);
+
+    if (feasible) set_color(0.1216f, 0.4667f, 0.7059f);
+    else set_color(1.0f, 0.4980f, 0.0549f);
+
+    int cx = ((x->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
+    int cy = ((x->values[1] + 1.f) * 0.5f) * ((float) WINDOW_H);
+    draw_circle(cx, cy, 2);
+}
+
+int test_aug_lagrangian()
+{
     float values[] = {11.f, -5.f};
-    tensor* init_x = new_tensor(shape, 2, values);
+    tensor* init_x = new_tensor_vector(2, values);
     
     quadratic_init();
-    struct nlp* nlp_0 = get_nlp0();
+    nlp_t* nlp = get_nlp0();
 
     printf("--- Test 1: Augmented Lagrangian ---\n");
-    aug_lagrangian_init(init_x, nlp_0, 1e-1, 1e-2, 100);
-    aug_lagrangian_run();
+    aug_lagrangian_init(init_x, nlp, 1e-1, 1e-2, 10, 10);
+    aug_lagrangian_run(init_x);
     aug_lagrangian_free();
     
-    nlp_free(nlp_0);
+    nlp_free(nlp);
     tensor_free(init_x);
     quadratic_free();
 
+    return 0;
+}
+
+int test_nlp_feasibility()
+{
+    int sample_count = 1000;
+    tensor* x = new_tensor_vector(2, NULL);
+    
+    nlp_t* nlp = get_nlp2();
+
+    init_window();
+    set_color(1.f, 1.f, 1.f);
+    window_clear();
+
+    printf("--- Test 2: NLP Feasibility ---\n");
+    for (int i = 0; i < sample_count; i++)
+    {
+        tensor_fill_uniform(x, -1.f, 1.f);
+        draw_x(nlp, x);
+    }
+    window_wait();
+    free_window();
+    
+    nlp_free(nlp);
+    tensor_free(x);
+
+    return 0;
+}
+
+int test_constraint_sampling()
+{
+    int sample_count = 1000;
+    tensor* x = new_tensor_vector(2, NULL);
+    
+    nlp_t* nlp = get_nlp2();
+
+    init_window();
+    set_color(1.f, 1.f, 1.f);
+    window_clear();
+
+    printf("--- Test 3: Constraint Sampling ---\n");
+    for (int i = 0; i < sample_count; i++)
+    {
+        tensor_fill_uniform(x, -1.f, 1.f);
+        
+        aug_lagrangian_init(x, nlp, 1e-2, 1e-2, 10, 10);
+        
+        struct nlp_optim_logs* col = aug_lagrangian_run(x);
+        tensor_transfer_values(x, col->final_x);
+        
+        aug_lagrangian_free();
+        
+        draw_x(nlp, x);
+    }
+    window_wait();
+    free_window();
+    
+    nlp_free(nlp);
+    tensor_free(x);
+
+    return 0;
+}
+
+int main()
+{
+    int failure_count = 0;
+
+    // failure_count += test_aug_lagrangian();
+    failure_count += test_nlp_feasibility();
+    failure_count += test_constraint_sampling();
+    
+    if (failure_count > 0) {
+        printf("\033[1;31mFailed %d test(s)!\033[0m\n", failure_count);
+    } else {
+        printf("\033[1;32mAll tests passed! :)\033[0m\n");
+    }
     return 0;
 }

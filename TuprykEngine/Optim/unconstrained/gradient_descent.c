@@ -48,8 +48,10 @@ void gradient_descent_init(
     ctx->total_steps = 0;
 }
 
-int gradient_descent_run()
+struct optim_logs* gradient_descent_run(tensor* x)
 {
+    tensor_transfer_values(ctx->x, x);
+
     float cost;
     #ifdef OPTIM_VERBOSE
     cost = ctx->cost_func(ctx->x);
@@ -97,7 +99,7 @@ int gradient_descent_run()
     ctx->logs->final_cost = cost;
     ctx->logs->final_x = tensor_copy(ctx->x);
 
-    return ctx->logs->converged;
+    return ctx->logs;
 }
 
 void gradient_descent_free()

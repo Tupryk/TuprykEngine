@@ -6,9 +6,9 @@
 
 
 typedef float (*scalar_fn)(tensor*);
-typedef void (*constraint_fn)(tensor*, tensor*);
+typedef void (*vector_fn)(tensor*, tensor*);
 
-struct nlp
+typedef struct
 {
     int eq_count;
     int ineq_count;
@@ -17,20 +17,22 @@ struct nlp
     scalar_fn* eq;
     scalar_fn* ineq;
 
-    constraint_fn delta_f;
-    constraint_fn* delta_eq;
-    constraint_fn* delta_ineq;
+    vector_fn delta_f;
+    vector_fn* delta_eq;
+    vector_fn* delta_ineq;
 
-    constraint_fn delta2_f;
-    constraint_fn* delta2_eq;
-    constraint_fn* delta2_ineq;
-};
+    vector_fn delta2_f;
+    vector_fn* delta2_eq;
+    vector_fn* delta2_ineq;
+} nlp_t;
 
-void nlp_free(struct nlp* nlp_);
+int nlp_feasible(nlp_t* nlp, tensor* x);
+void nlp_free(nlp_t* nlp);
 
 struct nlp_optim_logs
 {
     struct optim_logs* ol;
+    tensor* final_x;
 };
 
 struct nlp_optim_logs* nlp_logs_init();

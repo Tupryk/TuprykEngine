@@ -3,12 +3,13 @@
 
 void aug_lagrangian_init(
     tensor* x0,
-    struct nlp* nlp_,
+    nlp_t* nlp,
     float alpha,
     float tolerance,
-    int max_iters
+    int max_outer_steps,
+    int max_inner_steps
 );
-int aug_lagrangian_run();
+struct nlp_optim_logs* aug_lagrangian_run(tensor* x);
 void aug_lagrangian_free();
 
 #endif

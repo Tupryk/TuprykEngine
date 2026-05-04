@@ -10,6 +10,7 @@ SDL_Window* window;
 SDL_Renderer* renderer;
 
 void init_window();
+void window_clear();
 void window_wait();
 void window_wait_with_func(void (*func)());
 void free_window();

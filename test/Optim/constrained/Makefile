@@ -12,7 +12,9 @@ SRCS = main.c \
 	../../../TuprykEngine/visual/graphics/basic.c \
 	../../../TuprykEngine/visual/graphics/window.c \
 	../../../TuprykEngine/Optim/constrained/augmented_lagrangian.c \
-	../../../TuprykEngine/Optim/constrained/nlp.c
+	../../../TuprykEngine/Optim/constrained/nlp.c \
+	../../../TuprykEngine/visual/graphics/basic.c \
+	../../../TuprykEngine/visual/graphics/window.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

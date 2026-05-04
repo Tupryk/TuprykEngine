@@ -21,6 +21,11 @@ void init_window()
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 }
 
+void window_clear()
+{
+    SDL_RenderClear(renderer);
+}
+
 void window_wait()
 {
     SDL_RenderPresent(renderer);

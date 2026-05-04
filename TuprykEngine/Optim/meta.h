@@ -3,6 +3,8 @@
 
 #include "../LinAlg/tensor.h"
 
+#define EPSILON 1e-3
+
 // NOT OPTIMAL
 struct optim_logs
 {

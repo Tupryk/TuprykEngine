@@ -11,7 +11,7 @@ void gradient_descent_init(
     float tolerance,
     int max_iters
 );
-int gradient_descent_run();
+struct optim_logs* gradient_descent_run(tensor* x);
 void gradient_descent_free();
 
 #endif
