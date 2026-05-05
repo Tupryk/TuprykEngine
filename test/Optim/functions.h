@@ -22,5 +22,6 @@ void quadratic_eval3(tensor* x, tensor* out);
 nlp_t* get_nlp0();
 nlp_t* get_nlp1();
 nlp_t* get_nlp2();
+nlp_t* get_nlp3();
 
 #endif

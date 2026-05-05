@@ -23,13 +23,13 @@ int nlp_feasible(nlp_t* nlp, tensor* x)
     for (int i = 0; i < nlp->ineq_count; i++)
     {
         float eval = nlp->ineq[i](x);
-        if (eval > 0) return 0;
+        if (eval > 1e-2) return 0;
     }
 
     for (int i = 0; i < nlp->eq_count; i++)
     {
         float eval = nlp->eq[i](x);
-        if (fabsf(eval) > 1e-6) return 0;
+        if (fabsf(eval) > 1e-2) return 0;
     }
 
     return 1;

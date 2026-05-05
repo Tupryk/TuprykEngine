@@ -32,11 +32,20 @@ float aug_lagrangian_eval_nlp(tensor* x)
     float ineq_squared_sum = 0.f;
     for (int i = 0; i < ctx->nlp->ineq_count; i++)
     {
-        float eval = ctx->nlp->ineq[i](x);
-        ineq_squared_sum += eval > 0.f ? eval * eval : 0.f;
-        out += ctx->lambda->values[i] * eval;
+        float gi = ctx->nlp->ineq[i](x);
+        ineq_squared_sum += gi > 0.f ? gi * gi : 0.f;
+        out += ctx->lambda->values[i] * gi;
     }
     out += 0.5f * ctx->mu * ineq_squared_sum;
+
+    float eq_squared_sum = 0.f;
+    for (int i = 0; i < ctx->nlp->eq_count; i++)
+    {
+        float hi = ctx->nlp->eq[i](x);
+        eq_squared_sum += hi * hi;
+        out += ctx->kappa->values[i] * hi;
+    }
+    out += 0.5f * ctx->nu * eq_squared_sum;
 
     return out;
 }
@@ -49,10 +58,18 @@ void aug_lagrangian_eval2_nlp(tensor* x, tensor* out)
 
     for (int i = 0; i < ctx->nlp->ineq_count; i++)
     {
-        float eval = ctx->nlp->ineq[i](x);
+        float gi = ctx->nlp->ineq[i](x);
         ctx->nlp->delta_ineq[i](x, eval2);
-        eval = eval > 0.f ? ctx->mu * eval : 0.f;
-        tensor_scalar_mult(eval2, ctx->lambda->values[i] + eval, eval2);
+        gi = gi > 0.f ? ctx->mu * gi : 0.f;
+        tensor_scalar_mult(eval2, ctx->lambda->values[i] + gi, eval2);
+        tensor_add(out, eval2, out);
+    }
+
+    for (int i = 0; i < ctx->nlp->eq_count; i++)
+    {
+        float hi = ctx->nlp->eq[i](x);
+        ctx->nlp->delta_eq[i](x, eval2);
+        tensor_scalar_mult(eval2, ctx->kappa->values[i] + hi * ctx->nu, eval2);
         tensor_add(out, eval2, out);
     }
 
@@ -110,6 +127,12 @@ struct nlp_optim_logs* aug_lagrangian_run(tensor* x)
             float lambda = ctx->lambda->values[j];
             float tmp = lambda + ctx->mu * gi;
             ctx->lambda->values[j] = tmp > 0.f ? tmp : 0.f;
+        }
+
+        for (int j = 0; j < ctx->nlp->eq_count; j++)
+        {
+            float hi = ctx->nlp->eq[j](ctx->x);
+            ctx->kappa->values[j] += ctx->nu * hi;
         }
     
         tensor_transfer_values(ctx->x, ol->final_x);

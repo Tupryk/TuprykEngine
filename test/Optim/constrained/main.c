@@ -48,7 +48,7 @@ int test_nlp_feasibility()
     int sample_count = 1000;
     tensor* x = new_tensor_vector(2, NULL);
     
-    nlp_t* nlp = get_nlp2();
+    nlp_t* nlp = get_nlp3();
 
     init_window();
     set_color(1.f, 1.f, 1.f);
@@ -74,7 +74,7 @@ int test_constraint_sampling()
     int sample_count = 1000;
     tensor* x = new_tensor_vector(2, NULL);
     
-    nlp_t* nlp = get_nlp2();
+    nlp_t* nlp = get_nlp3();
 
     init_window();
     set_color(1.f, 1.f, 1.f);
