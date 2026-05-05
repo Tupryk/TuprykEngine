@@ -23,5 +23,6 @@ nlp_t* get_nlp0();
 nlp_t* get_nlp1();
 nlp_t* get_nlp2();
 nlp_t* get_nlp3();
+nlp_t* get_nlp4();
 
 #endif

@@ -48,7 +48,7 @@ int test_nlp_feasibility()
     int sample_count = 1000;
     tensor* x = new_tensor_vector(2, NULL);
     
-    nlp_t* nlp = get_nlp3();
+    nlp_t* nlp = get_nlp4();
 
     init_window();
     set_color(1.f, 1.f, 1.f);

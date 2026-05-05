@@ -160,7 +160,7 @@ population_t* init_population(int in_dim, int out_dim)
 
     // TODO: neat_opt struct and default struct
     pop->size = 150;
-    pop->network_size_cost_weight = 10.f;
+    pop->network_size_cost_weight = 0.f;
     pop->new_node_mutation_prob = 0.03f;
     pop->new_link_mutation_prob = 0.05f;  // Larger population can tolerate a larger number of prospective species -> 0.3f
     pop->weights_mutation_prob = 0.8f;
@@ -591,7 +591,11 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
             sum_of_fellows += agent_compatibility_dist(pop->agents[i], pop->agents[j]);
         }
         
-        adjusted_fitness[i] = offset_fitness[i] / sum_of_fellows - ((float) pop->agents[i]->node_count) * pop->network_size_cost_weight;
+        // TODO: Where should network_size_cost go?
+        float network_size_cost = ((float) pop->agents[i]->node_count);
+        network_size_cost *= network_size_cost;
+        network_size_cost *= pop->network_size_cost_weight;
+        adjusted_fitness[i] = offset_fitness[i] / sum_of_fellows - network_size_cost;
         
         species_agent_indices[current_species][species_size[current_species]] = i;
         species_size[current_species]++;
@@ -624,9 +628,9 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
         for (int j = 0; j < species_size[i]; j++)
         {
             int ai = species_agent_indices[i][j];
-            if (avg_adjusted_fitness[ai] > species_champions_score[i] || species_champions[i] == NULL)
+            if (adjusted_fitness[ai] > species_champions_score[i] || species_champions[i] == NULL)
             {
-                species_champions_score[i] = avg_adjusted_fitness[ai];
+                species_champions_score[i] = adjusted_fitness[ai];
                 species_champions[i] = pop->agents[ai];
             }
         }
@@ -708,6 +712,8 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
                 {
                     parent_b_idx = sample_weighted_elems(agent_probs, s_size);
                 }
+                parent_a_idx = species_agent_indices[i][parent_a_idx];
+                parent_b_idx = species_agent_indices[i][parent_b_idx];
 
                 if (offset_fitness[parent_b_idx] > offset_fitness[parent_a_idx])
                 {

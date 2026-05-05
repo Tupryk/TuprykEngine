@@ -179,3 +179,26 @@ nlp_t* get_nlp3()
 
     return nlp;
 }
+
+nlp_t* get_nlp4()
+{
+    nlp_t* nlp = (nlp_t*) malloc(sizeof(nlp_t));
+    nlp->eq_count = 1;
+    nlp->ineq_count = 0;
+    
+    nlp->f = zero_eval;
+    nlp->eq = (scalar_fn*) malloc(sizeof(scalar_fn) * nlp->eq_count);
+    nlp->eq[0] = side1_eval;
+    nlp->ineq = NULL;
+    
+    nlp->delta_f = zero_eval2;
+    nlp->delta_eq = (vector_fn*) malloc(sizeof(vector_fn) * nlp->eq_count);
+    nlp->delta_eq[0] = side1_eval2;
+    nlp->delta_ineq = NULL;
+    
+    nlp->delta2_f = NULL;
+    nlp->delta2_eq = NULL;
+    nlp->delta2_ineq = NULL;
+
+    return nlp;
+}
