@@ -3,6 +3,7 @@
 #include <math.h>
 #include "tensor.h"
 #include "../global.h"
+#include "../Stochastic/sample.h"
 
 #ifdef DEBUG
 #include "../visual/prints/linalg.h"
@@ -100,7 +101,15 @@ void tensor_fill_uniform(tensor* t, float min, float max)
 {
     for (int i = 0; i < t->volume; i++)
     {
-        t->values[i] = (((float) (rand() % (int) 1e6)) * 1e-6) * (max - min) + min;
+        t->values[i] = rand_uni(min, max);
+    }
+}
+
+void tensor_fill_gauss(tensor* t, float mean, float std)
+{
+    for (int i = 0; i < t->volume; i++)
+    {
+        t->values[i] = rand_gauss(mean, std);
     }
 }
 

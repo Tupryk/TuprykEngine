@@ -13,6 +13,12 @@ float rand_uni(float min, float max)
     return (((float)(rand() % 100000)) * 0.00001f) * (max - min) + min;
 }
 
+float rand_gauss(float mean, float std)
+{
+    // TODO:
+    return rand_uni(-1, 1);
+}
+
 int sample_weighted_elems(float* elem_probs, int elem_count)
 {
     float sample = rand_uni(0.f, 1.f);

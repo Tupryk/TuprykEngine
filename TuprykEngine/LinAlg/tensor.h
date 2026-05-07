@@ -22,6 +22,7 @@ tensor* tensor_copy(tensor* t);
 tensor* tensor_copy_shape(tensor* t);
 void tensor_fill(tensor* t, float value);
 void tensor_fill_uniform(tensor* t, float min, float max);
+void tensor_fill_gauss(tensor* t, float mean, float std);
 void tensor_transfer_values(tensor* to, tensor* from);
 void tensor_set_values(tensor* t, float* values);
 void tensor_free(tensor* t);

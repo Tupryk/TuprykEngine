@@ -5,6 +5,7 @@
 #include "../functions.h"
 #include "../../../TuprykEngine/Optim/meta.h"
 #include "../../../TuprykEngine/Optim/constrained/nlp.h"
+#include "../../../TuprykEngine/Optim/constrained/sampling/nhr.h"
 #include "../../../TuprykEngine/Optim/constrained/augmented_lagrangian.h"
 
 #include "../../../TuprykEngine/visual/graphics/basic.h"
@@ -48,7 +49,7 @@ int test_nlp_feasibility()
     int sample_count = 1000;
     tensor* x = new_tensor_vector(2, NULL);
     
-    nlp_t* nlp = get_nlp4();
+    nlp_t* nlp = get_nlp1();
 
     init_window();
     set_color(1.f, 1.f, 1.f);
@@ -103,13 +104,46 @@ int test_constraint_sampling()
     return 0;
 }
 
+int test_nhr_constraint_sampling()
+{
+    int sample_count = 1000;
+    tensor* x = new_tensor_vector(2, NULL);
+    
+    nlp_t* nlp = get_nlp1();
+    tensor* samples[sample_count];
+    tensor* feasible_point = new_tensor_vector(2, NULL);
+    
+    nhr_sample(nlp, feasible_point, sample_count, 2.f, samples);
+    
+    tensor_free(feasible_point);
+
+    init_window();
+    set_color(1.f, 1.f, 1.f);
+    window_clear();
+
+    printf("--- Test 4: NHR Constraint Sampling ---\n");
+    for (int i = 0; i < sample_count; i++)
+    {
+        draw_x(nlp, samples[i]);
+        tensor_free(samples[i]);
+    }
+    window_wait();
+    free_window();
+    
+    nlp_free(nlp);
+    tensor_free(x);
+
+    return 0;
+}
+
 int main()
 {
     int failure_count = 0;
 
     // failure_count += test_aug_lagrangian();
     failure_count += test_nlp_feasibility();
-    failure_count += test_constraint_sampling();
+    // failure_count += test_constraint_sampling();
+    test_nhr_constraint_sampling();
     
     if (failure_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failure_count);
