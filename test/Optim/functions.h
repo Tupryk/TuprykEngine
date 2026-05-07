@@ -24,5 +24,6 @@ nlp_t* get_nlp1();
 nlp_t* get_nlp2();
 nlp_t* get_nlp3();
 nlp_t* get_nlp4();
+float gaussian(tensor* x);
 
 #endif

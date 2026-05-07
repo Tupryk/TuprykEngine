@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "functions.h"
@@ -204,4 +205,13 @@ nlp_t* get_nlp4()
     nlp->delta2_ineq = NULL;
 
     return nlp;
+}
+
+float gaussian(tensor* x)
+{
+    float std = .25f;
+
+    float norm2 = vector_squared_norm(x);
+
+    return 1.f / sqrtf(2.f * M_PI * std * std) * expf(-norm2 / (2.f * std * std));
 }
