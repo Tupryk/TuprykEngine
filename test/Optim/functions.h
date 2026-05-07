@@ -24,6 +24,8 @@ nlp_t* get_nlp1();
 nlp_t* get_nlp2();
 nlp_t* get_nlp3();
 nlp_t* get_nlp4();
+nlp_t* get_nlp_two_disks();
+nlp_t* get_nlp_swiss_roll();
 float gaussian(tensor* x);
 
 #endif

@@ -2,6 +2,7 @@
 #include "../../../Algos/utils.h"
 #include "../../../Stochastic/sample.h"
 
+
 void mcmc_sample(float (*P)(tensor*), tensor* x0, float step_std, int sample_count, tensor** outputs)
 {
     // Metropolis-Hastings

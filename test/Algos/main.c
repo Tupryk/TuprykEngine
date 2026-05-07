@@ -2,8 +2,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "../../TuprykEngine/Algos/lists.h"
+#include "../../TuprykEngine/Algos/spatial_data.h"
+
 #include "../../TuprykEngine/visual/prints/algos.h"
+#include "../../TuprykEngine/visual/graphics/basic.h"
+#include "../../TuprykEngine/visual/graphics/window.h"
 
 
 int test_vector()
@@ -77,10 +82,68 @@ int test_stack()
     return 0;
 }
 
+int test_kd_tree()
+{
+    int k = 100;
+    int indices[k];
+    float dists[k];
+    int total_points = 1000;
+    tensor* points[total_points];
+    for (int i = 0; i < total_points; i++)
+    {
+        points[i] = new_tensor_vector(2, NULL);
+        tensor_fill_uniform(points[i], -1.f, 1.f);
+    }
+
+    kd_tree_t* kt = kd_tree_init(points, total_points);
+
+    tensor* query = new_tensor_vector(2, NULL);
+    kd_tree_knn(kt, query, k, indices, dists);
+    tensor_free(query);
+
+    printf("indices: [");
+    for (int i = 0; i < k; i++)
+    {
+        printf("%d, ", indices[i]);
+    }
+    printf("]\n");
+
+    init_window();
+    set_color(1.f, 1.f, 1.f);
+    window_clear();
+
+    for (int i = 0; i < total_points; i++)
+    {
+        set_color(0.1216f, 0.4667f, 0.7059f);
+        for (int j = 0; j < k; j++)
+        {
+            if (indices[j] == i)
+            {
+                set_color(1.0f, 0.4980f, 0.0549f);
+                break;
+            }
+        }
+
+        int cx = ((points[i]->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
+        int cy = ((-points[i]->values[1] + 1.f) * 0.5f) * ((float) WINDOW_H);
+        draw_circle(cx, cy, 2);
+
+        tensor_free(points[i]);
+    }
+
+    window_wait();
+    free_window();
+
+    kd_tree_free(kt);
+
+    return 0;
+}
+
 int main()
 {
     // test_vector();
     // test_int_stack();
-    test_stack();
+    // test_stack();
+    test_kd_tree();
     return 0;
 }

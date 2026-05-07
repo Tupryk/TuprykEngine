@@ -17,8 +17,7 @@ SRCS = main.c \
 	../../../TuprykEngine/Optim/constrained/sampling/nhr.c \
 	../../../TuprykEngine/Optim/constrained/sampling/mcmc.c \
 	../../../TuprykEngine/Stochastic/sample.c \
-	../../../TuprykEngine/Algos/utils.c \
-	../../../TuprykEngine/visual/graphics/window.c
+	../../../TuprykEngine/Algos/utils.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

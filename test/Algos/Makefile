@@ -4,6 +4,12 @@ LDFLAGS = `sdl2-config --libs`
 
 SRCS = main.c \
 	../../TuprykEngine/Algos/lists.c \
+	../../TuprykEngine/Algos/spatial_data.c \
+	../../TuprykEngine/LinAlg/tensor.c \
+	../../TuprykEngine/visual/prints/linalg.c \
+	../../TuprykEngine/visual/graphics/basic.c \
+	../../TuprykEngine/visual/graphics/window.c \
+	../../TuprykEngine/Stochastic/sample.c \
 	../../TuprykEngine/visual/prints/algos.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
