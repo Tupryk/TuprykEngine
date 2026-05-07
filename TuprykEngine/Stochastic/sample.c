@@ -8,6 +8,11 @@
 //     // return rand() % (max - min) + min;
 // }
 
+float rand_()
+{
+    return rand_uni(0.f, 1.f);
+}
+
 float rand_uni(float min, float max)
 {
     return (((float)(rand() % 100000)) * 0.00001f) * (max - min) + min;

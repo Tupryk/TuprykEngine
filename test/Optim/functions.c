@@ -90,6 +90,9 @@ nlp_t* get_nlp0()
 float zero_eval(tensor* x) { return 0.f; }
 void zero_eval2(tensor* x, tensor* out) { out->values[0] = 0.f; out->values[1] = 0.f; }
 
+float squared_eval(tensor* x) { return .5f * ((x->values[0] - .5f)*(x->values[0] - .5f) + (x->values[1] + .5f)*(x->values[1] + .5f)) * 10.f; }
+void squared_eval2(tensor* x, tensor* out) { out->values[0] = (x->values[0] - .5f) * 10.f; out->values[1] = (x->values[1] + .5f) * 10.f; }
+
 float side1_eval(tensor* x) { return x->values[0] - 0.5; }
 void side1_eval2(tensor* x, tensor* out) { out->values[0] = 1.f; out->values[1] = 0.f; }
 
@@ -108,7 +111,7 @@ nlp_t* get_nlp1()
     nlp->eq_count = 0;
     nlp->ineq_count = 4;
     
-    nlp->f = zero_eval;
+    nlp->f = squared_eval;
     nlp->eq = NULL;
     nlp->ineq = (scalar_fn*) malloc(sizeof(scalar_fn) * nlp->ineq_count);
     nlp->ineq[0] = side1_eval;
@@ -116,7 +119,7 @@ nlp_t* get_nlp1()
     nlp->ineq[2] = side3_eval;
     nlp->ineq[3] = side4_eval;
     
-    nlp->delta_f = zero_eval2;
+    nlp->delta_f = squared_eval2;
     nlp->delta_eq = NULL;
     nlp->delta_ineq = (vector_fn*) malloc(sizeof(vector_fn) * nlp->ineq_count);
     nlp->delta_ineq[0] = side1_eval2;

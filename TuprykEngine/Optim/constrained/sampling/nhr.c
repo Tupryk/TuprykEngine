@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,9 +8,7 @@
 
 void nhr_sample(nlp_t* nlp, tensor* feasible_point, int sample_count, float delta_max, tensor** output)
 {
-    // TODO: Use nlp->f and nlp->eq
-    // TODO: Clip Betas?
-    // int n = feasible_point->volume;
+    // TODO: Use nlp->eq
     tensor* last_point = tensor_copy(feasible_point);
     tensor* sampled_direction = tensor_copy_shape(feasible_point);
     tensor* y = tensor_copy_shape(feasible_point);
@@ -42,8 +41,15 @@ void nhr_sample(nlp_t* nlp, tensor* feasible_point, int sample_count, float delt
 
             if (all_feasible)
             {
-                tensor_transfer_values(last_point, y);
-                output[i] = tensor_copy(last_point);
+                float acceptance_prob = min(1.f,
+                    expf(-nlp->f(y)) / expf(-nlp->f(last_point))
+                );
+                if (nlp->f != NULL && acceptance_prob > rand_())
+                {
+                    tensor_transfer_values(last_point, y);
+                    output[i] = tensor_copy(last_point);
+                }
+                else i--;
                 break;
             }
 
@@ -55,7 +61,7 @@ void nhr_sample(nlp_t* nlp, tensor* feasible_point, int sample_count, float delt
                     nlp->delta_ineq[j](y, g_delta);
                     float g_line = g_y[j] + vector_dot(g_delta, x_y_diff);
                     float a = vector_dot(g_delta, sampled_direction);
-                    
+
                     beta_lo = max(beta_lo, -g_line/a);
                     beta_up = min(beta_up, -g_line/a);
                 }
