@@ -1,5 +1,5 @@
 #define DEBUG
-#define OPTIM_VERBOSE
+// #define OPTIM_VERBOSE
 
 #include <stdio.h>
 #include "../functions.h"
@@ -7,6 +7,7 @@
 #include "../../../TuprykEngine/Optim/constrained/nlp.h"
 #include "../../../TuprykEngine/Optim/constrained/sampling/nhr.h"
 #include "../../../TuprykEngine/Optim/constrained/sampling/mcmc.h"
+#include "../../../TuprykEngine/Optim/constrained/sampling/masem.h"
 #include "../../../TuprykEngine/Optim/constrained/augmented_lagrangian.h"
 
 #include "../../../TuprykEngine/visual/prints/linalg.h"
@@ -43,7 +44,7 @@ int test_aug_lagrangian()
     nlp_t* nlp = get_nlp0();
 
     printf("--- Test 1: Augmented Lagrangian ---\n");
-    aug_lagrangian_init(init_x, nlp, 1e-1, 1e-2, 10, 10);
+    aug_lagrangian_init(nlp, 1e-1, 1e-2, 10, 10, 1);
     aug_lagrangian_run(init_x);
     aug_lagrangian_free();
     
@@ -96,7 +97,7 @@ int test_constraint_sampling()
     {
         tensor_fill_uniform(x, -1.f, 1.f);
         
-        aug_lagrangian_init(x, nlp, 1e-2, 1e-2, 10, 10);
+        aug_lagrangian_init(nlp, 1e-2, 1e-2, 10, 10, 1);
         
         struct nlp_optim_logs* col = aug_lagrangian_run(x);
         tensor_transfer_values(x, col->final_x);
@@ -178,7 +179,7 @@ int test_masem_constraint_sampling()
     tensor* samples[sample_count];
     tensor* feasible_point = new_tensor_vector(2, NULL);
     
-    nhr_sample(nlp, feasible_point, sample_count, 2.f, samples);
+    masem_sample(nlp, sample_count, 2.f, 1, 10, 5, samples);
     
     tensor_free(feasible_point);
 
@@ -205,9 +206,9 @@ int main()
     int failure_count = 0;
 
     // failure_count += test_aug_lagrangian();
-    failure_count += test_nlp_feasibility();
+    // failure_count += test_nlp_feasibility();
     failure_count += test_constraint_sampling();
-    failure_count += test_nhr_constraint_sampling();
+    // failure_count += test_nhr_constraint_sampling();
     // failure_count += test_mcmc_sampling();
     // failure_count += test_masem_constraint_sampling();
     

@@ -11,6 +11,7 @@
 nlp_t* get_basic_nlp(int eq_count, int ineq_count, int order)
 {
     nlp_t* nlp = (nlp_t*) malloc(sizeof(nlp_t));
+    nlp->dim = 2;
     nlp->eq_count = eq_count;
     nlp->ineq_count = ineq_count;
     

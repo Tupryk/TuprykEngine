@@ -45,8 +45,9 @@ int main()
     optim_logs_free(logs_newton);
 
     printf("--- Test 3: Gauss Newton ---\n");
-    struct optim_logs* logs_gnew = gauss_newton(init_x, quadratic_eval, quadratic_eval2, 1, 1e-2, 100);
-    optim_logs_free(logs_gnew);
+    gauss_newton_init(init_x, quadratic_eval, quadratic_eval2, 1e-1, 1e-2, 100);
+    gauss_newton_run(init_x);
+    gauss_newton_free();
     
     tensor_free(init_x);
     quadratic_free();

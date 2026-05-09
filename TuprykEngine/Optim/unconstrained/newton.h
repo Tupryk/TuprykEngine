@@ -14,7 +14,7 @@ struct optim_logs* newton(
     int max_iters
 );
 
-struct optim_logs* gauss_newton(
+void gauss_newton_init(
     tensor* x0,
     float (*cost_func)(tensor*),
     void (*delta_cost_func)(tensor*, tensor*),
@@ -22,5 +22,9 @@ struct optim_logs* gauss_newton(
     float tolerance,
     int max_iters
 );
+
+struct optim_logs* gauss_newton_run(tensor* x);
+
+void gauss_newton_free();
 
 #endif

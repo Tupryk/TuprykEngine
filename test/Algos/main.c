@@ -94,12 +94,12 @@ int test_kd_tree()
         points[i] = new_tensor_vector(2, NULL);
         tensor_fill_uniform(points[i], -1.f, 1.f);
     }
-
+    
     kd_tree_t* kt = kd_tree_init(points, total_points);
-
     tensor* query = new_tensor_vector(2, NULL);
     kd_tree_knn(kt, query, k, indices, dists);
     tensor_free(query);
+    kd_tree_free(kt);
 
     printf("indices: [");
     for (int i = 0; i < k; i++)
@@ -133,8 +133,6 @@ int test_kd_tree()
 
     window_wait();
     free_window();
-
-    kd_tree_free(kt);
 
     return 0;
 }

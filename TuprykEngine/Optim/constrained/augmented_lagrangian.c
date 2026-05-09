@@ -5,6 +5,7 @@
 #include "nlp.h"
 #include "../meta.h"
 #include "augmented_lagrangian.h"
+#include "../unconstrained/newton.h"
 #include "../unconstrained/gradient_descent.h"
 
 
@@ -19,6 +20,9 @@ struct auglag_context
     float mu;
     float nu;
     int max_outer_steps;
+
+    struct optim_logs* (*inner_opt_run)(tensor*);
+    void (*inner_opt_free)();
 
     struct nlp_optim_logs* logs;
 };
@@ -77,15 +81,17 @@ void aug_lagrangian_eval2_nlp(tensor* x, tensor* out)
 }
 
 void aug_lagrangian_init(
-    tensor* x0,
     nlp_t* nlp,
     float alpha,
     float tolerance,
     int max_outer_steps,
-    int max_inner_steps
+    int max_inner_steps,
+    int inner_opt_id
 ) {
     ctx = (struct auglag_context*) malloc(sizeof(struct auglag_context));
     ctx->logs = nlp_logs_init();
+
+    tensor* x0 = new_tensor_vector(nlp->dim, NULL);
     ctx->logs->final_x = tensor_copy(x0);
     ctx->nlp = nlp;
     ctx->x = tensor_copy(x0);
@@ -102,14 +108,39 @@ void aug_lagrangian_init(
     ctx->nu = 1.f;
     ctx->max_outer_steps = max_outer_steps;
 
-    gradient_descent_init(
-        x0,
-        aug_lagrangian_eval_nlp,
-        aug_lagrangian_eval2_nlp,
-        alpha,
-        tolerance,
-        max_inner_steps
-    );
+    switch (inner_opt_id)
+    {
+        case 0:
+            gradient_descent_init(
+                x0,
+                aug_lagrangian_eval_nlp,
+                aug_lagrangian_eval2_nlp,
+                alpha,
+                tolerance,
+                max_inner_steps
+            );
+            ctx->inner_opt_run = gradient_descent_run;
+            ctx->inner_opt_free = gradient_descent_free;
+            break;
+        case 1:
+            gauss_newton_init(
+                x0,
+                aug_lagrangian_eval_nlp,
+                aug_lagrangian_eval2_nlp,
+                alpha,
+                tolerance,
+                max_inner_steps
+            );
+            ctx->inner_opt_run = gauss_newton_run;
+            ctx->inner_opt_free = gauss_newton_free;
+            break;
+        #ifdef DEBUG
+        default:
+            printf("Unknown inner optimizer for Augmented Lagrangian\n");
+            exit(EXIT_FAILURE);
+            break;
+        #endif
+    }
 }
 
 struct nlp_optim_logs* aug_lagrangian_run(tensor* x)
@@ -118,7 +149,7 @@ struct nlp_optim_logs* aug_lagrangian_run(tensor* x)
 
     for (int i = 0; i < ctx->max_outer_steps; i++)
     {
-        struct optim_logs* ol = gradient_descent_run(ctx->x);
+        struct optim_logs* ol = ctx->inner_opt_run(ctx->x);
         
         // Augmented Lagrangian dual updates
         for (int j = 0; j < ctx->nlp->ineq_count; j++)
@@ -145,7 +176,7 @@ struct nlp_optim_logs* aug_lagrangian_run(tensor* x)
 void aug_lagrangian_free()
 {
     nlp_logs_free(ctx->logs);
-    gradient_descent_free();
+    ctx->inner_opt_free();
     if (ctx->lambda != NULL) tensor_free(ctx->lambda);
     if (ctx->kappa != NULL) tensor_free(ctx->kappa);
     tensor_free(ctx->x);

@@ -10,6 +10,7 @@ typedef void (*vector_fn)(tensor*, tensor*);
 
 typedef struct
 {
+    int dim;
     int eq_count;
     int ineq_count;
 
