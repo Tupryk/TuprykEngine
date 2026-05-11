@@ -28,6 +28,7 @@ typedef struct
 } nlp_t;
 
 int nlp_feasible(nlp_t* nlp, tensor* x);
+float nlp_infeasible_cost(nlp_t* nlp, tensor* x);
 void nlp_free(nlp_t* nlp);
 
 struct nlp_optim_logs
@@ -37,6 +38,8 @@ struct nlp_optim_logs
 };
 
 struct nlp_optim_logs* nlp_logs_init();
+float nlp_sos_const_eval(nlp_t* nlp, tensor* x);
+void nlp_sos_const_eval2(nlp_t* nlp, tensor* x, tensor* out);
 void nlp_logs_free(struct nlp_optim_logs* nl);
 
 #endif

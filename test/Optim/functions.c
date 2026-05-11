@@ -323,3 +323,122 @@ float gaussian(tensor* x)
 
     return 1.f / sqrtf(2.f * M_PI * std * std) * expf(-norm2 / (2.f * std * std));
 }
+
+float repeat(float x, float period)
+{
+    return fmodf(fmodf(x, period) + period, period);
+}
+
+float mod_circles_eval(tensor* x)
+{
+    tensor* x_mod = tensor_copy(x);
+    float mod_val = .35f;
+    x_mod->values[0] = repeat(x_mod->values[0], mod_val) - mod_val * 0.5f;
+    x_mod->values[1] = repeat(x_mod->values[1], mod_val) - mod_val * 0.5f;
+    float out = vector_squared_norm(x_mod) - 0.01;
+    tensor_free(x_mod);
+    return out;
+}
+
+void mod_circles_eval2(tensor* x, tensor* out)
+{
+    tensor* x_mod = tensor_copy(x);
+    float mod_val = .35f;
+    x_mod->values[0] = repeat(x_mod->values[0], mod_val) - mod_val * 0.5f;
+    x_mod->values[1] = repeat(x_mod->values[1], mod_val) - mod_val * 0.5f;
+    tensor_scalar_mult(x_mod, 2.f, out);
+    tensor_free(x_mod);
+}
+
+nlp_t* get_mod_circles()
+{
+    nlp_t* nlp = get_basic_nlp(0, 5, 1);
+
+    nlp->ineq[0] = mod_circles_eval;
+    nlp->delta_ineq[0] = mod_circles_eval2;
+
+    nlp->ineq[1] = side1_eval;
+    nlp->delta_ineq[1] = side1_eval2;
+
+    nlp->ineq[2] = side2_eval;
+    nlp->delta_ineq[2] = side2_eval2;
+
+    nlp->ineq[3] = side3_eval;
+    nlp->delta_ineq[3] = side3_eval2;
+
+    nlp->ineq[4] = side4_eval;
+    nlp->delta_ineq[4] = side4_eval2;
+    
+    return nlp;
+}
+
+float wall_eval(tensor* x) { return -x->values[0]; }
+void wall_eval2(tensor* x, tensor* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
+
+float sidecircle_eval(tensor* x)
+{
+    tensor* x_shifted = tensor_copy(x);
+    x_shifted->values[0] += 1.1f;
+    float out = vector_squared_norm(x_shifted) - 0.5;
+    tensor_free(x_shifted);
+    return min(out, -x->values[0]);
+}
+void sidecircle_eval2(tensor* x, tensor* out)
+{
+    tensor* x_shifted = tensor_copy(x);
+    x_shifted->values[0] += 1.1f;
+    float out_circ = vector_squared_norm(x_shifted) - 0.5;
+
+    if (out_circ < -x->values[0])
+    {
+        tensor_scalar_mult(x_shifted, 2, out);
+    }
+    else
+    {
+        out->values[0] = -1.f; out->values[1] = 0.f;
+    }
+    tensor_free(x_shifted);
+}
+
+float repcircle_eval(tensor* x)
+{
+    tensor* x_shifted = tensor_copy(x);
+    x_shifted->values[0] += 0.45f;
+    float out = -vector_squared_norm(x_shifted) + 0.6;
+    tensor_free(x_shifted);
+    return min(out, -x->values[0]);
+}
+void repcircle_eval2(tensor* x, tensor* out)
+{
+    tensor* x_shifted = tensor_copy(x);
+    x_shifted->values[0] += 0.45f;
+    
+    float out_circ = -vector_squared_norm(x_shifted) + 0.6;
+    
+    if (out_circ < -x->values[0])
+    {
+        tensor_scalar_mult(x_shifted, -2, out);
+    }
+    else
+    {
+        out->values[0] = -1.f; out->values[1] = 0.f;
+    }
+
+    tensor_free(x_shifted);
+}
+
+nlp_t* get_cone()
+{
+    nlp_t* nlp = get_basic_nlp(0, 2, 1);
+
+    nlp->ineq[0] = sidecircle_eval;
+    nlp->delta_ineq[0] = sidecircle_eval2;
+
+    nlp->ineq[1] = wall_eval;
+    nlp->delta_ineq[1] = wall_eval2;
+
+    // nlp->ineq[2] = repcircle_eval;
+    // nlp->delta_ineq[2] = repcircle_eval2;
+
+    return nlp;
+}

@@ -26,6 +26,8 @@ nlp_t* get_nlp3();
 nlp_t* get_nlp4();
 nlp_t* get_nlp_two_disks();
 nlp_t* get_nlp_swiss_roll();
+nlp_t* get_mod_circles();
+nlp_t* get_cone();
 float gaussian(tensor* x);
 
 #endif
