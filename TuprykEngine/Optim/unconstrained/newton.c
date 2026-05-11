@@ -142,7 +142,6 @@ struct optim_logs* gauss_newton_run(tensor* x)
     float cost;
     #ifdef OPTIM_VERBOSE
     cost = ctx->cost_func(ctx->x);
-    printf("Initial cost: %.4f\n", cost);
     #endif
 
     int total_steps = ctx->max_iters;
@@ -176,14 +175,11 @@ struct optim_logs* gauss_newton_run(tensor* x)
 
         #ifdef OPTIM_VERBOSE
         cost = ctx->cost_func(ctx->x);
-        printf("Current Cost: %f\n", cost);
         optim_logs_add(ctx->logs, ctx->x, cost);
         #endif
     }
     #ifdef OPTIM_VERBOSE
     cost = ctx->cost_func(ctx->x);
-    printf("Total steps taken: %d\n", total_steps);
-    printf("Final cost: % .7f\n", cost);
     #endif
 
     ctx->logs->final_cost = cost;

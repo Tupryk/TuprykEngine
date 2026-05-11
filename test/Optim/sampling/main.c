@@ -18,7 +18,9 @@
 #include "../../../TuprykEngine/visual/graphics/window.h"
 
 
-nlp_t* (*get_global_nlp)() = get_cone;
+nlp_t* (*get_global_nlp)() = get_mod_circles;
+
+float square_side = 10.f;
 
 void draw_x(nlp_t* nlp, tensor* x)
 {
@@ -27,8 +29,8 @@ void draw_x(nlp_t* nlp, tensor* x)
     if (feasible) set_color(0.1216f, 0.4667f, 0.7059f);
     else set_color(1.0f, 0.4980f, 0.0549f);
 
-    int cx = ((x->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
-    int cy = ((-x->values[1] + 1.f) * 0.5f) * ((float) WINDOW_H);
+    int cx = ((x->values[0] + square_side) / (square_side*2)) * ((float) WINDOW_W);
+    int cy = ((-x->values[1] + square_side) / (square_side*2)) * ((float) WINDOW_H);
     draw_circle(cx, cy, 5);
 }
 
@@ -44,7 +46,7 @@ int test_nlp_feasibility()
     printf("--- Test 2: NLP Feasibility ---\n");
     for (int i = 0; i < sample_count; i++)
     {
-        tensor_fill_uniform(x, -1.f, 1.f);
+        tensor_fill_uniform(x, -square_side, square_side);
         
         max_cost = fmaxf(max_cost, nlp_infeasible_cost(nlp, x));
         samples[i] = tensor_copy(x);
@@ -63,8 +65,8 @@ int test_nlp_feasibility()
             set_color(c, 0.f, 1.f - c);
         }
 
-        int cx = ((samples[i]->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
-        int cy = ((-samples[i]->values[1] + 1.f) * 0.5f) * ((float) WINDOW_H);
+        int cx = ((samples[i]->values[0] + square_side) / (square_side*2)) * ((float) WINDOW_W);
+        int cy = ((-samples[i]->values[1] + square_side) / (square_side*2)) * ((float) WINDOW_H);
         draw_circle(cx, cy, 5);
 
         tensor_free(samples[i]);
@@ -82,8 +84,8 @@ int test_nlp_feasibility()
 nlp_t* nlp_ctx;
 
 stack* foam;
-float foam_radius = 0.1f;
-const size_t max_foam = 50;
+float foam_radius = .5f;
+const size_t max_foam = 250;
 
 float nlp_sos_const_eval_ctx(tensor* x)
 {
@@ -135,24 +137,26 @@ void nlp_sos_const_eval2_ctx(tensor* x, tensor* out)
 
 int test_constraint_sampling()
 {
-    int sample_count = 2500;
+    int sample_count = 5000;
     tensor* x = new_tensor_vector(2, NULL);
     tensor* samples[sample_count];
     foam = stack_init();
     
     nlp_ctx = get_global_nlp();
 
-    gauss_newton_init(x, nlp_sos_const_eval_ctx, nlp_sos_const_eval2_ctx, 1e-1, 1e-2, 50);
-    
     int feasible_count = 0;
     int infeasible_count = 0;
     printf("--- Test 3: Constraint Sampling ---\n");
     for (int i = 0; i < sample_count; i++)
     {
-        tensor_fill_uniform(x, -1.f, 1.f);
+        if ((i+1) % 1000 == 0)
+            printf("Transporting point %d of %d...\n", i+1, sample_count);
+        tensor_fill_uniform(x, -square_side, square_side);
         
+        gauss_newton_init(x, nlp_sos_const_eval_ctx, nlp_sos_const_eval2_ctx, 1, 1e-2, 500);
         struct optim_logs* logs = gauss_newton_run(x);
         tensor_transfer_values(x, logs->final_x);
+        gauss_newton_free();
 
         samples[i] = tensor_copy(x);
         if (nlp_feasible(nlp_ctx, x)) feasible_count++;
@@ -175,10 +179,10 @@ int test_constraint_sampling()
     {
         tensor* ball_center = stack_pop(foam);
 
-        int cx = ((ball_center->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
-        int cy = ((-ball_center->values[1] + 1.f) * 0.5f) * ((float) WINDOW_H);
+        int cx = ((ball_center->values[0] + square_side) / (square_side*2)) * ((float) WINDOW_W);
+        int cy = ((-ball_center->values[1] + square_side) / (square_side*2)) * ((float) WINDOW_H);
         set_color(1.f, 0.f, 1.f);
-        draw_circle(cx, cy, WINDOW_W * 0.5f * foam_radius);
+        draw_circle(cx, cy, WINDOW_W * foam_radius / (square_side*2));
         
         tensor_free(ball_center);
     }
@@ -194,7 +198,6 @@ int test_constraint_sampling()
     window_wait();
     free_window();
     
-    gauss_newton_free();
     nlp_free(nlp_ctx);
     tensor_free(x);
 
