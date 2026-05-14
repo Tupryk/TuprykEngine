@@ -74,6 +74,17 @@ tensor* new_tensor_diagonal(int dim, float* values)
     return t;
 }
 
+tensor* new_tensor_diagonal_uniform(int dim, float value)
+{
+    int shape[] = {dim, dim};
+    tensor* t = new_tensor(shape, 2, NULL);
+    for (int i = 0; i < dim; i++)
+    {
+        t->values[i * dim + i] = value;
+    }
+    return t;
+}
+
 tensor* tensor_copy_shape(tensor* t)
 {
     tensor* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
@@ -507,6 +518,21 @@ void tensor_scalar_mult(tensor* a, float b, tensor* out)
 }
 
 tensor* tensor_scalar_mult_give(tensor* a, float b)
+{
+    tensor* out = tensor_copy(a);
+    tensor_scalar_mult(a, b, out);
+    return out;
+}
+
+void tensor_scalar_div(tensor* a, float b, tensor* out)
+{
+    for (int i = 0; i < a->volume; i++)
+    {
+        out->values[i] = a->values[i] / b;
+    }
+}
+
+tensor* tensor_scalar_div_give(tensor* a, float b)
 {
     tensor* out = tensor_copy(a);
     tensor_scalar_mult(a, b, out);
@@ -999,6 +1025,18 @@ tensor* tensor_slice(tensor* t, int idx)
         out_idx++;
     }
 
+    return out;
+}
+
+float tensor_xTAx(tensor* A, tensor* x)
+{
+    tensor_transpose(x);
+    tensor* tmp0 = tensor_mult_give(x, A);
+    tensor_transpose(x);
+    tensor* tmp1 = tensor_mult_give(tmp0, x);
+    float out = tmp1->values[0];
+    tensor_free(tmp0);
+    tensor_free(tmp1);
     return out;
 }
 

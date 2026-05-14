@@ -3,6 +3,7 @@
 #include <math.h>
 #include <SDL.h>
 #include "window.h"
+#include "../../Algos/lists.h"
 #include "../../LinAlg/tensor.h"
 
 float global_x_rot = M_PI * 0.25;
@@ -62,6 +63,52 @@ void draw_line_3d(
     struct point_2d e = unit_3d_to_2d(end_x, end_y, end_z);
 
     draw_line(s.x, s.y, e.x, e.y);
+}
+
+static uint8_t clamp_u8(float v)
+{
+    if (v < 0.0f) return 0;
+    if (v > 255.0f) return 255;
+    return (uint8_t)v;
+}
+
+void draw_gaussian(tensor* pos, tensor* A, float half_bounds)
+{
+    float radius = half_bounds;
+    int bound = radius * 3;
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    for (int y = -bound; y <= bound; y++)
+    {
+        for (int x = -bound; x <= bound; x++)
+        {
+            // Mahalanobis distance squared:
+            tensor* pos_px = tensor_copy_shape(pos);
+            pos_px->values[0] = (float)x / radius;
+            pos_px->values[1] = (float)y / radius;
+            float d2 = tensor_xTAx(A, pos_px);
+            tensor_free(pos_px);
+
+            // Standard Gaussian:
+            float g = expf(-0.5f * d2);
+
+            // Invert so farther = more alpha
+            float alpha = g * 255.0f;
+
+            SDL_SetRenderDrawColor(
+                renderer,
+                255, 0, 255,
+                clamp_u8(alpha)
+            );
+
+            SDL_RenderDrawPoint(
+                renderer,
+                pos->values[0] + x + WINDOW_W*0.5f,
+                -pos->values[1] + y + WINDOW_H*0.5f
+            );
+        }
+    }
 }
 
 void draw_circle(int cx, int cy, int r)
@@ -378,6 +425,97 @@ void play_video(tensor** frames, int frame_count, float tau)
         if (index >= frame_count)
         {
             index = 0;
+        }
+    }
+}
+
+void draw_nlp(nlp_t* nlp, float square_side)
+{
+    tensor* eval_point = new_tensor_vector(nlp->dim, NULL);
+    float max_cost = 0.f;
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            eval_point->values[0] = ((float) i) / ((float) WINDOW_W) * square_side*2 - square_side;
+            eval_point->values[1] = ((float) j) / ((float) WINDOW_H) * square_side*2 - square_side;
+
+            if (!nlp_feasible(nlp, eval_point))
+            {
+                float c = nlp_infeasible_cost(nlp, eval_point);
+                if (c > max_cost) max_cost = c;
+            }
+        }
+    }
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            eval_point->values[0] = ((float) i) / ((float) WINDOW_W) * square_side*2 - square_side;
+            eval_point->values[1] = ((float) j) / ((float) WINDOW_H) * square_side*2 - square_side;
+
+            if (nlp_feasible(nlp, eval_point)) draw_pixel(i, j, 0.f, .8f, 0.f);
+            else 
+            {
+                float c = nlp_infeasible_cost(nlp, eval_point) / max_cost;
+                draw_pixel(i, j, c, 0.f, 1.f - c);
+            }
+        }
+    }
+    tensor_free(eval_point);
+}
+
+void draw_nlp_foam(nlp_t* nlp, foam_t* foam, float square_side, int mark_gaussians)
+{
+    tensor* eval_point = new_tensor_vector(nlp->dim, NULL);
+    float max_cost = 0.f;
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            eval_point->values[0] = ((float) i) / ((float) WINDOW_W) * square_side*2 - square_side;
+            eval_point->values[1] = ((float) j) / ((float) WINDOW_H) * square_side*2 - square_side;
+
+            if (!nlp_feasible(nlp, eval_point))
+            {
+                float c = nlp_sos_const_eval(nlp, eval_point);
+                if (!mark_gaussians) c += foam_eval(foam, nlp, eval_point);
+                if (c > max_cost) max_cost = c;
+            }
+        }
+    }
+    for (int i = 0; i < WINDOW_W; i++)
+    {
+        for (int j = 0; j < WINDOW_H; j++)
+        {
+            eval_point->values[0] = ((float) i) / ((float) WINDOW_W) * square_side*2 - square_side;
+            eval_point->values[1] = ((float) j) / ((float) WINDOW_H) * square_side*2 - square_side;
+
+            if (nlp_feasible(nlp, eval_point)) draw_pixel(i, j, 0.f, .8f, 0.f);
+            else 
+            {
+                float c = nlp_sos_const_eval(nlp, eval_point);
+                if (!mark_gaussians) c += foam_eval(foam, nlp, eval_point);
+                c /= max_cost;
+                draw_pixel(i, j, c, 0.f, 1.f - c);
+            }
+        }
+    }
+    tensor_free(eval_point);
+    if (mark_gaussians)
+    {
+        struct stack_elem* se = foam->force_fields->next;
+        while (se != NULL)
+        {
+            gaussian_t* gauss = (gaussian_t*) se->data;
+            
+            int cx = ((gauss->mu->values[0] + square_side) / (square_side*2)) * ((float) WINDOW_W);
+            int cy = ((-gauss->mu->values[1] + square_side) / (square_side*2)) * ((float) WINDOW_H);
+            set_color(1.f, 0.f, 1.f);
+            draw_circle(cx, cy, WINDOW_W * foam->inital_std / (square_side*2));
+
+            // draw_gaussian(ball_center, A, WINDOW_W * foam_radius / (square_side*2));
+            se = se->next;
         }
     }
 }

@@ -3,6 +3,8 @@
 
 #include <math.h>
 #include "../../LinAlg/tensor.h"
+#include "../../Optim/constrained/nlp.h"
+#include "../../Optim/constrained/sampling/foam.h"
 
 // TODO: sepparate function plotting from basic plotting
 
@@ -14,6 +16,7 @@ struct point_2d
 
 void set_color(float r, float g, float b);
 void draw_pixel(float x, float y, float r, float g, float b);
+void draw_gaussian(tensor* pos, tensor* A, float half_bounds);
 void draw_circle(int cx, int cy, int r);
 void draw_line(float start_x, float start_y, float end_x, float end_y);
 void draw_line_3d(
@@ -47,5 +50,7 @@ void set_global_rot(float rot_x, float rot_y, float rot_z);
 void plot_1d_func(float (*func)(float), float from, float to);
 void view_image(tensor* im);
 void play_video(tensor** frames, int frame_count, float tau);
+void draw_nlp(nlp_t* nlp, float square_side);
+void draw_nlp_foam(nlp_t* nlp, foam_t* foam, float square_side, int mark_gaussians);
 
 #endif

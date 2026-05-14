@@ -16,6 +16,7 @@ SRCS = main.c \
 	../../../TuprykEngine/Optim/constrained/sampling/nhr.c \
 	../../../TuprykEngine/Optim/constrained/sampling/mcmc.c \
 	../../../TuprykEngine/Optim/constrained/sampling/masem.c \
+	../../../TuprykEngine/Optim/constrained/sampling/foam.c \
 	../../../TuprykEngine/Stochastic/sample.c \
 	../../../TuprykEngine/Algos/spatial_data.c \
 	../../../TuprykEngine/Algos/utils.c \
