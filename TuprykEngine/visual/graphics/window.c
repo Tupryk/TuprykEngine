@@ -2,6 +2,9 @@
 #include <SDL.h>
 
 
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
+
 void init_window()
 {
     SDL_Init(SDL_INIT_VIDEO);
