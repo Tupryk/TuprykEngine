@@ -951,7 +951,7 @@ void tensor_flatten(tensor* t)
 {
     free(t->shape);
     
-    t->shape = t->shape = (int*) malloc(sizeof(int) * 2);
+    t->shape = (int*) malloc(sizeof(int) * 2);
     t->shape[0] = t->volume;
     t->shape_dim = 2;
 }

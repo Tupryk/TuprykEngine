@@ -55,12 +55,12 @@ int test_foam_constraint_sampling()
 {
     printf("--- Test 1: Foam Constraint Sampling ---\n");
     
-    int sample_count = 5000;
+    int sample_count = 1000;
     
     tensor* x = new_tensor_vector(2, NULL);
     
     nlp_ctx = get_global_nlp();
-    foam_ctx = foam_init(nlp_ctx, 250, 0.5f);
+    foam_ctx = foam_init(nlp_ctx, 50, .5f, 10.f);
     
     tensor* samples[sample_count];
 
@@ -92,7 +92,7 @@ int test_foam_constraint_sampling()
     //--------- Plotting ---------//
     init_window();
 
-    draw_nlp_foam(nlp_ctx, foam_ctx, square_side, 1);
+    draw_nlp_foam(nlp_ctx, foam_ctx, square_side, 0);
 
     for (int i = 0; i < sample_count; i++)
     {

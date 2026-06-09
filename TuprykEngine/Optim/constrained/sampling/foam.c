@@ -3,12 +3,13 @@
 #include "foam.h"
 
 
-foam_t* foam_init(nlp_t* nlp, size_t max_foam, float inital_std)
+foam_t* foam_init(nlp_t* nlp, size_t max_foam, float inital_std, float inital_scaling)
 {
     foam_t* foam = (foam_t*) malloc((sizeof(foam_t)));
     foam->dim = nlp->dim;
     foam->max_foam = max_foam;
     foam->inital_std = inital_std;
+    foam->inital_scaling = inital_scaling;
     foam->force_fields = stack_init();
     return foam;
 }
@@ -21,7 +22,7 @@ void foam_add_particle(foam_t* foam, tensor* x)
     if (foam->force_fields->size < foam->max_foam)
     {
         gaussian_t* gauss = (gaussian_t*) malloc(sizeof(gaussian_t));
-        gauss->scaling = 1.f;
+        gauss->scaling = foam->inital_scaling;
         gauss->mu = tensor_copy(x);
         gauss->cov = new_tensor_diagonal_uniform(foam->dim, foam->inital_std);
         stack_push(foam->force_fields, gauss);
@@ -38,10 +39,11 @@ float foam_eval(foam_t* foam, nlp_t* nlp, tensor* x)
         gaussian_t* gauss = (gaussian_t*) se->data;
         tensor_sub(gauss->mu, x, x_diff);
 
-        float dist = vector_squared_norm(x_diff) - foam->inital_std * foam->inital_std;
+        float dist = tensor_xTAx(gauss->cov, x_diff) - 1.f;
+        // float dist = vector_squared_norm(x_diff) - foam->inital_std * foam->inital_std;
         if (dist < 0 && !nlp_feasible(nlp, x))
         {
-            out += -dist;
+            out += -dist * gauss->scaling;
         }
         se = se->next;
     }
@@ -60,10 +62,12 @@ void foam_eval2(foam_t* foam, nlp_t* nlp, tensor* x, tensor* out)
         gaussian_t* gauss = (gaussian_t*) se->data;
         tensor_sub(gauss->mu, x, x_diff);
 
-        float dist = vector_squared_norm(x_diff) - foam->inital_std * foam->inital_std;
+        float dist = tensor_xTAx(gauss->cov, x_diff) - 1.f;
+        // float dist = vector_squared_norm(x_diff) - foam->inital_std * foam->inital_std;
         if (dist < 0 && !nlp_feasible(nlp, x))
         {
-            tensor_scalar_mult(x_diff, 2.f, ball_grad);
+            tensor_mult(gauss->cov, x_diff, x_diff);
+            tensor_scalar_mult(x_diff, 2.f * gauss->scaling, ball_grad);
             tensor_add(out, ball_grad, out);
         }
         se = se->next;

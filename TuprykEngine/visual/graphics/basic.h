@@ -50,7 +50,5 @@ void set_global_rot(float rot_x, float rot_y, float rot_z);
 void plot_1d_func(float (*func)(float), float from, float to);
 void view_image(tensor* im);
 void play_video(tensor** frames, int frame_count, float tau);
-void draw_nlp(nlp_t* nlp, float square_side);
-void draw_nlp_foam(nlp_t* nlp, foam_t* foam, float square_side, int mark_gaussians);
 
 #endif
