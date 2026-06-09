@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g `sdl2-config --cflags`
-LDFLAGS = `sdl2-config --libs`
+LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
 	../../../TuprykEngine/visual/graphics/window.c \
