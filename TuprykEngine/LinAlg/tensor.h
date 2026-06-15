@@ -73,10 +73,4 @@ void vector_normalize(tensor* t);
 void vector_reflect(tensor* v, tensor* n, tensor* out);
 tensor* vector_reflect_give(tensor* v, tensor* n);
 
-// void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
-// tensor* pseudo_inverse(tensor* target);
-// void pseudo_inverse(tensor* target, tensor* out);
-// Eigenvalues / Eigenvectors
-// Diagonalisierung
-
 #endif

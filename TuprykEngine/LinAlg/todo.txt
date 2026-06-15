@@ -1,0 +1,6 @@
+- void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
+- tensor* pseudo_inverse(tensor* target);
+- void pseudo_inverse(tensor* target, tensor* out);
+- Eigenvalues / Eigenvectors
+- Diagonalisierung
+- Autograd
