@@ -13,9 +13,11 @@ int main()
     int duration_sec = 2;
     int num_samples = sample_rate * duration_sec;
     float samples[num_samples];
+    memset(samples, 0, sizeof(samples));
 
     for (int i = 0; i < num_samples; i++) {
-        samples[i] = 0.5f * sinf(2.0f * M_PI * 440.0f * i / sample_rate);
+        samples[i] += 0.5f * sinf(2.0f * M_PI * 440.0f * i / sample_rate);
+        samples[i] += 0.5f * sinf(2.0f * M_PI * 120.0f * i / sample_rate);
     }
 
     int num_frequencies = 1000;
@@ -24,16 +26,21 @@ int main()
 
     float r_samples[num_samples];
     memset(r_samples, 0, sizeof(r_samples));
+    int freq_id = 0;
     for (int i = 0; i < num_frequencies; i++)
     {
-        printf("----------- Frequency %d -----------\n", i);
-        printf("Amplitude: %f\n", spectrum[i].amplitude);
-        printf("Frequency: %f\n", spectrum[i].frequency);
-        printf("Phase: %f\n", spectrum[i].phase);
-
-        for (int j = 0; j < num_samples; j++)
+        if (spectrum[i].amplitude > 1e-4)
         {
-            r_samples[j] += spectrum[i].amplitude * sinf(2.0f * M_PI * spectrum[i].frequency * j / sample_rate + spectrum[i].phase);
+            freq_id++;
+            printf("----------- Frequency %d -----------\n", freq_id);
+            printf("Amplitude: %f\n", spectrum[i].amplitude);
+            printf("Frequency: %f\n", spectrum[i].frequency);
+            printf("Phase: %f\n", spectrum[i].phase);
+
+            for (int j = 0; j < num_samples; j++)
+            {
+                r_samples[j] += spectrum[i].amplitude * sinf(2.0f * M_PI * spectrum[i].frequency * j / sample_rate + spectrum[i].phase);
+            }
         }
     }
 
