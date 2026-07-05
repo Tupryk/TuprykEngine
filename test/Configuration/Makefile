@@ -5,9 +5,9 @@ LDFLAGS = `sdl2-config --libs` -lm
 SRCS = main.c \
 	../../TuprykEngine/LinAlg/tensor.c \
 	../../TuprykEngine/Kinematics/frame.c \
-	../../TuprykEngine/visual/prints/linalg.c \
+	../../TuprykEngine/ui/prints/linalg.c \
 	../../TuprykEngine/Kinematics/configuration.c \
-	../../TuprykEngine/visual/prints/config.c \
+	../../TuprykEngine/ui/prints/config.c \
 	../../TuprykEngine/scenes/devastator/desert.c \
 	../../TuprykEngine/Algos/lists.c
 OBJS = $(SRCS:.c=.o)

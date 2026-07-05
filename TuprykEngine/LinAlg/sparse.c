@@ -165,3 +165,15 @@ void sparse_insert(sparse* st, float value, int index)
     st->indices = new_indices;
     st->values = new_values;
 }
+
+sparse* sparse_transpose(sparse* st)
+{
+    // TODO:
+    for (int i = 0; i < st->value_count; i++)
+    {
+        for (int j = 0; j < st->shape_dim; j++)
+        {
+
+        }
+    }
+}

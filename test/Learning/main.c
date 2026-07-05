@@ -6,7 +6,7 @@
 
 #include "../../TuprykEngine/Learning/mlp.h"
 #include "../../TuprykEngine/LinAlg/tensor.h"
-#include "../../TuprykEngine/visual/prints/linalg.h"
+#include "../../TuprykEngine/ui/prints/linalg.h"
 
 
 int test_mlp()

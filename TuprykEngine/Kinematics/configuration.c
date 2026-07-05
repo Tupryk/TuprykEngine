@@ -4,7 +4,7 @@
 #include "configuration.h"
 #include "../Physics/forces.h"
 #include "../Geom/quaternions.h"
-#include "../visual/prints/linalg.h"
+#include "../ui/prints/linalg.h"
 
 
 int config_colliding(config* C)

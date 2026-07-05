@@ -4,3 +4,4 @@
 - Eigenvalues / Eigenvectors
 - Diagonalisierung
 - Autograd
+- Tensor slices

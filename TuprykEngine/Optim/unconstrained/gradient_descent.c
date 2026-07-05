@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "../meta.h"
 #include "../../global.h"
-#include "../../visual/prints/linalg.h"
+#include "../../ui/prints/linalg.h"
 
 
 struct gd_context

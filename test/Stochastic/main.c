@@ -5,10 +5,10 @@
 #include "../../TuprykEngine/Stochastic/pdfs.h"
 #include "../../TuprykEngine/Stochastic/pascal.h"
 #include "../../TuprykEngine/Stochastic/sample.h"
-#include "../../TuprykEngine/visual/prints/stoch.h"
+#include "../../TuprykEngine/ui/prints/stoch.h"
 #include "../../TuprykEngine/LinAlg/sparse.h"
 #include "../../TuprykEngine/LinAlg/tensor.h"
-#include "../../TuprykEngine/visual/prints/linalg.h"
+#include "../../TuprykEngine/ui/prints/linalg.h"
 
 
 int test_basic()

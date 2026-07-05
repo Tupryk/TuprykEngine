@@ -1,7 +1,7 @@
 #ifndef UNCONSTRAINED
 #define UNCONSTRAINED
 
-#include "../../visual/prints/linalg.h"
+#include "../../ui/prints/linalg.h"
 
 void gradient_descent_init(
     tensor* x0,

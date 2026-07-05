@@ -6,7 +6,7 @@
 #include "../Stochastic/sample.h"
 
 #ifdef DEBUG
-#include "../visual/prints/linalg.h"
+#include "../ui/prints/linalg.h"
 #endif
 
 

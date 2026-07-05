@@ -4,7 +4,7 @@
 
 #include "raytracer.h"
 #include "../Algos/utils.h"
-#include "../visual/prints/linalg.h"
+#include "../ui/prints/linalg.h"
 
 #define MIRROR
 #define SHADOWS

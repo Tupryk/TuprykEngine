@@ -8,7 +8,7 @@
 #include "../../Funcs/funcs.h"
 #include "../../Stochastic/sample.h"
 #ifdef DEBUG
-#include "../../visual/prints/vis_neat.h"
+#include "../../ui/prints/vis_neat.h"
 #endif
 
 

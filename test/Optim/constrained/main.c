@@ -10,9 +10,9 @@
 #include "../../../TuprykEngine/Optim/constrained/sampling/masem.h"
 #include "../../../TuprykEngine/Optim/constrained/augmented_lagrangian.h"
 
-#include "../../../TuprykEngine/visual/prints/linalg.h"
-#include "../../../TuprykEngine/visual/graphics/basic.h"
-#include "../../../TuprykEngine/visual/graphics/window.h"
+#include "../../../TuprykEngine/ui/prints/linalg.h"
+#include "../../../TuprykEngine/ui/graphics/basic.h"
+#include "../../../TuprykEngine/ui/graphics/window.h"
 
 
 void draw_x(nlp_t* nlp, tensor* x)

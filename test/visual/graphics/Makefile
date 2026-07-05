@@ -3,10 +3,10 @@ CFLAGS = -Wall -Wextra -g `sdl2-config --cflags`
 LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
-	../../../TuprykEngine/visual/graphics/window.c \
-	../../../TuprykEngine/visual/graphics/basic.c \
+	../../../TuprykEngine/ui/graphics/window.c \
+	../../../TuprykEngine/ui/graphics/basic.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
-	../../../TuprykEngine/visual/prints/linalg.c \
+	../../../TuprykEngine/ui/prints/linalg.c \
 	../../../TuprykEngine/Stochastic/sample.c
 # 	../../../TuprykEngine/test/Optim/functions.c
 OBJS = $(SRCS:.c=.o)

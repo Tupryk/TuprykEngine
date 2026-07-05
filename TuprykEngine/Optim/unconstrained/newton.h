@@ -2,7 +2,7 @@
 #define OPTIM_UNCONSTRAINED_NEWTON
 
 #include "../meta.h"
-#include "../../visual/prints/linalg.h"
+#include "../../ui/prints/linalg.h"
 
 struct optim_logs* newton(
     tensor* x0,

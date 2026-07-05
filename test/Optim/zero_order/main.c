@@ -8,7 +8,7 @@
 #include "../functions.h"
 #include "../../../TuprykEngine/Optim/meta.h"
 #include "../../../TuprykEngine/Optim/zero_order/genetic.h"
-#include "../../../TuprykEngine/visual/prints/vis_genetic.h"
+#include "../../../TuprykEngine/ui/prints/vis_genetic.h"
 
 
 float task1_eval(float* input, float* predicted_out)

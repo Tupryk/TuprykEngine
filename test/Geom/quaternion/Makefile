@@ -5,7 +5,7 @@ LDFLAGS = `sdl2-config --libs` -lm
 SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
 	../../../TuprykEngine/Geom/quaternions.c \
-	../../../TuprykEngine/visual/prints/linalg.c
+	../../../TuprykEngine/ui/prints/linalg.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

@@ -6,8 +6,8 @@ SRCS = main.c \
 	../../TuprykEngine/Stochastic/markov.c \
 	../../TuprykEngine/LinAlg/tensor.c \
 	../../TuprykEngine/LinAlg/sparse.c \
-	../../TuprykEngine/visual/prints/linalg.c \
-	../../TuprykEngine/visual/prints/stoch.c \
+	../../TuprykEngine/ui/prints/linalg.c \
+	../../TuprykEngine/ui/prints/stoch.c \
 	../../TuprykEngine/Stochastic/pascal.c \
 	../../TuprykEngine/Stochastic/sample.c
 OBJS = $(SRCS:.c=.o)

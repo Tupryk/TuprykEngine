@@ -9,9 +9,9 @@
 #include "../../TuprykEngine/Physics/simulation.h"
 
 #include "../../TuprykEngine/scenes/devastator/desert.h"
-#include "../../TuprykEngine/visual/graphics/window.h"
-#include "../../TuprykEngine/visual/graphics/basic.h"
-#include "../../TuprykEngine/visual/prints/config.h"
+#include "../../TuprykEngine/ui/graphics/window.h"
+#include "../../TuprykEngine/ui/graphics/basic.h"
+#include "../../TuprykEngine/ui/prints/config.h"
 
 
 int test_raytracer()

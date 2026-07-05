@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -g
 
 SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
-	../../../TuprykEngine/visual/prints/linalg.c
+	../../../TuprykEngine/ui/prints/linalg.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

@@ -2,8 +2,8 @@
 
 #include <SDL.h>
 #include "../../../TuprykEngine/LinAlg/tensor.h"
-#include "../../../TuprykEngine/visual/graphics/window.h"
-#include "../../../TuprykEngine/visual/graphics/basic.h"
+#include "../../../TuprykEngine/ui/graphics/window.h"
+#include "../../../TuprykEngine/ui/graphics/basic.h"
 
 struct Triangle
 {

@@ -5,17 +5,17 @@ LDFLAGS = `sdl2-config --libs` -lm
 SRCS = main.c \
 	../../../../TuprykEngine/LinAlg/tensor.c \
 	../../../../TuprykEngine/LinAlg/sparse.c \
-	../../../../TuprykEngine/visual/prints/linalg.c \
-	../../../../TuprykEngine/visual/prints/vis_neat.c \
-	../../../../TuprykEngine/visual/prints/algos.c \
+	../../../../TuprykEngine/ui/prints/linalg.c \
+	../../../../TuprykEngine/ui/prints/vis_neat.c \
+	../../../../TuprykEngine/ui/prints/algos.c \
 	../../../../TuprykEngine/Optim/zero_order/neat.c \
 	../../../../TuprykEngine/Funcs/funcs.c \
 	../../functions.c \
 	../../../../TuprykEngine/Optim/meta.c \
-	../../../../TuprykEngine/visual/graphics/basic.c \
-	../../../../TuprykEngine/visual/graphics/window.c \
+	../../../../TuprykEngine/ui/graphics/basic.c \
+	../../../../TuprykEngine/ui/graphics/window.c \
 	../../../../TuprykEngine/Algos/lists.c \
-	../../../../TuprykEngine/visual/graphics/genetic.c \
+	../../../../TuprykEngine/ui/graphics/genetic.c \
 	../../../../TuprykEngine/Stochastic/sample.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p

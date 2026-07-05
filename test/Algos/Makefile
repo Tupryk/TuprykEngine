@@ -6,11 +6,11 @@ SRCS = main.c \
 	../../TuprykEngine/Algos/lists.c \
 	../../TuprykEngine/Algos/spatial_data.c \
 	../../TuprykEngine/LinAlg/tensor.c \
-	../../TuprykEngine/visual/prints/linalg.c \
-	../../TuprykEngine/visual/graphics/basic.c \
-	../../TuprykEngine/visual/graphics/window.c \
+	../../TuprykEngine/ui/prints/linalg.c \
+	../../TuprykEngine/ui/graphics/basic.c \
+	../../TuprykEngine/ui/graphics/window.c \
 	../../TuprykEngine/Stochastic/sample.c \
-	../../TuprykEngine/visual/prints/algos.c
+	../../TuprykEngine/ui/prints/algos.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 

@@ -7,7 +7,7 @@
 #include "../../Funcs/funcs.h"
 #include "../../Stochastic/sample.h"
 #ifdef DEBUG
-#include "../../visual/prints/vis_genetic.h"
+#include "../../ui/prints/vis_genetic.h"
 #endif
 
 

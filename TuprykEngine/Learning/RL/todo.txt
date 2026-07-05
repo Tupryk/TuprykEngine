@@ -1,3 +1,9 @@
-- SAC
+- Q
+- DDPG
+- TRPO
 - PPO
+- SAC
+- TD3
 - TD7
+- HER
+- CSRL

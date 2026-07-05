@@ -7,7 +7,7 @@
 #include "../Physics/forces.h"
 #include "../Geom/quaternions.h"
 
-#include "../visual/prints/linalg.h"
+#include "../ui/prints/linalg.h"
 
 
 tensor* q_acc_from_gravity(config* C)

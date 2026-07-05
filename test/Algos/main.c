@@ -6,9 +6,9 @@
 #include "../../TuprykEngine/Algos/lists.h"
 #include "../../TuprykEngine/Algos/spatial_data.h"
 
-#include "../../TuprykEngine/visual/prints/algos.h"
-#include "../../TuprykEngine/visual/graphics/basic.h"
-#include "../../TuprykEngine/visual/graphics/window.h"
+#include "../../TuprykEngine/ui/prints/algos.h"
+#include "../../TuprykEngine/ui/graphics/basic.h"
+#include "../../TuprykEngine/ui/graphics/window.h"
 
 
 int test_vector()

@@ -5,8 +5,8 @@
 #include "../../TuprykEngine/Kinematics/frame.h"
 #include "../../TuprykEngine/Kinematics/configuration.h"
 #include "../../TuprykEngine/scenes/devastator/desert.h"
-#include "../../TuprykEngine/visual/prints/linalg.h"
-#include "../../TuprykEngine/visual/prints/config.h"
+#include "../../TuprykEngine/ui/prints/linalg.h"
+#include "../../TuprykEngine/ui/prints/config.h"
 
 
 int test_frame()

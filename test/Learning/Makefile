@@ -4,9 +4,9 @@ LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
 	../../TuprykEngine/LinAlg/tensor.c \
-	../../TuprykEngine/visual/prints/linalg.c \
-	../../TuprykEngine/visual/graphics/window.c \
-	../../TuprykEngine/visual/graphics/basic.c \
+	../../TuprykEngine/ui/prints/linalg.c \
+	../../TuprykEngine/ui/graphics/window.c \
+	../../TuprykEngine/ui/graphics/basic.c \
 	../../TuprykEngine/Algos/lists.c \
 	../../TuprykEngine/Stochastic/sample.c \
 	../../TuprykEngine/Funcs/funcs.c \

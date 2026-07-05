@@ -13,8 +13,8 @@
 #include "../../../../TuprykEngine/Stochastic/sample.h"
 #include "../../../../TuprykEngine/Optim/zero_order/neat.h"
 
-#include "../../../../TuprykEngine/visual/prints/vis_neat.h"
-#include "../../../../TuprykEngine/visual/graphics/genetic.h"
+#include "../../../../TuprykEngine/ui/prints/vis_neat.h"
+#include "../../../../TuprykEngine/ui/graphics/genetic.h"
 
 
 float task1_eval(float* input, float* predicted_out)

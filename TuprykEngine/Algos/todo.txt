@@ -1,0 +1,6 @@
+- Dictionaries
+- Heap
+- Sorted list
+- Quicksort
+- Entropy coding
+- hdf5

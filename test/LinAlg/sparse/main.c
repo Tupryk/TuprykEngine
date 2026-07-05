@@ -1,7 +1,7 @@
 #define DEBUG
 
 #include <stdio.h>
-#include "../../../TuprykEngine/visual/prints/linalg.h"
+#include "../../../TuprykEngine/ui/prints/linalg.h"
 #include "../../../TuprykEngine/LinAlg/tensor.h"
 #include "../../../TuprykEngine/LinAlg/sparse.h"
 

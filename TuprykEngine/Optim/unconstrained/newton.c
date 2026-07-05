@@ -5,7 +5,7 @@
 #include "newton.h"
 
 #include "../../global.h"
-#include "../../visual/prints/linalg.h"
+#include "../../ui/prints/linalg.h"
 
 
 struct optim_logs* newton(

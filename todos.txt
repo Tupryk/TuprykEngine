@@ -15,3 +15,5 @@
 - Using size_t instead of int?
 - Tensor arrays are kind of inneficient as they store the same shape multiple times...
 - Better make files
+- Always log seed when testing
+- Chess bot

@@ -9,9 +9,9 @@
 #include "../../../Stochastic/sample.h"
 #include "../../../Algos/spatial_data.h"
 
-#include "../../../visual/prints/linalg.h"
-#include "../../../visual/graphics/basic.h"
-#include "../../../visual/graphics/window.h"
+#include "../../../ui/prints/linalg.h"
+#include "../../../ui/graphics/basic.h"
+#include "../../../ui/graphics/window.h"
 
 
 void draw_x_(nlp_t* nlp, tensor* x)

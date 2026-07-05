@@ -5,8 +5,8 @@
 #include "../../../TuprykEngine/Optim/meta.h"
 #include "../../../TuprykEngine/Optim/unconstrained/gradient_descent.h"
 #include "../../../TuprykEngine/Optim/unconstrained/newton.h"
-#include "../../../TuprykEngine/visual/graphics/window.h"
-#include "../../../TuprykEngine/visual/graphics/basic.h"
+#include "../../../TuprykEngine/ui/graphics/window.h"
+#include "../../../TuprykEngine/ui/graphics/basic.h"
 
 
 // init_window();
