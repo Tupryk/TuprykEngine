@@ -10,21 +10,21 @@
 int config_colliding(config* C)
 {
     // TODO: KD_Tree
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
     int frame_count = C->frame_count;
     for (int i = 0; i < frame_count; i++)
     {
-        frame* a = frames[i];
+        frame_t* a = frames[i];
         if (a->type == 1)
         {
-            geom* a_geom_data = (geom*) a->data;
+            geom_t* a_geom_data = (geom_t*) a->data;
             float ar = *(float*) a_geom_data->mesh;
             for (int j = i+1; j < frame_count; j++)
             {
-                frame* b = frames[j];
+                frame_t* b = frames[j];
                 if (b->type == 1)
                 {
-                    geom* b_geom_data = (geom*) b->data;
+                    geom_t* b_geom_data = (geom_t*) b->data;
                     float br = *(float*) b_geom_data->mesh;
 
                     tensor* diff = tensor_copy(b->pos);
@@ -51,7 +51,7 @@ void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel)
     tensor* c_r = new_tensor_vector(3, NULL);
     while (index != -1)
     {
-        frame* current_frame = C->frames[index];
+        frame_t* current_frame = C->frames[index];
         if (current_frame->type == 4)
         {
             joint_t* joint_data = (joint_t*) current_frame->data;
@@ -102,21 +102,21 @@ stack* config_get_contacts(config* C)
 {
     // TODO: KD_Tree
     stack* contacts = stack_init();
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
     int frame_count = C->frame_count;
     for (int i = 0; i < frame_count; i++)
     {
-        frame* a = frames[i];
+        frame_t* a = frames[i];
         if (a->type == 1)
         {
-            geom* a_geom_data = (geom*) a->data;
+            geom_t* a_geom_data = (geom_t*) a->data;
             float ar = *(float*) a_geom_data->mesh;
             for (int j = i+1; j < frame_count; j++)
             {
-                frame* b = frames[j];
+                frame_t* b = frames[j];
                 if (b->type == 1)
                 {
-                    geom* b_geom_data = (geom*) b->data;
+                    geom_t* b_geom_data = (geom_t*) b->data;
                     float br = *(float*) b_geom_data->mesh;
 
                     tensor* diff = tensor_copy(b->pos);
@@ -157,7 +157,7 @@ void config_populate_mass_inertias(config* C)
     for (int i = 0; i < joints_count; i++)
     {
         int joint_id = joints[i];
-        frame* joint_frame = C->frames[joint_id];
+        frame_t* joint_frame = C->frames[joint_id];
         joint_t* joint_data = (joint_t*) joint_frame->data;
 
         if (joint_data->com == NULL) joint_data->com = new_tensor_vector(3, NULL);
@@ -176,11 +176,11 @@ void config_empty_joints_accumulated_forces(config* C)
 {
     int* joints = C->joints;
     int joints_count = C->joints_count;
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
 
     for (int i = 0; i < joints_count; i++)
     {
-        frame* joint_frame = frames[joints[i]];
+        frame_t* joint_frame = frames[joints[i]];
         joint_t* joint_data = (joint_t*) joint_frame->data;
 
         if (joint_data->accumulated_forces == NULL)
@@ -203,7 +203,7 @@ void config_empty_joints_accumulated_forces(config* C)
     }
 }
 
-void impulse_to_joint_force(frame* joint_frame, tensor* impulse_world, tensor* poa_world)
+void impulse_to_joint_force(frame_t* joint_frame, tensor* impulse_world, tensor* poa_world)
 {
     joint_t* joint_data = (joint_t*) joint_frame->data;
     
@@ -238,7 +238,7 @@ void impulse_to_joints_force(config* C, int from_frame_id, tensor* impulse_world
     int index = from_frame_id;
     while(index != -1)
     {
-        frame* current_frame = C->frames[index];
+        frame_t* current_frame = C->frames[index];
 
         if (current_frame->type == 4)
         {
@@ -270,11 +270,11 @@ void config_set_q(config* C, float* q)
     config_update_q(C);
 }
 
-void config_update_frame_pose(config* C, frame* f)
+void config_update_frame_pose(config* C, frame_t* f)
 {
     if (f->parent != -1)
     {
-        frame* parent = C->frames[f->parent];
+        frame_t* parent = C->frames[f->parent];
         quaternion_product(parent->rot->values, f->rot_rel->values, f->rot->values);
 
         quaternion_rotate_point(parent->rot->values, f->pos_rel->values, f->pos->values);
@@ -294,7 +294,7 @@ void config_update_q(config* C)
     for (int i = 0; i < joints_count; i++)
     {
         int joint_id = C->joints[i];
-        frame* joint_frame = C->frames[joint_id];
+        frame_t* joint_frame = C->frames[joint_id];
         joint_t* joint_data = (joint_t*) joint_frame->data;
         int joint_type = joint_data->type;
         
@@ -409,7 +409,7 @@ int root_joint(config* C, int frame_id)
     int last_joint_id = -1;
     while (index != -1)
     {
-        frame* current_frame = C->frames[index];
+        frame_t* current_frame = C->frames[index];
         if (current_frame->type == 4)
         {
             last_joint_id = index;

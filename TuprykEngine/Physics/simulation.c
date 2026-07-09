@@ -17,7 +17,7 @@ tensor* q_acc_from_gravity(config* C)
 
     int* joints = C->joints;
     int joints_count = C->joints_count;
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
     tensor* gravity = C->gravity;
 
     tensor* c_r = new_tensor_vector(3, NULL);
@@ -27,7 +27,7 @@ tensor* q_acc_from_gravity(config* C)
 
     for (int i = 0; i < joints_count; i++)
     {
-        frame* joint_frame = frames[joints[i]];
+        frame_t* joint_frame = frames[joints[i]];
         joint_t* joint_data = (joint_t*) joint_frame->data;
         int joint_type = joint_data->type;
         int q_delta_id = joint_data->q_delta_id;
@@ -189,7 +189,7 @@ void load_forces_to_joints(config* C)
     {
         force_t* f = (force_t*) current_contact_elem->data;
 
-        frame* from_frame = C->frames[f->frame_id];
+        frame_t* from_frame = C->frames[f->frame_id];
 
         tensor* force_world = f->force == NULL ? NULL : new_tensor_vector(3, NULL);
         tensor* poa_world = f->poa == NULL ? NULL : new_tensor_vector(3, NULL);
@@ -214,7 +214,7 @@ void load_forces_to_joints(config* C)
 
 float inverse_effective_mass_from_body(config* C, int root_id, tensor* point, tensor* normal)
 {
-    frame* jf = C->frames[root_id];
+    frame_t* jf = C->frames[root_id];
     joint_t* jd = (joint_t*) jf->data;
 
     tensor* r = tensor_sub_give(point, jd->com);
@@ -243,13 +243,13 @@ tensor* q_delta_from_forces(config* C)
 
     int* joints = C->joints;
     int joints_count = C->joints_count;
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
 
     tensor* angular_acc = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < joints_count; i++)
     {
-        frame* joint_frame = frames[joints[i]];
+        frame_t* joint_frame = frames[joints[i]];
         joint_t* joint_data = (joint_t*) joint_frame->data;
         int joint_type = joint_data->type;
         int q_delta_id = joint_data->q_delta_id;
@@ -338,7 +338,7 @@ void load_collision_forces_to_joints(config* C)
 
 void apply_velocity_impulse(config* C, int frame_id, tensor* normal, float correction, tensor* point, tensor* q_delta)
 {
-    frame** frames = C->frames;
+    frame_t** frames = C->frames;
     float* q_delta_v = q_delta->values;
 
     tensor* c_r = new_tensor_vector(3, NULL);
@@ -349,7 +349,7 @@ void apply_velocity_impulse(config* C, int frame_id, tensor* normal, float corre
     int index = frame_id;
     while (index != -1)
     {
-        frame* joint_frame = frames[index];
+        frame_t* joint_frame = frames[index];
         if (joint_frame->type == 4)
         {
             joint_t* joint_data = (joint_t*) joint_frame->data;

@@ -6,9 +6,9 @@
 #include "../../Stochastic/sample.h"
 
 
-geom* ball_geom_give(float radius)
+geom_t* ball_geom_give(float radius)
 {
-    geom* ball_geom = (geom*) malloc(sizeof(geom));
+    geom_t* ball_geom = (geom_t*) malloc(sizeof(geom));
     
     ball_geom->type = 0;
     
@@ -51,12 +51,12 @@ void add_tentacle_piece_to_config(
     // Poses and parents
     char *joint_name;
     asprintf(&joint_name, "joint_%d_%d", i, j);
-    frame* joint = frame_init(joint_name, parent_pos->values, rot);
+    frame_t* joint = frame_init(joint_name, parent_pos->values, rot);
     joint->parent = parent_idx;
 
     char *ball_name;
     asprintf(&ball_name, "ball_%d_%d", i, j);
-    frame* ball = frame_init(ball_name, pos_values, rot);
+    frame_t* ball = frame_init(ball_name, pos_values, rot);
     ball->parent = joint_idx;
 
     // Relavtive poses
@@ -112,7 +112,7 @@ void add_tentacle_piece_to_config(
     joint_data->friction = 0.1f;
     joint->data = (void*) joint_data;
     
-    geom* ball_geom = ball_geom_give(0.1f);
+    geom_t* ball_geom = ball_geom_give(0.1f);
     switch (j)
     {
         case 0:
@@ -164,13 +164,13 @@ config* init_devastator_config()
 
     C->frame_count = tentacle_length * tentacle_count * 2;  // Ball + Joint
     C->frame_count += 6;  // Root, Camera, Light, Floor, Spider Joint + Body
-    C->frames = (frame**) malloc(sizeof(frame*) * C->frame_count);
+    C->frames = (frame_t**) malloc(sizeof(frame_t*) * C->frame_count);
     
     C->lights_count = 1;
     C->lights = (int*) malloc(sizeof(int) * C->lights_count);
 
     //---- Root Frame ----//
-    frame* root = frame_init("root", origin_pos, origin_rot);
+    frame_t* root = frame_init("root", origin_pos, origin_rot);
     root->pos_rel = NULL;
     root->rot_rel = NULL;
 
@@ -189,7 +189,7 @@ config* init_devastator_config()
 
     //---- Spider Free Joint ----//
     float spider_pos[] = {0.f, 0.f, 1.f};
-    frame* spider_joint = frame_init("spider_joint", spider_pos, origin_rot);
+    frame_t* spider_joint = frame_init("spider_joint", spider_pos, origin_rot);
     spider_joint->pos_rel = tensor_sub_give(spider_joint->pos, root->pos);
     spider_joint->rot_rel = tensor_copy(root->rot);
 
@@ -211,14 +211,14 @@ config* init_devastator_config()
     C->frames[spider_joint_idx] = spider_joint;
 
     //---- Spider Body ----//
-    frame* spider_body = frame_init("spider_body", spider_pos, origin_rot);
+    frame_t* spider_body = frame_init("spider_body", spider_pos, origin_rot);
     spider_body->pos_rel = tensor_sub_give(spider_body->pos, spider_joint->pos);
     spider_body->rot_rel = tensor_copy(root->rot);
 
     spider_body->children_count = tentacle_count;
     spider_body->children = (int*) malloc(sizeof(int) * spider_body->children_count);
     
-    geom* ball_geom = ball_geom_give(0.2f);
+    geom_t* ball_geom = ball_geom_give(0.2f);
     ball_geom->tex->color[0] = 1.f;
     ball_geom->tex->color[1] = 0.f;
     ball_geom->tex->color[2] = 0.f;
@@ -234,9 +234,9 @@ config* init_devastator_config()
     // float floor_radius = 1737500.f;  // Moon
     float floor_radius = 1000.f;
     float floor_pos[] = {0.f, 0.f, -floor_radius};
-    frame* floor = frame_init("floor", floor_pos, origin_rot);
+    frame_t* floor = frame_init("floor", floor_pos, origin_rot);
 
-    geom* floor_geom = ball_geom_give(floor_radius);
+    geom_t* floor_geom = ball_geom_give(floor_radius);
     floor_geom->tex->color[0] = 1.f;
     floor_geom->tex->color[1] = 1.f;
     floor_geom->tex->color[2] = 0.f;
@@ -252,7 +252,7 @@ config* init_devastator_config()
 
     //---- Camera Frame ----//
     float cam_pos[] = {0.f, -4.f, 1.f};
-    frame* cam = frame_init("camera", cam_pos, origin_rot);
+    frame_t* cam = frame_init("camera", cam_pos, origin_rot);
 
     camera_t* cam_data = (camera_t*) malloc(sizeof(camera_t));
     cam_data->fx = 0.1f;
@@ -268,7 +268,7 @@ config* init_devastator_config()
 
     //---- Light Frame ----//
     float light_pos[] = {5.f, -5.f, 5.f};
-    frame* light = frame_init("light", light_pos, origin_rot);
+    frame_t* light = frame_init("light", light_pos, origin_rot);
 
     light_t* light_data = (light_t*) malloc(sizeof(light_t));
     light_data->intensity = 1.0f;

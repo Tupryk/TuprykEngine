@@ -38,7 +38,7 @@ float center_of_mass(config* C, int root, tensor* com)
     while (frames_to_check->next != NULL)
     {
         int current_frame_id = int_stack_pop(frames_to_check);
-        frame* current_frame = C->frames[current_frame_id];
+        frame_t* current_frame = C->frames[current_frame_id];
 
         int children_count = current_frame->children_count;
         for (int i = 0; i < children_count; i++)
@@ -47,7 +47,7 @@ float center_of_mass(config* C, int root, tensor* com)
         }
         if (current_frame->type == 1)
         {
-            geom* frame_data = (geom*) current_frame->data;
+            geom_t* frame_data = (geom_t*) current_frame->data;
             total_mass += frame_data->mass;
 
             body_ids[bodies_count] = current_frame_id;
@@ -61,8 +61,8 @@ float center_of_mass(config* C, int root, tensor* com)
 
     for (int i = 0; i < bodies_count; i++)
     {
-        frame* current_frame = C->frames[body_ids[i]];
-        geom* frame_data = (geom*) current_frame->data;
+        frame_t* current_frame = C->frames[body_ids[i]];
+        geom_t* frame_data = (geom_t*) current_frame->data;
 
         float perc = frame_data->mass / total_mass;
         tensor_scalar_mult(current_frame->pos, perc, tmp);
@@ -100,7 +100,7 @@ void combined_inertia(config* C, int root, tensor* com, tensor* I_cm)
     while (frames_to_check->next != NULL)
     {
         int current_frame_id = int_stack_pop(frames_to_check);
-        frame* current_frame = C->frames[current_frame_id];
+        frame_t* current_frame = C->frames[current_frame_id];
 
         int children_count = current_frame->children_count;
         for (int i = 0; i < children_count; i++)
@@ -122,8 +122,8 @@ void combined_inertia(config* C, int root, tensor* com, tensor* I_cm)
 
     for (int i = 0; i < bodies_count; i++)
     {
-        frame* current_frame = C->frames[body_ids[i]];
-        geom* frame_data = (geom*) current_frame->data;
+        frame_t* current_frame = C->frames[body_ids[i]];
+        geom_t* frame_data = (geom_t*) current_frame->data;
         
         tensor_sub(current_frame->pos, com, d);
         float dx = d->values[0];

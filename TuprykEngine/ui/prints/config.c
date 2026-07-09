@@ -14,7 +14,7 @@ void print_spaces(int count)
     }
 }
 
-void print_frame(config* C, frame* f, int id, int depth)
+void print_frame(config* C, frame_t* f, int id, int depth)
 {
     if (depth > 8)
     {
@@ -56,7 +56,7 @@ void print_frame(config* C, frame* f, int id, int depth)
             break;
         case 1:
             printf("Ball\n");
-            geom* ball_geom = f->data;
+            geom_t* ball_geom = f->data;
             float r = *(float*) ball_geom->mesh;
             print_spaces(depth);
             printf("    -> Radius: %g\n", r);

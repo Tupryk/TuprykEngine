@@ -24,6 +24,8 @@ void draw_pixel(float x, float y, float r, float g, float b)
 
 void draw_line(float start_x, float start_y, float end_x, float end_y)
 {
+    start_y = 1.f - start_y;
+    end_y = 1.f - end_y;
     SDL_RenderDrawLine(renderer, start_x * WINDOW_W, start_y * WINDOW_H, end_x * WINDOW_W, end_y * WINDOW_H);
 }
 

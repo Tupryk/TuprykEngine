@@ -1,0 +1,21 @@
+ball1_joint(joint)
+{
+    type: free
+    pos: [1.0, 0.0, 0.0]
+    ball1_geom(geom)
+    {
+        type: ball
+        radius = 0.1
+    }
+}
+
+ball2_joint(joint)
+{
+    type: free
+    pos: [-1.0, 0.0, 0.0]
+    ball2_geom(geom)
+    {
+        type: ball
+        radius = 0.1
+    }
+}

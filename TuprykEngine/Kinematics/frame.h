@@ -42,7 +42,7 @@ typedef struct
     tensor* inertia;
     
     texture* tex;
-} geom;
+} geom_t;
 
 typedef struct
 {
@@ -70,11 +70,11 @@ typedef struct
 
     int type;  // 0: Marker, 1: Geometry, 2: Camera, 3: Light, 4: Joint
     void* data;
-} frame;
+} frame_t;
 
-frame* frame_init(const char *name, float* pos, float* rot);
-void frame_free(frame* f);
-void frame_get_pose_matrix(frame* f, tensor* pose);
-tensor* frame_get_pose_matrix_give(frame* f);
+frame_t* frame_init(const char *name, float* pos, float* rot);
+void frame_free(frame_t* f);
+void frame_get_pose_matrix(frame_t* f, tensor* pose);
+tensor* frame_get_pose_matrix_give(frame_t* f);
 
 #endif

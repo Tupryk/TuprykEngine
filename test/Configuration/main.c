@@ -11,7 +11,7 @@
 
 int test_frame()
 {
-    frame* f = (frame*) malloc(sizeof(frame));
+    frame_t* f = (frame_t*) malloc(sizeof(frame));
 
     int pos_shape[] = {3, 1};
     float pos_values[] = {1, 2, 3};

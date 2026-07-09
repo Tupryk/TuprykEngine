@@ -74,9 +74,9 @@ void raytrace(config* C, int cam, tensor* out)
     int height = out->shape[1];
     float depth[width][height];
 
-    frame** frames = C->frames;
-    frame* cam_frame = frames[cam];
-    frame* light_frame = frames[C->lights[0]];
+    frame_t** frames = C->frames;
+    frame_t* cam_frame = frames[cam];
+    frame_t* light_frame = frames[C->lights[0]];
     light_t* light_data = (light_t*) light_frame->data;
     camera_t* cam_data = (camera_t*) cam_frame->data;
     float fx = cam_data->fx;
@@ -107,10 +107,10 @@ void raytrace(config* C, int cam, tensor* out)
 
             for (int i = 0; i < frame_count; i++)
             {
-                frame* ball_frame = frames[i];
+                frame_t* ball_frame = frames[i];
                 if (ball_frame->type == 1)
                 {
-                    geom* ball_geom = (geom*) ball_frame->data;
+                    geom_t* ball_geom = (geom_t*) ball_frame->data;
                     texture* ball_tex = ball_geom->tex;
 
                     float  radius    = *(float*) ball_geom->mesh;
@@ -160,10 +160,10 @@ void raytrace(config* C, int cam, tensor* out)
                         float shadow_scaler = 0.5f;
                         for (int j = 0; j < frame_count; j++)
                         {
-                            frame* ball_frame_ = frames[j];
+                            frame_t* ball_frame_ = frames[j];
                             if (ball_frame_->type == 1)
                             {
-                                geom* ball_geom_ = (geom*) ball_frame_->data;
+                                geom_t* ball_geom_ = (geom_t*) ball_frame_->data;
                                 float radius_  = *(float*)ball_geom_->mesh;
                                 float shadower = ray_ball_hit(ball_hit, light_dir, ball_frame_->pos, radius_, NULL);
                                 if (shadower != -1)
@@ -193,10 +193,10 @@ void raytrace(config* C, int cam, tensor* out)
     
                             for (int j = 0; j < frame_count; j++)
                             {
-                                frame* ball_frame_ = frames[j];
+                                frame_t* ball_frame_ = frames[j];
                                 if (ball_frame_->type == 1)
                                 {
-                                    geom* ball_geom_ = (geom*) ball_frame_->data;
+                                    geom_t* ball_geom_ = (geom_t*) ball_frame_->data;
                                     float radius_  = *(float*)ball_geom_->mesh;
                                     float dist = ray_ball_hit(ball_hit, reflected_ray, ball_frame_->pos, radius_, NULL);
                                     if (dist != -1 && closest > dist)

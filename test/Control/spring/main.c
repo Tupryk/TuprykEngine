@@ -1,7 +1,7 @@
 #define DEBUG
 
 #include <stdio.h>
-#include "../../TuprykEngine/Control/spring.h"
+#include "../../../TuprykEngine/Control/spring.h"
 
 
 int main()

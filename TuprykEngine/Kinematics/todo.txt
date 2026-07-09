@@ -1,1 +1,2 @@
 - Generalize hinge joints to be in any axis
+- Make all positions, etc. be in the same array

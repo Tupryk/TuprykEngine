@@ -6,9 +6,9 @@
 #include "../Geom/quaternions.h"
 
 
-frame* frame_init(const char *name, float* pos, float* rot)
+frame_t* frame_init(const char *name, float* pos, float* rot)
 {
-    frame* f = (frame*) malloc(sizeof(frame));
+    frame_t* f = (frame_t*) malloc(sizeof(frame));
 
     if (name != NULL)
     {
@@ -20,11 +20,8 @@ frame* frame_init(const char *name, float* pos, float* rot)
         f->name = NULL;
     }
 
-    int pos_shape[] = {3, 1};
-    f->pos = new_tensor(pos_shape, 2, pos);
-
-    int rot_shape[] = {4, 1};
-    f->rot = new_tensor(rot_shape, 2, rot);
+    f->pos = new_tensor_vector(3, pos);
+    f->rot = new_tensor_vector(4, rot);
 
     f->pos_rel = NULL;
     f->rot_rel = NULL;
@@ -40,7 +37,7 @@ frame* frame_init(const char *name, float* pos, float* rot)
     return f;
 }
 
-void frame_free(frame* f)
+void frame_free(frame_t* f)
 {
     if (f->name != NULL)
     {
@@ -57,7 +54,7 @@ void frame_free(frame* f)
 
     if (f->type == 1)
     {
-        geom* g = (geom*) f->data;
+        geom_t* g = (geom_t*) f->data;
         if (g->type == 0)
         {
             free(g->mesh);
@@ -99,7 +96,7 @@ void frame_free(frame* f)
     free(f);
 }
 
-void frame_get_pose_matrix(frame* f, tensor* out)
+void frame_get_pose_matrix(frame_t* f, tensor* out)
 {
     #ifdef DEBUG
     if (
@@ -123,7 +120,7 @@ void frame_get_pose_matrix(frame* f, tensor* out)
     out->values[15] = 1.f;
 }
 
-tensor* frame_get_pose_matrix_give(frame* f)
+tensor* frame_get_pose_matrix_give(frame_t* f)
 {
     int shape[] = {4, 4};
     tensor* out = new_tensor(shape, 2, NULL);

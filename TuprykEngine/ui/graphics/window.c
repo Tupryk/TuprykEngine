@@ -67,6 +67,22 @@ void window_wait_with_func(void (*func)())
     }
 }
 
+int window_wait_time(float dt)
+{
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) { if (e.type == SDL_QUIT) return 1; }
+
+    SDL_RenderPresent(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    SDL_Delay((int)(dt * 1000.f));
+
+    return 0;
+}
+
+
 void free_window()
 {
     SDL_DestroyRenderer(renderer);
