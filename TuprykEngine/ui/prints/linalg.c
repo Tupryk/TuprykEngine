@@ -145,5 +145,5 @@ void print_sparse(sparse* st)
     }
     printf("sparse tensor with shape: ");
     print_shape(st->shape, st->shape_dim);
-    printf(" and %d elements.\n", st->value_count);
+    printf(" and %d elements. (Density: %f)\n", st->value_count, sparse_get_density(st));
 }

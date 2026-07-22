@@ -1,7 +1,7 @@
 - Q
-- DDPG
 - TRPO
 - PPO
+- DDPG
 - SAC
 - TD3
 - TD7

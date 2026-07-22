@@ -3,4 +3,5 @@
 - Sorted list
 - Quicksort
 - Entropy coding
-- hdf5
+- HDF5
+- Hashing

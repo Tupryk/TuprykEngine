@@ -4,3 +4,6 @@
     - Caustics
 - Raymarching
 - Normal maps :)
+- Distortion coefficients for camera
+    - Use this to test perception model?
+    - ArUco renderer!

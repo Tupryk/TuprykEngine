@@ -5,3 +5,6 @@
 - Diagonalisierung
 - Autograd
 - Tensor slices
+- Operation sequence:
+    - Compilation graphs
+    - tensor_opseq(int count, char* ops, tensor** ts);

@@ -1,2 +1,4 @@
-- Adam
+- Adam / AdamW
 - Log-barrier
+- Bayesian Optimization
+- Conjugate gradient

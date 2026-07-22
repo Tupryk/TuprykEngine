@@ -17,3 +17,10 @@
 - Better make files
 - Always log seed when testing
 - Chess bot (Bitboards)
+- Threading
+- Physics based "Animal Island" + evolution
+    - Sand
+    - Water
+    - Clouds
+    - Sounds
+- Parallelization interface in ui?

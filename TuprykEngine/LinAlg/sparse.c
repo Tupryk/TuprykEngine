@@ -177,3 +177,8 @@ sparse* sparse_transpose(sparse* st)
         }
     }
 }
+
+float sparse_get_density(sparse* st)
+{
+    return ((float) st->value_count) / ((float) st->volume);
+}

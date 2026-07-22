@@ -24,5 +24,6 @@ tensor* tensor_from_sparse(sparse* st);
 void sparse_free(sparse* st);
 void sparse_insert(sparse* st, float value, int index);
 sparse* sparse_transpose(sparse* st);
+float sparse_get_density(sparse* st);
 
 #endif
