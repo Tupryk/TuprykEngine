@@ -18,7 +18,7 @@ void nlp_free(nlp_t* nlp)
     free(nlp);
 }
 
-int nlp_feasible(nlp_t* nlp, tensor* x)
+int nlp_feasible(nlp_t* nlp, tensor_t* x)
 {
     for (int i = 0; i < nlp->ineq_count; i++)
     {
@@ -35,7 +35,7 @@ int nlp_feasible(nlp_t* nlp, tensor* x)
     return 1;
 }
 
-float nlp_infeasible_cost(nlp_t* nlp, tensor* x)
+float nlp_infeasible_cost(nlp_t* nlp, tensor_t* x)
 {
     float cost = 0.f;
     for (int i = 0; i < nlp->ineq_count; i++)
@@ -61,7 +61,7 @@ struct nlp_optim_logs* nlp_logs_init()
     return nl;
 }
 
-float nlp_sos_const_eval(nlp_t* nlp, tensor* x)
+float nlp_sos_const_eval(nlp_t* nlp, tensor_t* x)
 {
     float out = nlp->f != NULL ? nlp->f(x) : 0.f;
 
@@ -80,12 +80,12 @@ float nlp_sos_const_eval(nlp_t* nlp, tensor* x)
     return out;
 }
 
-void nlp_sos_const_eval2(nlp_t* nlp, tensor* x, tensor* out)
+void nlp_sos_const_eval2(nlp_t* nlp, tensor_t* x, tensor_t* out)
 {
     if (nlp->delta_f != NULL) nlp->delta_f(x, out);
     else tensor_fill(out, 0.f);
 
-    tensor* eval2 = tensor_copy_shape(x);
+    tensor_t* eval2 = tensor_copy_shape(x);
 
     for (int i = 0; i < nlp->ineq_count; i++)
     {

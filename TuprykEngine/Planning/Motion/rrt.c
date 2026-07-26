@@ -2,11 +2,11 @@
 #include <float.h>
 
 
-stack* rrt_find_path(config* C, tensor* q0, tensor* qT, float stepsize)
+stack* rrt_find_path(config* C, tensor_t* q0, tensor_t* qT, float stepsize)
 {
-    tensor* q_target = tensor_copy_shape(C->q);
+    tensor_t* q_target = tensor_copy_shape(C->q);
     struct rrt_node* root = (struct rrt_node*) malloc(sizeof(struct rrt_node));
-    tensor* diff = tensor_copy_shape(root->q);
+    tensor_t* diff = tensor_copy_shape(root->q);
     root->idx = 0;
     root->parent = NULL;
     root->q = tensor_copy(q0);

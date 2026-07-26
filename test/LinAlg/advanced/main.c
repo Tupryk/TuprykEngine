@@ -5,17 +5,17 @@
 #include "../../../TuprykEngine/LinAlg/tensor.h"
 
 
-int test_lu_decomposition_single(tensor* A)
+int test_lu_decomposition_single(tensor_t* A)
 {
     printf("----- A -----\n");
     print_tensor(A);
     int operator_shape[] = {A->shape[0], A->shape[0]};
-    tensor* P = new_tensor(operator_shape, 2, NULL);
-    tensor* L = tensor_copy_shape(P);
-    tensor* U = tensor_copy_shape(A);
+    tensor_t* P = new_tensor(operator_shape, 2, NULL);
+    tensor_t* L = tensor_copy_shape(P);
+    tensor_t* U = tensor_copy_shape(A);
     tensor_lu_decomp(A, P, L, U);
-    tensor* PL = tensor_mult_give(P, L);
-    tensor* A_reconstructed = tensor_mult_give(PL, U);
+    tensor_t* PL = tensor_mult_give(P, L);
+    tensor_t* A_reconstructed = tensor_mult_give(PL, U);
 
     printf("----- P -----\n");
     print_tensor(P);
@@ -49,7 +49,7 @@ int test_lu_decomposition()
          6, -6,  7,
          3, -8,  4
     };
-    tensor* A = new_tensor(a_shape_0, 2, a_values_0);
+    tensor_t* A = new_tensor(a_shape_0, 2, a_values_0);
 
     failure_count += test_lu_decomposition_single(A);
     tensor_free(A);
@@ -95,7 +95,7 @@ int test_determinant()
         8, 5,
         4, 5
     };
-    tensor* A = new_tensor(a_shape_0, 2, a_values_0);
+    tensor_t* A = new_tensor(a_shape_0, 2, a_values_0);
 
     float det = tensor_determinant(A);
 
@@ -145,12 +145,12 @@ int test_determinant()
     return failure_count;
 }
 
-int test_inverse_single(tensor* A)
+int test_inverse_single(tensor_t* A)
 {
-    tensor* I = tensor_copy_shape(A);
+    tensor_t* I = tensor_copy_shape(A);
     tensor_identity(I);
 
-    tensor* A_inv = tensor_inverse_give(A);
+    tensor_t* A_inv = tensor_inverse_give(A);
 
     printf("----- A -----\n");
     print_tensor(A);
@@ -159,7 +159,7 @@ int test_inverse_single(tensor* A)
     print_tensor(A_inv);
 
     
-    tensor* A_A_inv = tensor_mult_give(A, A_inv);
+    tensor_t* A_A_inv = tensor_mult_give(A, A_inv);
 
     printf("----- A @ inv_A -----\n");
     print_tensor(A_A_inv);
@@ -184,7 +184,7 @@ int test_inverse()
          2, 1,
          1, 3
     };
-    tensor* A = new_tensor(a_shape, 2, a_values);
+    tensor_t* A = new_tensor(a_shape, 2, a_values);
 
     failure_count += test_inverse_single(A);
 

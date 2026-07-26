@@ -74,7 +74,7 @@ static uint8_t clamp_u8(float v)
     return (uint8_t)v;
 }
 
-void draw_gaussian(tensor* pos, tensor* A, float half_bounds)
+void draw_gaussian(tensor_t* pos, tensor_t* A, float half_bounds)
 {
     float radius = half_bounds;
     int bound = radius * 3;
@@ -86,7 +86,7 @@ void draw_gaussian(tensor* pos, tensor* A, float half_bounds)
         for (int x = -bound; x <= bound; x++)
         {
             // Mahalanobis distance squared:
-            tensor* pos_px = tensor_copy_shape(pos);
+            tensor_t* pos_px = tensor_copy_shape(pos);
             pos_px->values[0] = (float)x / radius;
             pos_px->values[1] = (float)y / radius;
             float d2 = tensor_xTAx(A, pos_px);
@@ -164,7 +164,7 @@ void draw_3d_unit_cube()
 }
 
 void plot_unit_func(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float area_side
@@ -177,7 +177,7 @@ void plot_unit_func(
     float step_vis = 1.f / res;
 
     int shape[] = {2, 1};
-    tensor* in = new_tensor(shape, 2, NULL);
+    tensor_t* in = new_tensor(shape, 2, NULL);
 
     float surface[res][res];
 
@@ -242,17 +242,17 @@ void plot_unit_func(
 }
 
 void plot_unit_func_heat(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float area_side
 )
 {
     int x_shape[] = {2, 1};
-    tensor* x = new_tensor(x_shape, 2, NULL);
+    tensor_t* x = new_tensor(x_shape, 2, NULL);
 
     int screen_shape[] = {WINDOW_W, WINDOW_H};
-    tensor* screen = new_tensor(screen_shape, 2, NULL);
+    tensor_t* screen = new_tensor(screen_shape, 2, NULL);
 
     for (int i = 0; i < WINDOW_W; i++)
     {
@@ -299,7 +299,7 @@ void plot_unit_func_heat(
 }
 
 void plot_unit_func_3d(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float center_z,
@@ -312,7 +312,7 @@ void plot_unit_func_3d(
     float step_eval = area_side / res;
 
     int shape[] = {3, 1};
-    tensor* in = new_tensor(shape, 2, NULL);
+    tensor_t* in = new_tensor(shape, 2, NULL);
 
     for (int i = 0; i < res; i++)
     {
@@ -378,7 +378,7 @@ void plot_1d_func(float (*func)(float), float from, float to)
     }
 }
 
-void view_image(tensor* im)
+void view_image(tensor_t* im)
 {
     int width = im->shape[0];
     int height = im->shape[1];
@@ -399,7 +399,7 @@ void view_image(tensor* im)
     }
 }
 
-void play_video(tensor** frames, int frame_count, float tau)
+void play_video(tensor_t** frames, int frame_count, float tau)
 {
     int index = 0;
     SDL_Event e;

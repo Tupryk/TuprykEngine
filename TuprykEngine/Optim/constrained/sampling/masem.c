@@ -14,7 +14,7 @@
 #include "../../../ui/graphics/window.h"
 
 
-void draw_x_(nlp_t* nlp, tensor* x)
+void draw_x_(nlp_t* nlp, tensor_t* x)
 {
     int feasible = nlp_feasible(nlp, x);
 
@@ -26,11 +26,11 @@ void draw_x_(nlp_t* nlp, tensor* x)
     draw_circle(cx, cy, 2);
 }
 
-void masem_sample(nlp_t* nlp, int sample_count, float init_scale, float temperature, int iterations, int k, tensor** output)
+void masem_sample(nlp_t* nlp, int sample_count, float init_scale, float temperature, int iterations, int k, tensor_t** output)
 {
     printf("Projecting into feasible space...\n");
     int rejuvenation_steps = 1;
-    tensor* nhr_samples[rejuvenation_steps];
+    tensor_t* nhr_samples[rejuvenation_steps];
     aug_lagrangian_init(nlp, 1e-2, 1e-2, 10, 10, 1);
     for (int i = 0; i < sample_count; i++)
     {
@@ -71,8 +71,8 @@ void masem_sample(nlp_t* nlp, int sample_count, float init_scale, float temperat
     float weights[sample_count];
     int indices[k+1];
     float dists[k+1];
-    tensor* query = tensor_copy_shape(output[0]);
-    tensor* resampled_points[sample_count];
+    tensor_t* query = tensor_copy_shape(output[0]);
+    tensor_t* resampled_points[sample_count];
 
     for (int i = 0; i < iterations; i++)
     {

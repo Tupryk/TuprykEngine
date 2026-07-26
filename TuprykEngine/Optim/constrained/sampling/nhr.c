@@ -6,14 +6,14 @@
 #include "../../../Algos/utils.h"
 #include "../../../Stochastic/sample.h"
 
-void nhr_sample(nlp_t* nlp, tensor* feasible_point, int sample_count, float delta_max, tensor** output)
+void nhr_sample(nlp_t* nlp, tensor_t* feasible_point, int sample_count, float delta_max, tensor_t** output)
 {
     // TODO: Use nlp->eq
-    tensor* last_point = tensor_copy(feasible_point);
-    tensor* sampled_direction = tensor_copy_shape(feasible_point);
-    tensor* y = tensor_copy_shape(feasible_point);
-    tensor* g_delta = tensor_copy_shape(feasible_point);
-    tensor* x_y_diff = tensor_copy_shape(feasible_point);
+    tensor_t* last_point = tensor_copy(feasible_point);
+    tensor_t* sampled_direction = tensor_copy_shape(feasible_point);
+    tensor_t* y = tensor_copy_shape(feasible_point);
+    tensor_t* g_delta = tensor_copy_shape(feasible_point);
+    tensor_t* x_y_diff = tensor_copy_shape(feasible_point);
 
     for (int i = 0; i < sample_count; i++)
     {

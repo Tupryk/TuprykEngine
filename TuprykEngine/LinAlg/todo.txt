@@ -1,10 +1,10 @@
-- void singular_value_decomposition(tensor* target, tensor* U, tensor* eta, tensor* V_t);
-- tensor* pseudo_inverse(tensor* target);
-- void pseudo_inverse(tensor* target, tensor* out);
+- void singular_value_decomposition(tensor_t* target, tensor_t* U, tensor_t* eta, tensor_t* V_t);
+- tensor_t* pseudo_inverse(tensor_t* target);
+- void pseudo_inverse(tensor_t* target, tensor_t* out);
 - Eigenvalues / Eigenvectors
 - Diagonalisierung
 - Autograd
 - Tensor slices
 - Operation sequence:
     - Compilation graphs
-    - tensor_opseq(int count, char* ops, tensor** ts);
+    - tensor_opseq(int count, char* ops, tensor_t** ts);

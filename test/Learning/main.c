@@ -19,8 +19,8 @@ int test_mlp()
     int activation_types[] = {0, 1, 1, 0};
     mlp_t* mlp = mlp_init(layer_count, layer_sizes, activation_types);
 
-    tensor* input = new_tensor_vector(input_dim, NULL);
-    tensor* output = new_tensor_vector(output_dim, NULL);
+    tensor_t* input = new_tensor_vector(input_dim, NULL);
+    tensor_t* output = new_tensor_vector(output_dim, NULL);
     tensor_fill_uniform(input, -1.f, 1.f);
     
     mlp_forward(mlp, input, output);

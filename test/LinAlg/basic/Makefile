@@ -3,6 +3,7 @@ CFLAGS = -Wall -Wextra -g
 
 SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
+	../../../TuprykEngine/LinAlg/sparse.c \
 	../../../TuprykEngine/Stochastic/sample.c \
 	../../../TuprykEngine/ui/prints/linalg.c
 OBJS = $(SRCS:.c=.o)

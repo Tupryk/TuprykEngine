@@ -14,7 +14,7 @@ foam_t* foam_init(nlp_t* nlp, size_t max_foam, float inital_std, float inital_sc
     return foam;
 }
 
-void foam_add_particle(foam_t* foam, tensor* x)
+void foam_add_particle(foam_t* foam, tensor_t* x)
 {
     // Check if touching any other gaussian
     // TODO:
@@ -29,11 +29,11 @@ void foam_add_particle(foam_t* foam, tensor* x)
     }
 }
 
-float foam_eval(foam_t* foam, nlp_t* nlp, tensor* x)
+float foam_eval(foam_t* foam, nlp_t* nlp, tensor_t* x)
 {
     float out = 0.f;
     struct stack_elem* se = foam->force_fields->next;
-    tensor* x_diff = tensor_copy_shape(x);
+    tensor_t* x_diff = tensor_copy_shape(x);
     while (se != NULL)
     {
         gaussian_t* gauss = (gaussian_t*) se->data;
@@ -51,12 +51,12 @@ float foam_eval(foam_t* foam, nlp_t* nlp, tensor* x)
     return out;
 }
 
-void foam_eval2(foam_t* foam, nlp_t* nlp, tensor* x, tensor* out)
+void foam_eval2(foam_t* foam, nlp_t* nlp, tensor_t* x, tensor_t* out)
 {
     tensor_fill(out, 0.f);
     struct stack_elem* se = foam->force_fields->next;
-    tensor* x_diff = tensor_copy_shape(x);
-    tensor* ball_grad = tensor_copy_shape(x);
+    tensor_t* x_diff = tensor_copy_shape(x);
+    tensor_t* ball_grad = tensor_copy_shape(x);
     while (se != NULL)
     {
         gaussian_t* gauss = (gaussian_t*) se->data;

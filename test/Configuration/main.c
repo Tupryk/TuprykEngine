@@ -21,7 +21,7 @@ int test_frame()
     float rot_values[] = {1, 0, 0, 0};
     f->rot = new_tensor(rot_shape, 2, rot_values);
 
-    tensor* pose = frame_get_pose_matrix_give(f);
+    tensor_t* pose = frame_get_pose_matrix_give(f);
     print_tensor_verbose(pose, 10);
 
     tensor_free(f->pos);

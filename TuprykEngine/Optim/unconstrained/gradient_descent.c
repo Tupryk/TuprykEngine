@@ -10,25 +10,25 @@
 
 struct gd_context
 {
-    float (*cost_func)(tensor*);
-    void (*delta_cost_func)(tensor*, tensor*);
+    float (*cost_func)(tensor_t*);
+    void (*delta_cost_func)(tensor_t*, tensor_t*);
     
     float alpha;
     float tolerance;
     int total_steps;
     int max_iters;
     
-    tensor* x;
-    tensor* J;
+    tensor_t* x;
+    tensor_t* J;
     struct optim_logs* logs;
 };
 
 static struct gd_context* ctx;
 
 void gradient_descent_init(
-    tensor* x0,
-    float (*cost_func)(tensor*),
-    void (*delta_cost_func)(tensor*, tensor*),
+    tensor_t* x0,
+    float (*cost_func)(tensor_t*),
+    void (*delta_cost_func)(tensor_t*, tensor_t*),
     float alpha,
     float tolerance,
     int max_iters
@@ -48,7 +48,7 @@ void gradient_descent_init(
     ctx->total_steps = 0;
 }
 
-struct optim_logs* gradient_descent_run(tensor* x)
+struct optim_logs* gradient_descent_run(tensor_t* x)
 {
     tensor_transfer_values(ctx->x, x);
 

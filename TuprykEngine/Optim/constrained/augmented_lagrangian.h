@@ -9,7 +9,7 @@ void aug_lagrangian_init(
     int max_inner_steps,
     int inner_opt
 );
-struct nlp_optim_logs* aug_lagrangian_run(tensor* x);
+struct nlp_optim_logs* aug_lagrangian_run(tensor_t* x);
 void aug_lagrangian_free();
 
 #endif

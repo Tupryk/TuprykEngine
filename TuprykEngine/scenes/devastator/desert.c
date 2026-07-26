@@ -44,7 +44,7 @@ void add_tentacle_piece_to_config(
     int q_id,
     int j, int i
 ) {
-    tensor* parent_pos = C->frames[parent_idx]->pos;
+    tensor_t* parent_pos = C->frames[parent_idx]->pos;
     float rot[] = {1.f, 0.f, 0.f, 0.f};
     int ball_idx = joint_idx + 1;
 

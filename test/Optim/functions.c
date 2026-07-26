@@ -70,14 +70,14 @@ void quadratic_free()
     tensor_free(q.b);
 }
 
-float quadratic_eval(tensor* x)
+float quadratic_eval(tensor_t* x)
 {
-    tensor* x_T = tensor_copy(x);
+    tensor_t* x_T = tensor_copy(x);
     tensor_transpose(x_T);
 
-    tensor* dot0 = tensor_mult_give(q.A, x);
-    tensor* dot1 = tensor_mult_give(x_T, dot0);
-    tensor* dot2 = tensor_mult_give(q.b, x);
+    tensor_t* dot0 = tensor_mult_give(q.A, x);
+    tensor_t* dot1 = tensor_mult_give(x_T, dot0);
+    tensor_t* dot2 = tensor_mult_give(q.b, x);
     
     float out = 0.5 * dot1->values[0] + dot2->values[0] + q.c;
     
@@ -89,9 +89,9 @@ float quadratic_eval(tensor* x)
     return out;
 }
 
-void quadratic_eval2(tensor* x, tensor* out)
+void quadratic_eval2(tensor_t* x, tensor_t* out)
 {
-    tensor* b_T = tensor_copy(q.b);
+    tensor_t* b_T = tensor_copy(q.b);
     tensor_transpose(b_T);
 
     tensor_mult(q.A, x, out);
@@ -100,7 +100,7 @@ void quadratic_eval2(tensor* x, tensor* out)
     tensor_free(b_T);
 }
 
-void quadratic_eval3(tensor* x, tensor* out)
+void quadratic_eval3(tensor_t* x, tensor_t* out)
 {
     tensor_transfer_values(out, q.A);
 }
@@ -114,23 +114,23 @@ nlp_t* get_nlp0()
     return nlp;
 }
 
-float zero_eval(tensor* x) { return 0.f; }
-void zero_eval2(tensor* x, tensor* out) { out->values[0] = 0.f; out->values[1] = 0.f; }
+float zero_eval(tensor_t* x) { return 0.f; }
+void zero_eval2(tensor_t* x, tensor_t* out) { out->values[0] = 0.f; out->values[1] = 0.f; }
 
-float squared_eval(tensor* x) { return .5f * ((x->values[0] - .5f)*(x->values[0] - .5f) + (x->values[1] + .5f)*(x->values[1] + .5f)) * 10.f; }
-void squared_eval2(tensor* x, tensor* out) { out->values[0] = (x->values[0] - .5f) * 10.f; out->values[1] = (x->values[1] + .5f) * 10.f; }
+float squared_eval(tensor_t* x) { return .5f * ((x->values[0] - .5f)*(x->values[0] - .5f) + (x->values[1] + .5f)*(x->values[1] + .5f)) * 10.f; }
+void squared_eval2(tensor_t* x, tensor_t* out) { out->values[0] = (x->values[0] - .5f) * 10.f; out->values[1] = (x->values[1] + .5f) * 10.f; }
 
-float side1_eval(tensor* x) { return x->values[0] - 0.5; }
-void side1_eval2(tensor* x, tensor* out) { out->values[0] = 1.f; out->values[1] = 0.f; }
+float side1_eval(tensor_t* x) { return x->values[0] - 0.5; }
+void side1_eval2(tensor_t* x, tensor_t* out) { out->values[0] = 1.f; out->values[1] = 0.f; }
 
-float side2_eval(tensor* x) { return -x->values[0] - 0.5; }
-void side2_eval2(tensor* x, tensor* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
+float side2_eval(tensor_t* x) { return -x->values[0] - 0.5; }
+void side2_eval2(tensor_t* x, tensor_t* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
 
-float side3_eval(tensor* x) { return -x->values[1] - 0.5; }
-void side3_eval2(tensor* x, tensor* out) { out->values[0] = 0.f; out->values[1] = -1.f; }
+float side3_eval(tensor_t* x) { return -x->values[1] - 0.5; }
+void side3_eval2(tensor_t* x, tensor_t* out) { out->values[0] = 0.f; out->values[1] = -1.f; }
 
-float side4_eval(tensor* x) { return x->values[1] - 0.5; }
-void side4_eval2(tensor* x, tensor* out) { out->values[0] = 0.f; out->values[1] = 1.f; }
+float side4_eval(tensor_t* x) { return x->values[1] - 0.5; }
+void side4_eval2(tensor_t* x, tensor_t* out) { out->values[0] = 0.f; out->values[1] = 1.f; }
 
 nlp_t* get_nlp1()
 {
@@ -161,8 +161,8 @@ nlp_t* get_nlp1()
     return nlp;
 }
 
-float circle_eval(tensor* x) { return vector_squared_norm(x) - 0.5; }
-void circle_eval2(tensor* x, tensor* out) { tensor_scalar_mult(x, 2, out); }
+float circle_eval(tensor_t* x) { return vector_squared_norm(x) - 0.5; }
+void circle_eval2(tensor_t* x, tensor_t* out) { tensor_scalar_mult(x, 2, out); }
 
 nlp_t* get_nlp2()
 {
@@ -200,12 +200,12 @@ float disk1_center_values[] = {0.5f, 0.15f};
 float disk_2_radius = 0.02f;
 float disk2_center_values[] = {-0.5f, -0.5f};
 
-float two_disks_eval(tensor* x)
+float two_disks_eval(tensor_t* x)
 {
-    tensor* x_delta = tensor_copy_shape(x);
+    tensor_t* x_delta = tensor_copy_shape(x);
 
-    tensor* disk1_center = new_tensor_vector(2, disk1_center_values);
-    tensor* disk2_center = new_tensor_vector(2, disk2_center_values);
+    tensor_t* disk1_center = new_tensor_vector(2, disk1_center_values);
+    tensor_t* disk2_center = new_tensor_vector(2, disk2_center_values);
 
     tensor_sub(x, disk1_center, x_delta);
     float disk1 = vector_squared_norm(x_delta) - disk_1_radius;
@@ -220,13 +220,13 @@ float two_disks_eval(tensor* x)
     return min(disk1, disk2);
 }
 
-void two_disks_eval2(tensor* x, tensor* out)
+void two_disks_eval2(tensor_t* x, tensor_t* out)
 {
-    tensor* x_delta1 = tensor_copy_shape(x);
-    tensor* x_delta2 = tensor_copy_shape(x);
+    tensor_t* x_delta1 = tensor_copy_shape(x);
+    tensor_t* x_delta2 = tensor_copy_shape(x);
 
-    tensor* disk1_center = new_tensor_vector(2, disk1_center_values);
-    tensor* disk2_center = new_tensor_vector(2, disk2_center_values);
+    tensor_t* disk1_center = new_tensor_vector(2, disk1_center_values);
+    tensor_t* disk2_center = new_tensor_vector(2, disk2_center_values);
 
     tensor_sub(x, disk1_center, x_delta1);
     tensor_free(disk1_center);
@@ -253,7 +253,7 @@ nlp_t* get_nlp_two_disks()
     return nlp;
 }
 
-float swiss_roll_eval(tensor* x)
+float swiss_roll_eval(tensor_t* x)
 {
     float t_max = 5.0f * M_PI;
     float px = x->values[0];
@@ -270,7 +270,7 @@ float swiss_roll_eval(tensor* x)
     return fmaxf(spiral, cap);
 }
 
-void swiss_roll_eval2(tensor* x, tensor* out)
+void swiss_roll_eval2(tensor_t* x, tensor_t* out)
 {
     float t_max = 5.0f * M_PI;
     float px = x->values[0];
@@ -315,7 +315,7 @@ nlp_t* get_nlp_swiss_roll()
     return nlp;
 }
 
-float gaussian(tensor* x)
+float gaussian(tensor_t* x)
 {
     float std = .25f;
 
@@ -332,9 +332,9 @@ float repeat(float x, float period)
 float mod_circle_rad = 1.f;
 float mod_circle_spacing = 3.5f;
 
-float mod_circles_eval(tensor* x)
+float mod_circles_eval(tensor_t* x)
 {
-    tensor* x_mod = tensor_copy(x);
+    tensor_t* x_mod = tensor_copy(x);
     x_mod->values[0] = repeat(x_mod->values[0], mod_circle_spacing) - mod_circle_spacing * 0.5f;
     x_mod->values[1] = repeat(x_mod->values[1], mod_circle_spacing) - mod_circle_spacing * 0.5f;
     float out = vector_squared_norm(x_mod) - mod_circle_rad*mod_circle_rad;
@@ -342,17 +342,17 @@ float mod_circles_eval(tensor* x)
     return out;
 }
 
-void mod_circles_eval2(tensor* x, tensor* out)
+void mod_circles_eval2(tensor_t* x, tensor_t* out)
 {
-    tensor* x_mod = tensor_copy(x);
+    tensor_t* x_mod = tensor_copy(x);
     x_mod->values[0] = repeat(x_mod->values[0], mod_circle_spacing) - mod_circle_spacing * 0.5f;
     x_mod->values[1] = repeat(x_mod->values[1], mod_circle_spacing) - mod_circle_spacing * 0.5f;
     tensor_scalar_mult(x_mod, 2.f, out);
     tensor_free(x_mod);
 }
 
-float big_side_eval(tensor* x) { return -x->values[0]; }
-void big_side_eval2(tensor* x, tensor* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
+float big_side_eval(tensor_t* x) { return -x->values[0]; }
+void big_side_eval2(tensor_t* x, tensor_t* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
 
 nlp_t* get_mod_circles()
 {
@@ -367,20 +367,20 @@ nlp_t* get_mod_circles()
     return nlp;
 }
 
-float wall_eval(tensor* x) { return -x->values[0]; }
-void wall_eval2(tensor* x, tensor* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
+float wall_eval(tensor_t* x) { return -x->values[0]; }
+void wall_eval2(tensor_t* x, tensor_t* out) { out->values[0] = -1.f; out->values[1] = 0.f; }
 
-float sidecircle_eval(tensor* x)
+float sidecircle_eval(tensor_t* x)
 {
-    tensor* x_shifted = tensor_copy(x);
+    tensor_t* x_shifted = tensor_copy(x);
     x_shifted->values[0] += 1.1f;
     float out = vector_squared_norm(x_shifted) - 0.5;
     tensor_free(x_shifted);
     return min(out, -x->values[0]);
 }
-void sidecircle_eval2(tensor* x, tensor* out)
+void sidecircle_eval2(tensor_t* x, tensor_t* out)
 {
-    tensor* x_shifted = tensor_copy(x);
+    tensor_t* x_shifted = tensor_copy(x);
     x_shifted->values[0] += 1.1f;
     float out_circ = vector_squared_norm(x_shifted) - 0.5;
 
@@ -395,17 +395,17 @@ void sidecircle_eval2(tensor* x, tensor* out)
     tensor_free(x_shifted);
 }
 
-float repcircle_eval(tensor* x)
+float repcircle_eval(tensor_t* x)
 {
-    tensor* x_shifted = tensor_copy(x);
+    tensor_t* x_shifted = tensor_copy(x);
     x_shifted->values[0] += 0.45f;
     float out = -vector_squared_norm(x_shifted) + 0.6;
     tensor_free(x_shifted);
     return min(out, -x->values[0]);
 }
-void repcircle_eval2(tensor* x, tensor* out)
+void repcircle_eval2(tensor_t* x, tensor_t* out)
 {
-    tensor* x_shifted = tensor_copy(x);
+    tensor_t* x_shifted = tensor_copy(x);
     x_shifted->values[0] += 0.45f;
     
     float out_circ = -vector_squared_norm(x_shifted) + 0.6;

@@ -8,13 +8,13 @@ typedef struct
 {
     int done;
     float reward;
-    tensor* state;
+    tensor_t* state;
 } env_return_t;
 
 typedef struct
 {
     int time;
-    tensor* state;
+    tensor_t* state;
 } env_t;
 
 env_return_t* env_step(env_t* e);

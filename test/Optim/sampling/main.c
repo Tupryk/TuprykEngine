@@ -25,7 +25,7 @@ foam_t* foam_ctx;
 
 float square_side = 10.f;
 
-void draw_x(nlp_t* nlp, tensor* x)
+void draw_x(nlp_t* nlp, tensor_t* x)
 {
     int feasible = nlp_feasible(nlp, x);
 
@@ -37,13 +37,13 @@ void draw_x(nlp_t* nlp, tensor* x)
     draw_circle(cx, cy, 5);
 }
 
-float foam_eval_ctx(tensor* x) { return foam_eval(foam_ctx, nlp_ctx, x) + nlp_sos_const_eval(nlp_ctx, x); }
-void foam_eval2_ctx(tensor* x, tensor* out)
+float foam_eval_ctx(tensor_t* x) { return foam_eval(foam_ctx, nlp_ctx, x) + nlp_sos_const_eval(nlp_ctx, x); }
+void foam_eval2_ctx(tensor_t* x, tensor_t* out)
 {
-    tensor* foam_out = tensor_copy_shape(out);
+    tensor_t* foam_out = tensor_copy_shape(out);
     foam_eval2(foam_ctx, nlp_ctx, x, foam_out);
 
-    tensor* nlp_out = tensor_copy_shape(out);
+    tensor_t* nlp_out = tensor_copy_shape(out);
     nlp_sos_const_eval2(nlp_ctx, x, nlp_out);
 
     tensor_add(foam_out, nlp_out, out);
@@ -57,12 +57,12 @@ int test_foam_constraint_sampling()
     
     int sample_count = 1000;
     
-    tensor* x = new_tensor_vector(2, NULL);
+    tensor_t* x = new_tensor_vector(2, NULL);
     
     nlp_ctx = get_global_nlp();
     foam_ctx = foam_init(nlp_ctx, 50, .5f, 10.f);
     
-    tensor* samples[sample_count];
+    tensor_t* samples[sample_count];
 
     //--------- Sampling ---------//
     int feasible_count = 0;

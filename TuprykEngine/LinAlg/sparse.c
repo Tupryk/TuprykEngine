@@ -49,7 +49,7 @@ sparse* sparse_copy(sparse* s)
     return out;
 }
 
-sparse* sparse_from_tensor(tensor* t)
+sparse* sparse_from_tensor(tensor_t* t)
 {
     sparse* st = new_sparse(t->shape, t->shape_dim);
 
@@ -82,9 +82,9 @@ sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
     return st;
 }
 
-tensor* tensor_from_sparse(sparse* st)
+tensor_t* tensor_from_sparse(sparse* st)
 {
-    tensor* t = new_tensor(st->shape, st->shape_dim, NULL);
+    tensor_t* t = new_tensor(st->shape, st->shape_dim, NULL);
 
     for (int i = 0; i < st->value_count; i++)
     {

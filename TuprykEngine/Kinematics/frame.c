@@ -96,7 +96,7 @@ void frame_free(frame_t* f)
     free(f);
 }
 
-void frame_get_pose_matrix(frame_t* f, tensor* out)
+void frame_get_pose_matrix(frame_t* f, tensor_t* out)
 {
     #ifdef DEBUG
     if (
@@ -120,10 +120,10 @@ void frame_get_pose_matrix(frame_t* f, tensor* out)
     out->values[15] = 1.f;
 }
 
-tensor* frame_get_pose_matrix_give(frame_t* f)
+tensor_t* frame_get_pose_matrix_give(frame_t* f)
 {
     int shape[] = {4, 4};
-    tensor* out = new_tensor(shape, 2, NULL);
+    tensor_t* out = new_tensor(shape, 2, NULL);
     frame_get_pose_matrix(f, out);
     return out;
 }

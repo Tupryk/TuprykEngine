@@ -15,7 +15,7 @@
 #include "../../../TuprykEngine/ui/graphics/window.h"
 
 
-void draw_x(nlp_t* nlp, tensor* x)
+void draw_x(nlp_t* nlp, tensor_t* x)
 {
     int feasible = nlp_feasible(nlp, x);
 
@@ -27,7 +27,7 @@ void draw_x(nlp_t* nlp, tensor* x)
     draw_circle(cx, cy, 2);
 }
 
-void draw_c(tensor* x)
+void draw_c(tensor_t* x)
 {
     set_color(0.1216f, 0.4667f, 0.7059f);
     int cx = ((x->values[0] + 1.f) * 0.5f) * ((float) WINDOW_W);
@@ -38,7 +38,7 @@ void draw_c(tensor* x)
 int test_aug_lagrangian()
 {
     float values[] = {11.f, -5.f};
-    tensor* init_x = new_tensor_vector(2, values);
+    tensor_t* init_x = new_tensor_vector(2, values);
     
     quadratic_init();
     nlp_t* nlp = get_nlp0();
@@ -58,7 +58,7 @@ int test_aug_lagrangian()
 int test_nlp_feasibility()
 {
     int sample_count = 1000;
-    tensor* x = new_tensor_vector(2, NULL);
+    tensor_t* x = new_tensor_vector(2, NULL);
     
     nlp_t* nlp = get_nlp_swiss_roll();
 
@@ -84,7 +84,7 @@ int test_nlp_feasibility()
 int test_constraint_sampling()
 {
     int sample_count = 1000;
-    tensor* x = new_tensor_vector(2, NULL);
+    tensor_t* x = new_tensor_vector(2, NULL);
     
     nlp_t* nlp = get_nlp_swiss_roll();
 
@@ -120,8 +120,8 @@ int test_nhr_constraint_sampling()
     int sample_count = 1000;
     
     nlp_t* nlp = get_nlp_swiss_roll();
-    tensor* samples[sample_count];
-    tensor* feasible_point = new_tensor_vector(2, NULL);
+    tensor_t* samples[sample_count];
+    tensor_t* feasible_point = new_tensor_vector(2, NULL);
     
     nhr_sample(nlp, feasible_point, sample_count, 1.f, samples);
     
@@ -148,9 +148,9 @@ int test_nhr_constraint_sampling()
 int test_mcmc_sampling()
 {
     int sample_count = 1000;
-    tensor* x = new_tensor_vector(2, NULL);
+    tensor_t* x = new_tensor_vector(2, NULL);
     
-    tensor* samples[sample_count];
+    tensor_t* samples[sample_count];
     mcmc_sample(gaussian, x, 0.01f, sample_count, samples);
     
     init_window();
@@ -176,8 +176,8 @@ int test_masem_constraint_sampling()
     int sample_count = 1000;
     
     nlp_t* nlp = get_nlp_swiss_roll();
-    tensor* samples[sample_count];
-    tensor* feasible_point = new_tensor_vector(2, NULL);
+    tensor_t* samples[sample_count];
+    tensor_t* feasible_point = new_tensor_vector(2, NULL);
     
     masem_sample(nlp, sample_count, 2.f, 1, 10, 5, samples);
     

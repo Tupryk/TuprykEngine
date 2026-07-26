@@ -10,9 +10,9 @@
 #define SHADOWS
 
 
-float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float radius, tensor* out)
+float ray_ball_hit(tensor_t* cam_pos, tensor_t* ray_dir, tensor_t* ball_pos, float radius, tensor_t* out)
 {
-    tensor* ball_to_cam = tensor_sub_give(cam_pos, ball_pos);
+    tensor_t* ball_to_cam = tensor_sub_give(cam_pos, ball_pos);
 
     float a = vector_squared_norm(ray_dir);
     float b = 2.f * vector_dot(ray_dir, ball_to_cam);
@@ -41,7 +41,7 @@ float ray_ball_hit(tensor* cam_pos, tensor* ray_dir, tensor* ball_pos, float rad
     return camera_ball_dist;
 }
 
-void raytrace(config* C, int cam, tensor* out)
+void raytrace(config* C, int cam, tensor_t* out)
 {
     int frame_count = C->frame_count;
     if (cam == -1)
@@ -83,8 +83,8 @@ void raytrace(config* C, int cam, tensor* out)
     float fy = cam_data->fy;
     
     int cam_ray_shape[] = {3, 1};
-    tensor* cam_ray = new_tensor(cam_ray_shape, 2, NULL);
-    tensor* ball_hit = tensor_copy_shape(cam_ray);
+    tensor_t* cam_ray = new_tensor(cam_ray_shape, 2, NULL);
+    tensor_t* ball_hit = tensor_copy_shape(cam_ray);
 
     for (int y = 0; y < height; y++)
     {
@@ -126,15 +126,15 @@ void raytrace(config* C, int cam, tensor* out)
                     {
                         depth[x][y] = camera_ball_dist;
                         
-                        tensor* ball_normal = tensor_sub_give(ball_hit, ball_frame->pos);
-                        tensor* light_dir = tensor_sub_give(light_frame->pos, ball_hit);
-                        tensor* cam_dir = tensor_sub_give(cam_frame->pos, ball_hit);
+                        tensor_t* ball_normal = tensor_sub_give(ball_hit, ball_frame->pos);
+                        tensor_t* light_dir = tensor_sub_give(light_frame->pos, ball_hit);
+                        tensor_t* cam_dir = tensor_sub_give(cam_frame->pos, ball_hit);
                         
                         vector_normalize(ball_normal);
                         vector_normalize(light_dir);
                         vector_normalize(cam_dir);
                         
-                        tensor* light_reflect = vector_reflect_give(light_dir, ball_normal);
+                        tensor_t* light_reflect = vector_reflect_give(light_dir, ball_normal);
 
                         float diff = fmax(vector_dot(ball_normal, light_dir), 0.f);
                         float spec = powf(fmax(vector_dot(light_reflect, cam_dir), 0.f), shininess);
@@ -155,7 +155,7 @@ void raytrace(config* C, int cam, tensor* out)
                         
                         // Check for shadows
                         #ifdef SHADOWS
-                        tensor* shadow_offset = tensor_scalar_mult_give(light_dir, 0.001);
+                        tensor_t* shadow_offset = tensor_scalar_mult_give(light_dir, 0.001);
                         tensor_add(ball_hit, shadow_offset, ball_hit);
                         float shadow_scaler = 0.5f;
                         for (int j = 0; j < frame_count; j++)
@@ -185,9 +185,9 @@ void raytrace(config* C, int cam, tensor* out)
                             float reflection_G = 0.f;
                             float reflection_B = 0.f;
                             
-                            tensor* cam_ray_inverted = tensor_scalar_mult_give(cam_ray, -1.f);
-                            tensor* reflected_ray = vector_reflect_give(cam_ray_inverted, ball_normal);
-                            tensor* mirror_offset = tensor_scalar_mult_give(reflected_ray, 0.01);
+                            tensor_t* cam_ray_inverted = tensor_scalar_mult_give(cam_ray, -1.f);
+                            tensor_t* reflected_ray = vector_reflect_give(cam_ray_inverted, ball_normal);
+                            tensor_t* mirror_offset = tensor_scalar_mult_give(reflected_ray, 0.01);
                             
                             tensor_add(ball_hit, mirror_offset, ball_hit);
     

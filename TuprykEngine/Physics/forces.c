@@ -6,18 +6,18 @@
 #include "../Geom/quaternions.h"
 
 
-tensor* compute_mass_matrix(config* C)
+tensor_t* compute_mass_matrix(config* C)
 {
     // Maps joint accelerations to generalised forces
     // MuJoCo computes M efficiently via the Composite Rigid Body (CRB) algorithm
-    tensor* M = new_tensor_matrix(C->q->shape[0], C->q_vel->shape[0], NULL);
+    tensor_t* M = new_tensor_matrix(C->q->shape[0], C->q_vel->shape[0], NULL);
 
     // TODO:
     
     return M;
 }
 
-float center_of_mass(config* C, int root, tensor* com)
+float center_of_mass(config* C, int root, tensor_t* com)
 {
     #ifdef DEBUG
     if (com->shape_dim != 2 || com->shape[0] != 3 || com->shape[1] != 1)
@@ -56,7 +56,7 @@ float center_of_mass(config* C, int root, tensor* com)
     }
     int_stack_free(frames_to_check);
 
-    tensor* tmp = new_tensor_vector(3, NULL);
+    tensor_t* tmp = new_tensor_vector(3, NULL);
     tensor_fill(com, 0.f);
 
     for (int i = 0; i < bodies_count; i++)
@@ -74,7 +74,7 @@ float center_of_mass(config* C, int root, tensor* com)
     return total_mass;
 }
 
-void combined_inertia(config* C, int root, tensor* com, tensor* I_cm)
+void combined_inertia(config* C, int root, tensor_t* com, tensor_t* I_cm)
 {
     #ifdef DEBUG
     if (com->shape_dim != 2 || com->shape[0] != 3 || com->shape[1] != 1)
@@ -116,9 +116,9 @@ void combined_inertia(config* C, int root, tensor* com, tensor* I_cm)
     int_stack_free(frames_to_check);
 
     tensor_fill(I_cm, 0.f);
-    tensor* I_i_cm = new_tensor_matrix(3, 3, NULL);
-    tensor* D = new_tensor_matrix(3, 3, NULL);
-    tensor* d = new_tensor_vector(3, NULL);
+    tensor_t* I_i_cm = new_tensor_matrix(3, 3, NULL);
+    tensor_t* D = new_tensor_matrix(3, 3, NULL);
+    tensor_t* d = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < bodies_count; i++)
     {
@@ -151,7 +151,7 @@ void combined_inertia(config* C, int root, tensor* com, tensor* I_cm)
     tensor_free(d);
 }
 
-// void centroidal_forces(config* C, int root, tensor* force, tensor* torque)
+// void centroidal_forces(config* C, int root, tensor_t* force, tensor_t* torque)
 // {
 //     // TODO:
 // }

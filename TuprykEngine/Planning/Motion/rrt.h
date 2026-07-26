@@ -7,10 +7,10 @@
 
 typedef struct
 {
-    tensor* q;
+    tensor_t* q;
     int parent;
 } rrt_node;
 
-stack* rrt_find_path(config* C, tensor* q0, tensor* qT, float stepsize);
+stack* rrt_find_path(config* C, tensor_t* q0, tensor_t* qT, float stepsize);
 
 #endif

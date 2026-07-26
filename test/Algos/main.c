@@ -88,7 +88,7 @@ int test_kd_tree()
     int indices[k];
     float dists[k];
     int total_points = 1000;
-    tensor* points[total_points];
+    tensor_t* points[total_points];
     for (int i = 0; i < total_points; i++)
     {
         points[i] = new_tensor_vector(2, NULL);
@@ -96,7 +96,7 @@ int test_kd_tree()
     }
     
     kd_tree_t* kt = kd_tree_init(points, total_points);
-    tensor* query = new_tensor_vector(2, NULL);
+    tensor_t* query = new_tensor_vector(2, NULL);
     kd_tree_knn(kt, query, k, indices, dists);
     tensor_free(query);
     kd_tree_free(kt);

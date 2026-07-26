@@ -3,6 +3,6 @@
 
 #include "../LinAlg/tensor.h"
 
-void make_se_mat(double pos[], double angles[], int dim, tensor* out);
+void make_se_mat(double pos[], double angles[], int dim, tensor_t* out);
 
 #endif

@@ -22,7 +22,7 @@ int test_com()
 {
     config* C = init_devastator_config();
     
-    tensor* new_q = tensor_copy_shape(C->q);
+    tensor_t* new_q = tensor_copy_shape(C->q);
     tensor_fill_uniform(new_q, -1.f, 1.f);
     new_q->values[0] = 0.f;
     new_q->values[1] = 0.f;
@@ -42,7 +42,7 @@ int test_com()
     print_config(C);
     
     int frame_count = 10;
-    tensor* com = new_tensor_vector(3, NULL);
+    tensor_t* com = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < frame_count; i++)
     {
@@ -75,7 +75,7 @@ int test_forces()
     float tau = 0.001f;
     config* C = init_devastator_config();
     
-    tensor* new_q = tensor_copy_shape(C->q);
+    tensor_t* new_q = tensor_copy_shape(C->q);
     tensor_fill(new_q, 0.f);
     new_q->values[2] = 1.f;
     // quaternion_x(M_PI * 0.55, new_q->values + 3);
@@ -106,8 +106,8 @@ int test_forces()
     print_config(C);
     
     int frame_count = 512;
-    tensor* video_frames[frame_count];
-    tensor* com = new_tensor_vector(3, NULL);
+    tensor_t* video_frames[frame_count];
+    tensor_t* com = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < frame_count; i++)
     {
@@ -116,7 +116,7 @@ int test_forces()
         float total_mass = center_of_mass(C, 4, com);
         printf("COM: [%g, %g, %g], Total Mass: %g\n", com->values[0], com->values[1], com->values[2], total_mass);
         
-        tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
+        tensor_t* im = new_image(WINDOW_W, WINDOW_H, 3);
         raytrace(C, -1, im);
         video_frames[i] = im;
         

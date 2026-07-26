@@ -11,17 +11,17 @@
 
 struct auglag_context
 {
-    tensor* x;
+    tensor_t* x;
 
     nlp_t* nlp;
 
-    tensor* lambda;
-    tensor* kappa;
+    tensor_t* lambda;
+    tensor_t* kappa;
     float mu;
     float nu;
     int max_outer_steps;
 
-    struct optim_logs* (*inner_opt_run)(tensor*);
+    struct optim_logs* (*inner_opt_run)(tensor_t*);
     void (*inner_opt_free)();
 
     struct nlp_optim_logs* logs;
@@ -29,7 +29,7 @@ struct auglag_context
 
 static struct auglag_context* ctx;
 
-float aug_lagrangian_eval_nlp(tensor* x)
+float aug_lagrangian_eval_nlp(tensor_t* x)
 {
     float out = ctx->nlp->f(x);
 
@@ -54,11 +54,11 @@ float aug_lagrangian_eval_nlp(tensor* x)
     return out;
 }
 
-void aug_lagrangian_eval2_nlp(tensor* x, tensor* out)
+void aug_lagrangian_eval2_nlp(tensor_t* x, tensor_t* out)
 {
     ctx->nlp->delta_f(x, out);
 
-    tensor* eval2 = tensor_copy_shape(x);
+    tensor_t* eval2 = tensor_copy_shape(x);
 
     for (int i = 0; i < ctx->nlp->ineq_count; i++)
     {
@@ -91,7 +91,7 @@ void aug_lagrangian_init(
     ctx = (struct auglag_context*) malloc(sizeof(struct auglag_context));
     ctx->logs = nlp_logs_init();
 
-    tensor* x0 = new_tensor_vector(nlp->dim, NULL);
+    tensor_t* x0 = new_tensor_vector(nlp->dim, NULL);
     ctx->logs->final_x = tensor_copy(x0);
     ctx->nlp = nlp;
     ctx->x = tensor_copy(x0);
@@ -143,7 +143,7 @@ void aug_lagrangian_init(
     }
 }
 
-struct nlp_optim_logs* aug_lagrangian_run(tensor* x)
+struct nlp_optim_logs* aug_lagrangian_run(tensor_t* x)
 {
     tensor_transfer_values(ctx->x, x);
 

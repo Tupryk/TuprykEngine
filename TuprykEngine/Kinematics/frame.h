@@ -14,11 +14,11 @@ typedef struct
     float friction;
 
     float total_mass;
-    tensor* com;
-    tensor* I_cm_inv;
+    tensor_t* com;
+    tensor_t* I_cm_inv;
 
-    tensor* accumulated_forces;
-    tensor* accumulated_torques;
+    tensor_t* accumulated_forces;
+    tensor_t* accumulated_torques;
 } joint_t;
 
 typedef struct
@@ -39,7 +39,7 @@ typedef struct
     void* mesh;
     
     float mass;
-    tensor* inertia;
+    tensor_t* inertia;
     
     texture* tex;
 } geom_t;
@@ -58,11 +58,11 @@ typedef struct
 typedef struct
 {
     char* name;
-    tensor* pos;
-    tensor* rot;
+    tensor_t* pos;
+    tensor_t* rot;
 
-    tensor* pos_rel;
-    tensor* rot_rel;
+    tensor_t* pos_rel;
+    tensor_t* rot_rel;
     
     int parent;
     int children_count;
@@ -74,7 +74,7 @@ typedef struct
 
 frame_t* frame_init(const char *name, float* pos, float* rot);
 void frame_free(frame_t* f);
-void frame_get_pose_matrix(frame_t* f, tensor* pose);
-tensor* frame_get_pose_matrix_give(frame_t* f);
+void frame_get_pose_matrix(frame_t* f, tensor_t* pose);
+tensor_t* frame_get_pose_matrix_give(frame_t* f);
 
 #endif

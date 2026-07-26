@@ -2,3 +2,5 @@
 - Flow Matching
 - Transformer
 - Conv2d
+- LSTM
+- Boltzmann machine

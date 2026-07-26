@@ -10,20 +10,20 @@
 #include "../ui/prints/linalg.h"
 
 
-tensor* q_acc_from_gravity(config* C)
+tensor_t* q_acc_from_gravity(config* C)
 {
-    tensor* q_acc = tensor_copy(C->q_vel);
+    tensor_t* q_acc = tensor_copy(C->q_vel);
     float* q_acc_v = q_acc->values;
 
     int* joints = C->joints;
     int joints_count = C->joints_count;
     frame_t** frames = C->frames;
-    tensor* gravity = C->gravity;
+    tensor_t* gravity = C->gravity;
 
-    tensor* c_r = new_tensor_vector(3, NULL);
-    tensor* gravity_force = new_tensor_vector(3, NULL);
-    tensor* torque = new_tensor_vector(3, NULL);
-    tensor* angular_acc = new_tensor_vector(3, NULL);
+    tensor_t* c_r = new_tensor_vector(3, NULL);
+    tensor_t* gravity_force = new_tensor_vector(3, NULL);
+    tensor_t* torque = new_tensor_vector(3, NULL);
+    tensor_t* angular_acc = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < joints_count; i++)
     {
@@ -82,7 +82,7 @@ tensor* q_acc_from_gravity(config* C)
     return q_acc;
 }
 
-void apply_q_delta(config* C, tensor* q_delta)
+void apply_q_delta(config* C, tensor_t* q_delta)
 {
     float* q_delta_v = q_delta->values;
     int* joints = C->joints;
@@ -177,7 +177,7 @@ void apply_q_delta(config* C, tensor* q_delta)
 
 void step_vels(config* C, float tau)
 {
-    tensor* q_delta = tensor_scalar_mult_give(C->q_vel, tau);
+    tensor_t* q_delta = tensor_scalar_mult_give(C->q_vel, tau);
     apply_q_delta(C, q_delta);
     tensor_free(q_delta);
 }
@@ -191,8 +191,8 @@ void load_forces_to_joints(config* C)
 
         frame_t* from_frame = C->frames[f->frame_id];
 
-        tensor* force_world = f->force == NULL ? NULL : new_tensor_vector(3, NULL);
-        tensor* poa_world = f->poa == NULL ? NULL : new_tensor_vector(3, NULL);
+        tensor_t* force_world = f->force == NULL ? NULL : new_tensor_vector(3, NULL);
+        tensor_t* poa_world = f->poa == NULL ? NULL : new_tensor_vector(3, NULL);
 
         if (force_world != NULL)
         {
@@ -212,17 +212,17 @@ void load_forces_to_joints(config* C)
     }
 }
 
-float inverse_effective_mass_from_body(config* C, int root_id, tensor* point, tensor* normal)
+float inverse_effective_mass_from_body(config* C, int root_id, tensor_t* point, tensor_t* normal)
 {
     frame_t* jf = C->frames[root_id];
     joint_t* jd = (joint_t*) jf->data;
 
-    tensor* r = tensor_sub_give(point, jd->com);
+    tensor_t* r = tensor_sub_give(point, jd->com);
 
-    tensor* r_cross_n = vector_cross_give(r, normal);
-    tensor* I_inv_term = tensor_mult_give(jd->I_cm_inv, r_cross_n);
+    tensor_t* r_cross_n = vector_cross_give(r, normal);
+    tensor_t* I_inv_term = tensor_mult_give(jd->I_cm_inv, r_cross_n);
 
-    tensor* angular = vector_cross_give(r, I_inv_term);
+    tensor_t* angular = vector_cross_give(r, I_inv_term);
 
     float k =
         (1.f / jd->total_mass)
@@ -236,16 +236,16 @@ float inverse_effective_mass_from_body(config* C, int root_id, tensor* point, te
     return k;
 }
 
-tensor* q_delta_from_forces(config* C)
+tensor_t* q_delta_from_forces(config* C)
 {
-    tensor* q_acc = tensor_copy_shape(C->q_vel);
+    tensor_t* q_acc = tensor_copy_shape(C->q_vel);
     float* q_acc_v = q_acc->values;
 
     int* joints = C->joints;
     int joints_count = C->joints_count;
     frame_t** frames = C->frames;
 
-    tensor* angular_acc = new_tensor_vector(3, NULL);
+    tensor_t* angular_acc = new_tensor_vector(3, NULL);
 
     for (int i = 0; i < joints_count; i++)
     {
@@ -295,9 +295,9 @@ void load_collision_forces_to_joints(config* C)
     float correction_strength = 10.f;
     float velocity_damper = 2.f;
     float beta = 0.2f;
-    tensor* vel_a = new_tensor_vector(3, NULL);
-    tensor* vel_b = new_tensor_vector(3, NULL);
-    tensor* vel_rel = new_tensor_vector(3, NULL);
+    tensor_t* vel_a = new_tensor_vector(3, NULL);
+    tensor_t* vel_b = new_tensor_vector(3, NULL);
+    tensor_t* vel_rel = new_tensor_vector(3, NULL);
 
     struct stack_elem* current_contact_elem = contacts->next;
     while (current_contact_elem != NULL)
@@ -316,8 +316,8 @@ void load_collision_forces_to_joints(config* C)
         float normal_mag = penetration_force + damping_force;
         if (normal_mag < 0.f) normal_mag = 0.f;
         
-        tensor* contact_normal_a = tensor_scalar_mult_give(contact->normal, -1.f);
-        tensor* contact_normal_b = tensor_scalar_mult_give(contact->normal,  1.f);
+        tensor_t* contact_normal_a = tensor_scalar_mult_give(contact->normal, -1.f);
+        tensor_t* contact_normal_b = tensor_scalar_mult_give(contact->normal,  1.f);
 
         tensor_scalar_mult(contact_normal_a, normal_mag, contact_normal_a);
         tensor_scalar_mult(contact_normal_b, normal_mag, contact_normal_b);
@@ -336,15 +336,15 @@ void load_collision_forces_to_joints(config* C)
     tensor_free(vel_rel);
 }
 
-void apply_velocity_impulse(config* C, int frame_id, tensor* normal, float correction, tensor* point, tensor* q_delta)
+void apply_velocity_impulse(config* C, int frame_id, tensor_t* normal, float correction, tensor_t* point, tensor_t* q_delta)
 {
     frame_t** frames = C->frames;
     float* q_delta_v = q_delta->values;
 
-    tensor* c_r = new_tensor_vector(3, NULL);
-    tensor* omega = new_tensor_vector(3, NULL);
-    tensor* torque = new_tensor_vector(3, NULL);
-    tensor* corrected_normal = new_tensor_vector(3, NULL);
+    tensor_t* c_r = new_tensor_vector(3, NULL);
+    tensor_t* omega = new_tensor_vector(3, NULL);
+    tensor_t* torque = new_tensor_vector(3, NULL);
+    tensor_t* corrected_normal = new_tensor_vector(3, NULL);
 
     int index = frame_id;
     while (index != -1)
@@ -404,14 +404,14 @@ void apply_velocity_impulse(config* C, int frame_id, tensor* normal, float corre
     tensor_free(corrected_normal);
 }
 
-tensor* solve_contact_velocity_constraints(config* C)
+tensor_t* solve_contact_velocity_constraints(config* C)
 {
-    tensor* q_delta = tensor_copy_shape(C->q_vel);
+    tensor_t* q_delta = tensor_copy_shape(C->q_vel);
     stack* contacts = config_get_contacts(C);
 
-    tensor* vel_a = new_tensor_vector(3, NULL);
-    tensor* vel_b = new_tensor_vector(3, NULL);
-    tensor* vel_rel = new_tensor_vector(3, NULL);
+    tensor_t* vel_a = new_tensor_vector(3, NULL);
+    tensor_t* vel_b = new_tensor_vector(3, NULL);
+    tensor_t* vel_rel = new_tensor_vector(3, NULL);
 
     struct stack_elem* current_contact_elem = contacts->next;
     while (current_contact_elem != NULL)
@@ -437,7 +437,7 @@ tensor* solve_contact_velocity_constraints(config* C)
                 q_delta
             );
 
-            tensor* neg_normal = tensor_scalar_mult_give(contact->normal, -1.f);
+            tensor_t* neg_normal = tensor_scalar_mult_give(contact->normal, -1.f);
             apply_velocity_impulse(
                 C,
                 contact->body_b,
@@ -468,15 +468,15 @@ void sim_step(config* C, float tau)
     // Update Accelerations
     load_forces_to_joints(C);
     load_collision_forces_to_joints(C);
-    tensor* q_acc = q_delta_from_forces(C);
-    tensor* q_acc_g = q_acc_from_gravity(C);
+    tensor_t* q_acc = q_delta_from_forces(C);
+    tensor_t* q_acc_g = q_acc_from_gravity(C);
     tensor_add(q_acc, q_acc_g, q_acc);
     tensor_free(q_acc_g);
     
     // Integrate Velocites and Positions
     tensor_scalar_mult(q_acc, tau, q_acc);
     tensor_add(C->q_vel, q_acc, C->q_vel);
-    // tensor* q_delta = solve_contact_velocity_constraints(C);
+    // tensor_t* q_delta = solve_contact_velocity_constraints(C);
     // apply_q_delta(C, q_delta);
     // tensor_free(q_delta);
     step_vels(C, tau);

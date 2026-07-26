@@ -9,10 +9,10 @@
 
 
 struct optim_logs* newton(
-    tensor* x0,
-    float (*cost_func)(tensor*),
-    void (*delta_cost_func)(tensor*, tensor*),
-    void (*delta2_cost_func)(tensor*, tensor*),
+    tensor_t* x0,
+    float (*cost_func)(tensor_t*),
+    void (*delta_cost_func)(tensor_t*, tensor_t*),
+    void (*delta2_cost_func)(tensor_t*, tensor_t*),
     float alpha,
     float tolerance,
     int max_iters
@@ -27,14 +27,14 @@ struct optim_logs* newton(
     #endif
 
     // TODO: Should also output a final value for x
-    tensor* x = tensor_copy(x0);
-    tensor* J = tensor_copy_shape(x0);
+    tensor_t* x = tensor_copy(x0);
+    tensor_t* J = tensor_copy_shape(x0);
     int H_shape[] = {J->shape[0], J->shape[0]};
-    tensor* H = new_tensor(H_shape, 2, NULL);
-    tensor* H_inv = tensor_copy_shape(H);
+    tensor_t* H = new_tensor(H_shape, 2, NULL);
+    tensor_t* H_inv = tensor_copy_shape(H);
 
     // Make sure inverse exists
-    tensor* damping = tensor_copy_shape(H);
+    tensor_t* damping = tensor_copy_shape(H);
     tensor_identity(damping);
     tensor_scalar_mult(damping, 1e-3, damping);
 
@@ -84,29 +84,29 @@ struct optim_logs* newton(
 
 struct gn_context
 {
-    float (*cost_func)(tensor*);
-    void (*delta_cost_func)(tensor*, tensor*);
+    float (*cost_func)(tensor_t*);
+    void (*delta_cost_func)(tensor_t*, tensor_t*);
     
     float alpha;
     float tolerance;
     int total_steps;
     int max_iters;
     
-    tensor* x;
-    tensor* J;
-    tensor* J_T;
-    tensor* H;
-    tensor* H_inv;
-    tensor* damping;
+    tensor_t* x;
+    tensor_t* J;
+    tensor_t* J_T;
+    tensor_t* H;
+    tensor_t* H_inv;
+    tensor_t* damping;
     struct optim_logs* logs;
 };
 
 static struct gn_context* ctx;
 
 void gauss_newton_init(
-    tensor* x0,
-    float (*cost_func)(tensor*),
-    void (*delta_cost_func)(tensor*, tensor*),
+    tensor_t* x0,
+    float (*cost_func)(tensor_t*),
+    void (*delta_cost_func)(tensor_t*, tensor_t*),
     float alpha,
     float tolerance,
     int max_iters
@@ -135,7 +135,7 @@ void gauss_newton_init(
     ctx->total_steps = 0;
 }
 
-struct optim_logs* gauss_newton_run(tensor* x)
+struct optim_logs* gauss_newton_run(tensor_t* x)
 {
     tensor_transfer_values(ctx->x, x);
 

@@ -45,12 +45,12 @@ int main()
     // quadratic_free();
 
     // Draw oval
-    tensor* pos = new_tensor_vector(2, NULL);
+    tensor_t* pos = new_tensor_vector(2, NULL);
     float A_values[] = {
         1.f, .5f,
         0.f, 1.f
     };
-    tensor* A = new_tensor_matrix(2, 2, A_values);
+    tensor_t* A = new_tensor_matrix(2, 2, A_values);
 
     draw_gaussian(pos, A, 100.f);
     

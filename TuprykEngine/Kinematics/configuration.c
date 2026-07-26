@@ -27,7 +27,7 @@ int config_colliding(config* C)
                     geom_t* b_geom_data = (geom_t*) b->data;
                     float br = *(float*) b_geom_data->mesh;
 
-                    tensor* diff = tensor_copy(b->pos);
+                    tensor_t* diff = tensor_copy(b->pos);
                     tensor_sub(a->pos, diff, diff);
 
                     float dist = vector_norm(diff);
@@ -43,12 +43,12 @@ int config_colliding(config* C)
     return 0;
 }
 
-void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel)
+void velocity_at_point(config* C, tensor_t* point, int frame_id, tensor_t* vel)
 {
     int index = frame_id;
     float* q_vel = C->q_vel->values;
-    tensor* new_vel = new_tensor_vector(3, NULL);
-    tensor* c_r = new_tensor_vector(3, NULL);
+    tensor_t* new_vel = new_tensor_vector(3, NULL);
+    tensor_t* c_r = new_tensor_vector(3, NULL);
     while (index != -1)
     {
         frame_t* current_frame = C->frames[index];
@@ -67,7 +67,7 @@ void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel)
 
                 tensor_sub(point, current_frame->pos, c_r);
 
-                tensor* omega = new_tensor_vector(3, NULL);
+                tensor_t* omega = new_tensor_vector(3, NULL);
                 omega->values[0] = q_vel[q_delta_id] * axis_world[0];
                 omega->values[1] = q_vel[q_delta_id] * axis_world[1];
                 omega->values[2] = q_vel[q_delta_id] * axis_world[2];
@@ -78,7 +78,7 @@ void velocity_at_point(config* C, tensor* point, int frame_id, tensor* vel)
             {
                 tensor_sub(point, joint_data->com, c_r);
                 
-                tensor* omega = new_tensor_vector(3, NULL);
+                tensor_t* omega = new_tensor_vector(3, NULL);
                 omega->values[0] = q_vel[q_delta_id + 3];
                 omega->values[1] = q_vel[q_delta_id + 4];
                 omega->values[2] = q_vel[q_delta_id + 5];
@@ -119,7 +119,7 @@ stack* config_get_contacts(config* C)
                     geom_t* b_geom_data = (geom_t*) b->data;
                     float br = *(float*) b_geom_data->mesh;
 
-                    tensor* diff = tensor_copy(b->pos);
+                    tensor_t* diff = tensor_copy(b->pos);
                     tensor_sub(a->pos, diff, diff);
 
                     float dist = vector_norm(diff);
@@ -165,7 +165,7 @@ void config_populate_mass_inertias(config* C)
         
         if (joint_data->I_cm_inv == NULL) joint_data->I_cm_inv = new_tensor_matrix(3, 3, NULL);
         
-        tensor* I_cm = new_tensor_matrix(3, 3, NULL);
+        tensor_t* I_cm = new_tensor_matrix(3, 3, NULL);
         combined_inertia(C, joint_id, joint_data->com, I_cm);
         tensor_inverse(I_cm, joint_data->I_cm_inv);
         tensor_free(I_cm);
@@ -203,15 +203,15 @@ void config_empty_joints_accumulated_forces(config* C)
     }
 }
 
-void impulse_to_joint_force(frame_t* joint_frame, tensor* impulse_world, tensor* poa_world)
+void impulse_to_joint_force(frame_t* joint_frame, tensor_t* impulse_world, tensor_t* poa_world)
 {
     joint_t* joint_data = (joint_t*) joint_frame->data;
     
     int joint_type = joint_data->type;
     int q_delta_id = joint_data->q_delta_id;
     
-    tensor* torque = new_tensor_vector(3, NULL);
-    tensor* c_r = new_tensor_vector(3, NULL);
+    tensor_t* torque = new_tensor_vector(3, NULL);
+    tensor_t* c_r = new_tensor_vector(3, NULL);
 
     if (joint_type == 0 || joint_type == 1 || joint_type == 2)  // Hinge Joint
     {
@@ -233,7 +233,7 @@ void impulse_to_joint_force(frame_t* joint_frame, tensor* impulse_world, tensor*
     tensor_free(c_r);
 }
 
-void impulse_to_joints_force(config* C, int from_frame_id, tensor* impulse_world, tensor* poa_world)
+void impulse_to_joints_force(config* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world)
 {
     int index = from_frame_id;
     while(index != -1)

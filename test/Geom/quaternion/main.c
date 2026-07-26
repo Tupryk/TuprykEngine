@@ -13,9 +13,9 @@ int test_rotmat()
     printf("--------- Test Quaternion to Rotation Matrix ---------\n");
     float shape[] = {4, 1};
     float values[] = {1., 0., 0., 0.};
-    tensor* q = new_tensor(shape, 2, values);
+    tensor_t* q = new_tensor(shape, 2, values);
 
-    tensor* mat = quaternion_to_matrix_give(q->values);
+    tensor_t* mat = quaternion_to_matrix_give(q->values);
 
     printf("Quat:\n");
     print_tensor_verbose(q, 10);

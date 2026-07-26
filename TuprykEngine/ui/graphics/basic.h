@@ -16,7 +16,7 @@ struct point_2d
 
 void set_color(float r, float g, float b);
 void draw_pixel(float x, float y, float r, float g, float b);
-void draw_gaussian(tensor* pos, tensor* A, float half_bounds);
+void draw_gaussian(tensor_t* pos, tensor_t* A, float half_bounds);
 void draw_circle(int cx, int cy, int r);
 void draw_line(float start_x, float start_y, float end_x, float end_y);
 void draw_line_3d(
@@ -27,19 +27,19 @@ void draw_3d_point(float x, float y, float z);
 void draw_3d_mark(float x, float y, float z);
 void draw_3d_unit_cube();
 void plot_unit_func(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float area_side
 );
 void plot_unit_func_heat(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float area_side
 );
 void plot_unit_func_3d(
-    float (*func)(tensor*),
+    float (*func)(tensor_t*),
     float center_x,
     float center_y,
     float center_z,
@@ -48,7 +48,7 @@ void plot_unit_func_3d(
 void add_global_rot(float delta_x, float delta_y, float delta_z);
 void set_global_rot(float rot_x, float rot_y, float rot_z);
 void plot_1d_func(float (*func)(float), float from, float to);
-void view_image(tensor* im);
-void play_video(tensor** frames, int frame_count, float tau);
+void view_image(tensor_t* im);
+void play_video(tensor_t** frames, int frame_count, float tau);
 
 #endif

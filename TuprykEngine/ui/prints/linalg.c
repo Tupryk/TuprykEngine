@@ -3,7 +3,7 @@
 #include "linalg.h"
 
 
-void print_tensor_element(tensor* t, int* indices)
+void print_tensor_element(tensor_t* t, int* indices)
 {
     int n = t->shape_dim-1;
 
@@ -46,12 +46,12 @@ void print_tensor_element(tensor* t, int* indices)
     }
 }
 
-void print_tensor(tensor* t)
+void print_tensor(tensor_t* t)
 {
     tensor_loop(t, print_tensor_element);
 }
 
-void print_tensor_verbose(tensor* t, int verbose)
+void print_tensor_verbose(tensor_t* t, int verbose)
 {
     print_tensor(t);
 
@@ -84,7 +84,7 @@ void print_tensor_verbose(tensor* t, int verbose)
     // TODO: rank of matrix
 }
 
-void print_tensor_element_flat(tensor* t, int* indices)
+void print_tensor_element_flat(tensor_t* t, int* indices)
 {
     int value_idx = get_tensor_value_index(t, indices);
     double value = t->values[value_idx];
@@ -97,7 +97,7 @@ void print_tensor_element_flat(tensor* t, int* indices)
     printf("): %f\n", value);
 }
 
-void print_tensor_values(tensor* t)
+void print_tensor_values(tensor_t* t)
 {
     printf("[");
     for (int i = 0; i < t->volume; i++)
@@ -107,7 +107,7 @@ void print_tensor_values(tensor* t)
     printf("]\n");
 }
 
-void print_tensor_flat(tensor* t)
+void print_tensor_flat(tensor_t* t)
 {
     // Main tensor
     tensor_loop(t, print_tensor_element_flat);

@@ -18,7 +18,7 @@ int test_raytracer()
 {
     config* C = init_devastator_config();
     
-    tensor* new_q = tensor_copy_shape(C->q);
+    tensor_t* new_q = tensor_copy_shape(C->q);
     tensor_fill_uniform(new_q, -1.f, 1.f);
     new_q->values[0] = 0.f;
     new_q->values[1] = 0.f;
@@ -26,7 +26,7 @@ int test_raytracer()
     config_set_q(C, new_q->values);
     print_config(C);
     
-    tensor* im = new_image(WINDOW_W, WINDOW_H, 3);
+    tensor_t* im = new_image(WINDOW_W, WINDOW_H, 3);
     raytrace(C, -1, im);
     view_image(im);
 

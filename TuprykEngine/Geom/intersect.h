@@ -6,10 +6,10 @@
 struct typedef
 {
     int intersection_count;
-    tensor* inter1;
-    tensor* inter2;
+    tensor_t* inter1;
+    tensor_t* inter2;
 } bl_inter_data;
 
-bl_inter_data ball_line_intersect(tensor* line_point, tensor* line_dir, tensor* ball_point, float radius);
+bl_inter_data ball_line_intersect(tensor_t* line_point, tensor_t* line_dir, tensor_t* ball_point, float radius);
 
 #endif

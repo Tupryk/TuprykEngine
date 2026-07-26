@@ -43,7 +43,7 @@ void quaternion_z(float phi, float* out)
     out[3] = sinf(phi * 0.5f);
 }
 
-void quaternion_to_matrix(float* q, tensor* out)
+void quaternion_to_matrix(float* q, tensor_t* out)
 {
     #ifdef DEBUG
     if (out->shape_dim != 2 || out->shape[0] != 3 || out->shape[1] != 3)
@@ -74,10 +74,10 @@ void quaternion_to_matrix(float* q, tensor* out)
     out->values[8] = 1 - 2.f*y2 - 2.f*y2;
 }
 
-tensor* quaternion_to_matrix_give(float* q)
+tensor_t* quaternion_to_matrix_give(float* q)
 {
     int shape[] = {3, 3};
-    tensor* out = new_tensor(shape, 2, NULL);
+    tensor_t* out = new_tensor(shape, 2, NULL);
     quaternion_to_matrix(q, out);
     return out;
 }

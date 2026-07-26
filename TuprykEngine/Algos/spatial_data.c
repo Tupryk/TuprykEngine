@@ -5,21 +5,21 @@
 
 // TODO:
 
-kd_tree_t* kd_tree_init(tensor** points, int count)
+kd_tree_t* kd_tree_init(tensor_t** points, int count)
 {
     kd_tree_t* kt = (kd_tree_t*) malloc(sizeof(kd_tree_t));
     kt->dim = points[0]->volume;
     kt->size = count;
-    kt->points = (tensor**) malloc(sizeof(tensor*) * count);
+    kt->points = (tensor_t**) malloc(sizeof(tensor_t*) * count);
 
     for (int i = 0; i < count; i++) kt->points[i] = tensor_copy(points[i]);
 
     return kt;
 }
 
-void kd_tree_knn(kd_tree_t* kt, tensor* query, int k, int* indices, float* dists)
+void kd_tree_knn(kd_tree_t* kt, tensor_t* query, int k, int* indices, float* dists)
 {
-    tensor* diff = tensor_copy_shape(query);
+    tensor_t* diff = tensor_copy_shape(query);
     for (int i = 0; i < k; i++) indices[i] = -1;
     for (int i = 0; i < kt->size; i++)
     {

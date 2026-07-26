@@ -10,7 +10,7 @@
 
 void draw_nlp(nlp_t* nlp, float square_side)
 {
-    tensor* eval_point = new_tensor_vector(nlp->dim, NULL);
+    tensor_t* eval_point = new_tensor_vector(nlp->dim, NULL);
     float max_cost = 0.f;
     for (int i = 0; i < WINDOW_W; i++)
     {
@@ -46,7 +46,7 @@ void draw_nlp(nlp_t* nlp, float square_side)
 
 void draw_nlp_foam(nlp_t* nlp, foam_t* foam, float square_side, int mark_gaussians)
 {
-    tensor* eval_point = new_tensor_vector(nlp->dim, NULL);
+    tensor_t* eval_point = new_tensor_vector(nlp->dim, NULL);
     float max_cost = 0.f;
     for (int i = 0; i < WINDOW_W; i++)
     {

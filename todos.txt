@@ -24,3 +24,5 @@
     - Clouds
     - Sounds
 - Parallelization interface in ui?
+- https://lean-lang.org/
+- Command to compile and run all tests at once

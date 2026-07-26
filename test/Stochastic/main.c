@@ -19,7 +19,7 @@ int test_basic()
         1.f/3.f, 2.f/3.f, 0.f,
         0.f, 1.f, 0.f
     };
-    tensor* t = new_tensor(shape, 2, values);
+    tensor_t* t = new_tensor(shape, 2, values);
     sparse* st = sparse_from_tensor(t);
     tensor_free(t);
     print_sparse(st);

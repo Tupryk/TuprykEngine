@@ -10,7 +10,7 @@
 #endif
 
 
-int get_tensor_volume(tensor* t) {
+int get_tensor_volume(tensor_t* t) {
     int volume = 1;
     for (int i = 0; i < t->shape_dim; i++) {
         volume *= t->shape[i];
@@ -18,7 +18,7 @@ int get_tensor_volume(tensor* t) {
     return volume;
 }
 
-tensor* new_tensor(int* shape, int shape_dim, float* values)
+tensor_t* new_tensor(int* shape, int shape_dim, float* values)
 {
     #ifdef DEBUG
     if (shape_dim < 2)
@@ -30,7 +30,7 @@ tensor* new_tensor(int* shape, int shape_dim, float* values)
     }
     #endif
 
-    tensor* t = (tensor*) malloc(sizeof(tensor));
+    tensor_t* t = (tensor_t*) malloc(sizeof(tensor_t));
 
     t->shape_dim = shape_dim;
     t->shape = (int*) malloc(shape_dim * sizeof(int));
@@ -63,10 +63,10 @@ tensor* new_tensor(int* shape, int shape_dim, float* values)
     return t;
 }
 
-tensor* new_tensor_diagonal(int dim, float* values)
+tensor_t* new_tensor_diagonal(int dim, float* values)
 {
     int shape[] = {dim, dim};
-    tensor* t = new_tensor(shape, 2, NULL);
+    tensor_t* t = new_tensor(shape, 2, NULL);
     for (int i = 0; i < dim; i++)
     {
         t->values[i * dim + i] = values[i];
@@ -74,10 +74,10 @@ tensor* new_tensor_diagonal(int dim, float* values)
     return t;
 }
 
-tensor* new_tensor_diagonal_uniform(int dim, float value)
+tensor_t* new_tensor_diagonal_uniform(int dim, float value)
 {
     int shape[] = {dim, dim};
-    tensor* t = new_tensor(shape, 2, NULL);
+    tensor_t* t = new_tensor(shape, 2, NULL);
     for (int i = 0; i < dim; i++)
     {
         t->values[i * dim + i] = value;
@@ -85,22 +85,22 @@ tensor* new_tensor_diagonal_uniform(int dim, float value)
     return t;
 }
 
-tensor* tensor_copy_shape(tensor* t)
+tensor_t* tensor_copy_shape(tensor_t* t)
 {
-    tensor* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
+    tensor_t* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
     return t_copy;
 }
 
-tensor* tensor_copy(tensor* t)
+tensor_t* tensor_copy(tensor_t* t)
 {
-    tensor* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
+    tensor_t* t_copy = new_tensor(t->shape, t->shape_dim, NULL);
     for (int i = 0; i < t->volume; i++) {
         t_copy->values[i] = t->values[i];
     }
     return t_copy;
 }
 
-void tensor_fill(tensor* t, float value)
+void tensor_fill(tensor_t* t, float value)
 {
     for (int i = 0; i < t->volume; i++)
     {
@@ -108,7 +108,7 @@ void tensor_fill(tensor* t, float value)
     }
 }
 
-void tensor_fill_uniform(tensor* t, float min, float max)
+void tensor_fill_uniform(tensor_t* t, float min, float max)
 {
     for (int i = 0; i < t->volume; i++)
     {
@@ -116,7 +116,7 @@ void tensor_fill_uniform(tensor* t, float min, float max)
     }
 }
 
-void tensor_fill_gauss(tensor* t, float mean, float std)
+void tensor_fill_gauss(tensor_t* t, float mean, float std)
 {
     for (int i = 0; i < t->volume; i++)
     {
@@ -124,7 +124,7 @@ void tensor_fill_gauss(tensor* t, float mean, float std)
     }
 }
 
-void tensor_transfer_values(tensor* to, tensor* from)
+void tensor_transfer_values(tensor_t* to, tensor_t* from)
 {
     #ifdef DEBUG
     if (to->volume != from->volume)
@@ -138,14 +138,14 @@ void tensor_transfer_values(tensor* to, tensor* from)
     }
 }
 
-void tensor_set_values(tensor* t, float* values)
+void tensor_set_values(tensor_t* t, float* values)
 {
     for (int i = 0; i < t->volume; i++) {
         t->values[i] = values[i];
     }
 }
 
-void tensor_transfer_all(tensor* to, tensor* from)
+void tensor_transfer_all(tensor_t* to, tensor_t* from)
 {
     // TODO: should probably implement some safety stuff here...
     free(to->shape);
@@ -165,14 +165,14 @@ void tensor_transfer_all(tensor* to, tensor* from)
     }
 }
 
-void tensor_free(tensor* t)
+void tensor_free(tensor_t* t)
 {
     free(t->values);
     free(t->shape);
     free(t);
 }
 
-int get_tensor_value_index(tensor* t, int* indices)
+int get_tensor_value_index(tensor_t* t, int* indices)
 {
     int index = indices[t->shape_dim - 1];
     int sum_of_dims = 1;
@@ -184,27 +184,27 @@ int get_tensor_value_index(tensor* t, int* indices)
     return index;
 }
 
-double get_tensor_value(tensor* t, int* indices)
+double get_tensor_value(tensor_t* t, int* indices)
 {
     int index = get_tensor_value_index(t, indices);
     return t->values[index];
 }
 
-void fill_random(tensor* t)
+void fill_random(tensor_t* t)
 {
     for (int i = 0; i < t->volume; i++) {
         t->values[i] = ((double) rand() / RAND_MAX) * 2.0 -0.5;
     }
 }
 
-void fill_const(tensor* t, double num)
+void fill_const(tensor_t* t, double num)
 {
     for (int i = 0; i < t->volume; i++) {
         t->values[i] = num;
     }
 }
 
-int tensors_can_be_mult(tensor* a, tensor* b)
+int tensors_can_be_mult(tensor_t* a, tensor_t* b)
 {
     int connection_dim = a->shape_dim > 1 && b->shape_dim > 1;
     if (b->shape_dim > 1) {
@@ -224,7 +224,7 @@ int tensors_can_be_mult(tensor* a, tensor* b)
     return connection_dim && prev_equal;
 }
 
-void tensor_mult_(tensor* a, tensor* b, tensor* out)
+void tensor_mult_(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     // Check if tensor operation is possible
     #ifdef DEBUG
@@ -265,7 +265,7 @@ void tensor_mult_(tensor* a, tensor* b, tensor* out)
     }
 }
 
-tensor* tensor_mult_give(tensor* a, tensor* b)
+tensor_t* tensor_mult_give(tensor_t* a, tensor_t* b)
 {
     // TODO: Maybe make a nicer fix for the row vectors...
     int out_shape_dim = a->shape_dim < b->shape_dim ? b->shape_dim : a->shape_dim;
@@ -280,19 +280,19 @@ tensor* tensor_mult_give(tensor* a, tensor* b)
     out_shape[out_shape_dim-1] = b->shape[b->shape_dim-1];
     out_shape[out_shape_dim-2] = a->shape_dim > 1 ? a->shape[a->shape_dim-2] : 1 ;
 
-    tensor* out = new_tensor(out_shape, out_shape_dim, NULL);
+    tensor_t* out = new_tensor(out_shape, out_shape_dim, NULL);
 
     tensor_mult_(a, b, out);
 
     return out;
 }
 
-void tensor_mult(tensor* a, tensor* b, tensor* out)
+void tensor_mult(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     // TODO: Make nicer
     if (a == out || b == out)
     {
-        tensor* tmp = tensor_mult_give(a, b);
+        tensor_t* tmp = tensor_mult_give(a, b);
 
         if (a == out)
         {
@@ -316,7 +316,7 @@ void tensor_mult(tensor* a, tensor* b, tensor* out)
     }
 }
 
-void tensor_add(tensor* a, tensor* b, tensor* out)
+void tensor_add(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     // TODO: Adding tensors of shape n1Xn2X...nNxaXb + aXb
     // TODO: Safety checks
@@ -325,42 +325,42 @@ void tensor_add(tensor* a, tensor* b, tensor* out)
     }
 }
 
-void tensor_sub(tensor* a, tensor* b, tensor* out)
+void tensor_sub(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] - b->values[i];
     }
 }
 
-void tensor_scalar_add(tensor* a, float b, tensor* out)
+void tensor_scalar_add(tensor_t* a, float b, tensor_t* out)
 {
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] + b;
     }
 }
 
-void tensor_scalar_sub(tensor* a, float b, tensor* out)
+void tensor_scalar_sub(tensor_t* a, float b, tensor_t* out)
 {
     for (int i = 0; i < a->volume; i++) {
         out->values[i] = a->values[i] - b;
     }
 }
 
-tensor* tensor_add_give(tensor* a, tensor* b)
+tensor_t* tensor_add_give(tensor_t* a, tensor_t* b)
 {
-    tensor* out = tensor_copy_shape(a);
+    tensor_t* out = tensor_copy_shape(a);
     tensor_add(a, b, out);
     return out;
 }
 
-tensor* tensor_sub_give(tensor* a, tensor* b)
+tensor_t* tensor_sub_give(tensor_t* a, tensor_t* b)
 {
-    tensor* out = tensor_copy_shape(a);
+    tensor_t* out = tensor_copy_shape(a);
     tensor_sub(a, b, out);
     return out;
 }
 
-void tensor_loop(tensor* t, void (*func)(tensor*, int*))
+void tensor_loop(tensor_t* t, void (*func)(tensor_t*, int*))
 {
     int counts[t->shape_dim];
     for (int i = 0; i < t->shape_dim; i++) {
@@ -384,7 +384,7 @@ void tensor_loop(tensor* t, void (*func)(tensor*, int*))
     }
 }
 
-void tensor_transpose(tensor* t)
+void tensor_transpose(tensor_t* t)
 {
     // Special case: column vector to row vector
     if (t->shape_dim == 1)
@@ -400,7 +400,7 @@ void tensor_transpose(tensor* t)
     }
     
     // Create a copy of the vector to store the original tensor information
-    tensor* t_copy = tensor_copy(t);
+    tensor_t* t_copy = tensor_copy(t);
     for (int i = 0; i < t->shape_dim; i++) {
         t->shape[i] = t_copy->shape[t->shape_dim-1-i];
     }
@@ -445,7 +445,7 @@ void tensor_transpose(tensor* t)
     tensor_free(t_copy);
 }
 
-void identify(tensor* a, int* counts)
+void identify(tensor_t* a, int* counts)
 {
     int equal = counts[a->shape_dim-1] == counts[a->shape_dim-2];
     int index = get_tensor_value_index(a, counts);
@@ -457,7 +457,7 @@ void identify(tensor* a, int* counts)
     }
 }
 
-void tensor_identity(tensor* a)
+void tensor_identity(tensor_t* a)
 {
     // TODO: Make faster
     #ifdef DEBUG
@@ -470,7 +470,7 @@ void tensor_identity(tensor* a)
     tensor_loop(a, identify);
 }
 
-int tensors_equal_shape(tensor* a, tensor* b)
+int tensors_equal_shape(tensor_t* a, tensor_t* b)
 {
     // Compare tensor volumes
     if (a->volume != b->volume) return 0;
@@ -485,7 +485,7 @@ int tensors_equal_shape(tensor* a, tensor* b)
     return 1;
 }
 
-int tensors_equal(tensor* a, tensor* b)
+int tensors_equal(tensor_t* a, tensor_t* b)
 {
     // Compare tensor volumes
     if (a->volume != b->volume) return 0;
@@ -509,7 +509,7 @@ int tensors_equal(tensor* a, tensor* b)
     return 1;
 }
 
-void tensor_scalar_mult(tensor* a, float b, tensor* out)
+void tensor_scalar_mult(tensor_t* a, float b, tensor_t* out)
 {
     for (int i = 0; i < a->volume; i++)
     {
@@ -517,14 +517,14 @@ void tensor_scalar_mult(tensor* a, float b, tensor* out)
     }
 }
 
-tensor* tensor_scalar_mult_give(tensor* a, float b)
+tensor_t* tensor_scalar_mult_give(tensor_t* a, float b)
 {
-    tensor* out = tensor_copy(a);
+    tensor_t* out = tensor_copy(a);
     tensor_scalar_mult(a, b, out);
     return out;
 }
 
-void tensor_scalar_div(tensor* a, float b, tensor* out)
+void tensor_scalar_div(tensor_t* a, float b, tensor_t* out)
 {
     for (int i = 0; i < a->volume; i++)
     {
@@ -532,19 +532,19 @@ void tensor_scalar_div(tensor* a, float b, tensor* out)
     }
 }
 
-tensor* tensor_scalar_div_give(tensor* a, float b)
+tensor_t* tensor_scalar_div_give(tensor_t* a, float b)
 {
-    tensor* out = tensor_copy(a);
+    tensor_t* out = tensor_copy(a);
     tensor_scalar_mult(a, b, out);
     return out;
 }
 
-int tensor_is_square(tensor* t)
+int tensor_is_square(tensor_t* t)
 {
     return t->shape_dim >= 2 && t->shape[t->shape_dim-1] == t->shape[t->shape_dim-2];
 }
 
-void tensor_reshape(tensor* t, int* shape, int shape_dim)
+void tensor_reshape(tensor_t* t, int* shape, int shape_dim)
 {
     #ifdef DEBUG
     int v0 = t->volume;
@@ -577,7 +577,7 @@ void tensor_reshape(tensor* t, int* shape, int shape_dim)
     }
 }
 
-void tensor_unsqueeze(tensor* t, int axis)
+void tensor_unsqueeze(tensor_t* t, int axis)
 {
     #ifdef DEBUG
     if (axis > t->shape_dim)
@@ -621,7 +621,7 @@ void tensor_unsqueeze(tensor* t, int axis)
     }
 }
 
-void tensor_squeeze(tensor* t, int axis)
+void tensor_squeeze(tensor_t* t, int axis)
 {
     #ifdef DEBUG
     if (t->shape_dim == 1 || axis >= t->shape_dim || t->shape[axis] != 1)
@@ -650,7 +650,7 @@ void tensor_squeeze(tensor* t, int axis)
     }
 }
 
-tensor* tensor_append(tensor* a, tensor* b, int axis)
+tensor_t* tensor_append(tensor_t* a, tensor_t* b, int axis)
 {
     if (axis == -1) {
         axis = a->shape_dim-1;
@@ -688,7 +688,7 @@ tensor* tensor_append(tensor* a, tensor* b, int axis)
     }
 
     // Why does this work??????
-    tensor* out = new_tensor(out_shape, a->shape_dim, NULL);
+    tensor_t* out = new_tensor(out_shape, a->shape_dim, NULL);
     for (int i = 0; i < out->volume; i++)
     {
         if (i < a->volume) {
@@ -701,7 +701,7 @@ tensor* tensor_append(tensor* a, tensor* b, int axis)
     return out;
 }
 
-int tensor_lu_decomp(tensor* A, tensor* P, tensor* L, tensor* U)
+int tensor_lu_decomp(tensor_t* A, tensor_t* P, tensor_t* L, tensor_t* U)
 {
     // TODO: Check if a decomposition can be performed. Also make faster
     // TODO: Test for vertical matrices
@@ -716,12 +716,12 @@ int tensor_lu_decomp(tensor* A, tensor* P, tensor* L, tensor* U)
     #endif
     
     int operator_shape[] = {A->shape[0], A->shape[0]};
-    tensor* M = new_tensor(operator_shape, 2, NULL);
-    tensor* P_0 = tensor_copy_shape(M);
+    tensor_t* M = new_tensor(operator_shape, 2, NULL);
+    tensor_t* P_0 = tensor_copy_shape(M);
     
-    tensor* P_inter = tensor_copy_shape(M);
-    tensor* L_inter = tensor_copy_shape(M);
-    tensor* U_inter = tensor_copy_shape(A);
+    tensor_t* P_inter = tensor_copy_shape(M);
+    tensor_t* L_inter = tensor_copy_shape(M);
+    tensor_t* U_inter = tensor_copy_shape(A);
     
     tensor_identity(M);
     tensor_identity(P);
@@ -815,7 +815,7 @@ int tensor_lu_decomp(tensor* A, tensor* P, tensor* L, tensor* U)
     return row_swaps;
 }
 
-float tensor_determinant(tensor* A)
+float tensor_determinant(tensor_t* A)
 {
     #ifdef DEBUG
     if (A->shape_dim != 2 || A->shape[0] != A->shape[1])
@@ -838,9 +838,9 @@ float tensor_determinant(tensor* A)
     int cols = A->shape[0];
 
     // TODO: Might have to create a function that skips computing L and P (ie. just counts row swaps)...
-    tensor* P = tensor_copy_shape(A);
-    tensor* L = tensor_copy_shape(A);
-    tensor* U = tensor_copy_shape(A);
+    tensor_t* P = tensor_copy_shape(A);
+    tensor_t* L = tensor_copy_shape(A);
+    tensor_t* U = tensor_copy_shape(A);
     int row_swaps = tensor_lu_decomp(A, P, L, U);
     
     float det = row_swaps % 2 ? -1.f : 1.f;
@@ -856,7 +856,7 @@ float tensor_determinant(tensor* A)
     return det;
 }
 
-void tensor_inverse(tensor* A, tensor* A_inv)
+void tensor_inverse(tensor_t* A, tensor_t* A_inv)
 {
     // TODO: Make more efficient
     #ifdef DEBUG
@@ -886,13 +886,13 @@ void tensor_inverse(tensor* A, tensor* A_inv)
     int cols = A->shape[0];
 
     // Decompose matrix
-    tensor* P = tensor_copy_shape(A);
-    tensor* L = tensor_copy_shape(A);
-    tensor* U = tensor_copy_shape(A);
+    tensor_t* P = tensor_copy_shape(A);
+    tensor_t* L = tensor_copy_shape(A);
+    tensor_t* U = tensor_copy_shape(A);
     tensor_lu_decomp(A, P, L, U);
     
     // Solve LY = I
-    tensor* Y = tensor_copy_shape(A);
+    tensor_t* Y = tensor_copy_shape(A);
     for (int col = 0; col < cols; col++)
     {
         Y->values[col * cols + col] = 1.f;
@@ -940,14 +940,14 @@ void tensor_inverse(tensor* A, tensor* A_inv)
     tensor_free(Y);
 }
 
-tensor* tensor_inverse_give(tensor* A)
+tensor_t* tensor_inverse_give(tensor_t* A)
 {
-    tensor* A_inv = tensor_copy_shape(A);
+    tensor_t* A_inv = tensor_copy_shape(A);
     tensor_inverse(A, A_inv);
     return A_inv;
 }
 
-void tensor_flatten(tensor* t)
+void tensor_flatten(tensor_t* t)
 {
     free(t->shape);
     
@@ -956,7 +956,7 @@ void tensor_flatten(tensor* t)
     t->shape_dim = 2;
 }
 
-float tensor_max(tensor* t)
+float tensor_max(tensor_t* t)
 {
     float out = t->values[0];
     for (int i = 1; i < t->volume; i++)
@@ -969,7 +969,7 @@ float tensor_max(tensor* t)
     return out;
 }
 
-float tensor_min(tensor* t)
+float tensor_min(tensor_t* t)
 {
     float out = t->values[0];
     for (int i = 1; i < t->volume; i++)
@@ -982,7 +982,7 @@ float tensor_min(tensor* t)
     return out;
 }
 
-float tensor_trace(tensor* t)
+float tensor_trace(tensor_t* t)
 {
     // TODO: Adapt to tensors of any shape?
     #ifdef DEBUG
@@ -1004,7 +1004,7 @@ float tensor_trace(tensor* t)
     return sum;
 }
 
-tensor* tensor_slice(tensor* t, int idx)
+tensor_t* tensor_slice(tensor_t* t, int idx)
 {
     // TODO: test properly and make nicer
     int new_shape_dim = t->shape_dim == 2 ? 2 : t->shape_dim-1;
@@ -1016,7 +1016,7 @@ tensor* tensor_slice(tensor* t, int idx)
         step *= t->shape[i];
     }
     if (t->shape_dim == 2) new_shape[1] = 1;
-    tensor* out = new_tensor(new_shape, new_shape_dim, NULL);
+    tensor_t* out = new_tensor(new_shape, new_shape_dim, NULL);
 
     int out_idx = 0;
     for (int i = idx; i < t->volume; i+=step)
@@ -1028,19 +1028,19 @@ tensor* tensor_slice(tensor* t, int idx)
     return out;
 }
 
-float tensor_xTAx(tensor* A, tensor* x)
+float tensor_xTAx(tensor_t* A, tensor_t* x)
 {
     tensor_transpose(x);
-    tensor* tmp0 = tensor_mult_give(x, A);
+    tensor_t* tmp0 = tensor_mult_give(x, A);
     tensor_transpose(x);
-    tensor* tmp1 = tensor_mult_give(tmp0, x);
+    tensor_t* tmp1 = tensor_mult_give(tmp0, x);
     float out = tmp1->values[0];
     tensor_free(tmp0);
     tensor_free(tmp1);
     return out;
 }
 
-void vector_cross(tensor* a, tensor* b, tensor* out)
+void vector_cross(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     #ifdef DEBUG
     if (
@@ -1059,15 +1059,15 @@ void vector_cross(tensor* a, tensor* b, tensor* out)
     out->values[2] = a->values[0] * b->values[1] - a->values[1] * b->values[0];
 }
 
-tensor* vector_cross_give(tensor* a, tensor* b)
+tensor_t* vector_cross_give(tensor_t* a, tensor_t* b)
 {
     int shape[] = {3, 1};
-    tensor* out = new_tensor(shape, 2, NULL);
+    tensor_t* out = new_tensor(shape, 2, NULL);
     vector_cross(a, b, out);
     return out;
 }
 
-float vector_dot(tensor* a, tensor* b)
+float vector_dot(tensor_t* a, tensor_t* b)
 {
     #ifdef DEBUG
     if (a->shape_dim != 2 || a->shape[1] != 1 || b->shape_dim != 2 || b->shape[1] != 1)
@@ -1088,14 +1088,14 @@ float vector_dot(tensor* a, tensor* b)
     return out;
 }
 
-float vector_norm(tensor* t)
+float vector_norm(tensor_t* t)
 {
     float out = vector_squared_norm(t);
     out = sqrt(out);
     return out;
 }
 
-float vector_squared_norm(tensor* t)
+float vector_squared_norm(tensor_t* t)
 {
     #ifdef DEBUG
     if (t->shape_dim != 2 || t->shape[1] != 1)
@@ -1111,7 +1111,7 @@ float vector_squared_norm(tensor* t)
     return out;
 }
 
-void vector_normalize(tensor* t)
+void vector_normalize(tensor_t* t)
 {
     #ifdef DEBUG
     if (t->shape_dim != 2 || (t->shape[0] != 1 && t->shape[1] != 1)) {
@@ -1126,7 +1126,7 @@ void vector_normalize(tensor* t)
     }
 }
 
-void vector_reflect(tensor* v, tensor* n, tensor* out)
+void vector_reflect(tensor_t* v, tensor_t* n, tensor_t* out)
 {
     tensor_scalar_mult(n, vector_dot(v, n), out);
     tensor_scalar_mult(out, 2.f, out);
@@ -1135,20 +1135,20 @@ void vector_reflect(tensor* v, tensor* n, tensor* out)
     vector_normalize(out);
 }
 
-tensor* vector_reflect_give(tensor* v, tensor* n)
+tensor_t* vector_reflect_give(tensor_t* v, tensor_t* n)
 {
-    tensor* out = tensor_copy_shape(v);
+    tensor_t* out = tensor_copy_shape(v);
     vector_reflect(v, n, out);
     return out;
 }
 
-tensor* new_tensor_vector(int dim, float* values)
+tensor_t* new_tensor_vector(int dim, float* values)
 {
     int shape[] = {dim, 1};
     return new_tensor(shape, 2, values);
 }
 
-tensor* new_tensor_matrix(int cols, int rows, float* values)
+tensor_t* new_tensor_matrix(int cols, int rows, float* values)
 {
     int shape[] = {cols, rows};
     return new_tensor(shape, 2, values);

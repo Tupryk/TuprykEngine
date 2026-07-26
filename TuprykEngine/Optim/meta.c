@@ -34,11 +34,11 @@ void optim_logs_free(struct optim_logs* ol)
     free(ol);
 }
 
-void optim_logs_add(struct optim_logs* ol, tensor* x, float cost)
+void optim_logs_add(struct optim_logs* ol, tensor_t* x, float cost)
 {
     int cost_shape[] = {1, 1};
     float cost_value[] = {cost};
-    tensor* new_cost = new_tensor(cost_shape, 2, cost_value);
+    tensor_t* new_cost = new_tensor(cost_shape, 2, cost_value);
 
     ol->steps++;
     if (ol->costs == NULL)
@@ -48,10 +48,10 @@ void optim_logs_add(struct optim_logs* ol, tensor* x, float cost)
     }
     else
     {
-        tensor* new_Xs = tensor_append(ol->Xs, x, 1);
+        tensor_t* new_Xs = tensor_append(ol->Xs, x, 1);
         tensor_free(ol->Xs);
         ol->Xs = new_Xs;
-        tensor* new_costs = tensor_append(ol->costs, new_cost, 1);
+        tensor_t* new_costs = tensor_append(ol->costs, new_cost, 1);
         tensor_free(ol->costs);
         ol->costs = new_costs;
     }

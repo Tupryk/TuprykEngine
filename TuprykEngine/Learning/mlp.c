@@ -10,8 +10,8 @@ mlp_t* mlp_init(int layer_count, int* layer_sizes, int* activation_types)
     mlp_t* mlp = (mlp_t*) malloc(sizeof(mlp_t));
     mlp->layer_count = layer_count;
     mlp->activation_types = (int*) malloc(sizeof(int) * layer_count);
-    mlp->biases = (tensor**) malloc(sizeof(tensor*) * layer_count);
-    mlp->weights = (tensor**) malloc(sizeof(tensor*) * (layer_count - 1));
+    mlp->biases = (tensor_t**) malloc(sizeof(tensor_t*) * layer_count);
+    mlp->weights = (tensor_t**) malloc(sizeof(tensor_t*) * (layer_count - 1));
 
     for (int i = 0; i < layer_count; i++)
     {
@@ -29,7 +29,7 @@ mlp_t* mlp_init(int layer_count, int* layer_sizes, int* activation_types)
     return mlp;
 }
 
-void mlp_forward(mlp_t* mlp, tensor* input, tensor* output)
+void mlp_forward(mlp_t* mlp, tensor_t* input, tensor_t* output)
 {
     // tensor_apply_operation(..., relu);
 }
