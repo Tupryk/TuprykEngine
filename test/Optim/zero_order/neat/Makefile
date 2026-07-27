@@ -10,7 +10,6 @@ SRCS = main.c \
 	../../../../TuprykEngine/ui/prints/algos.c \
 	../../../../TuprykEngine/Optim/zero_order/neat.c \
 	../../../../TuprykEngine/Funcs/funcs.c \
-	../../functions.c \
 	../../../../TuprykEngine/Optim/meta.c \
 	../../../../TuprykEngine/ui/graphics/basic.c \
 	../../../../TuprykEngine/ui/graphics/window.c \
