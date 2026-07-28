@@ -17,7 +17,7 @@ void draw_network(population_t* pop, agent_t* a)
     }
 
     // Initialize the input layer
-    int_stack* stack = int_stack_init();
+    int_stack_t* stack = int_stack_init();
     for (int i = 0; i < pop->in_dim; i++)
     {
         activation_count[i]++;
@@ -25,7 +25,7 @@ void draw_network(population_t* pop, agent_t* a)
     }
 
     // Forward through the network
-    int_stack* next_stack = int_stack_init();
+    int_stack_t* next_stack = int_stack_init();
     int layer_idx = 0;
     int in_layer_idx = 0;
     int layer_widths[a->node_count];

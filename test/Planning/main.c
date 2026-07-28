@@ -27,7 +27,7 @@ int test_rrt()
     tensor_fill_uniform(qT, -1.f, 1.f);
 
     printf("Planning a path...\n");
-    stack* path = rrt_find_path(C, q0, qT, 0.1);
+    pstack_t* path = rrt_find_path(C, q0, qT, 0.1);
     int path_length = path->size;
 
     tensor_t* video_frames[path_length];

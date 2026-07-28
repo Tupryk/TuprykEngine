@@ -98,10 +98,10 @@ void velocity_at_point(config* C, tensor_t* point, int frame_id, tensor_t* vel)
     tensor_free(c_r);
 }
 
-stack* config_get_contacts(config* C)
+pstack_t* config_get_contacts(config* C)
 {
     // TODO: KD_Tree
-    stack* contacts = stack_init();
+    pstack_t* contacts = stack_init();
     frame_t** frames = C->frames;
     int frame_count = C->frame_count;
     for (int i = 0; i < frame_count; i++)
@@ -248,7 +248,7 @@ void impulse_to_joints_force(config* C, int from_frame_id, tensor_t* impulse_wor
     }
 }
 
-void contacts_free(stack* s)
+void contacts_free(pstack_t* s)
 {
     while (s->next != NULL)
     {

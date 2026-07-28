@@ -505,7 +505,7 @@ float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
     #endif
 
     // Initialize the input layer
-    struct int_stack* stack = NULL;
+    struct int_stack_t* stack = NULL;
     for (int i = 0; i < in_dim; i++)
     {
         a->activations[i] = input[i];
@@ -519,7 +519,7 @@ float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
     #endif
 
     // Forward through the network
-    struct int_stack* next_stack = NULL;
+    struct int_stack_t* next_stack = NULL;
     while (stack != NULL)
     {
         
@@ -568,7 +568,7 @@ float* feed_agent(agent_t* a, float* input, int in_dim, int out_dim)
             }
         }
 
-        struct int_stack* tmp = stack->next;  // TODO: should this be a stack_pop func?
+        struct int_stack_t* tmp = stack->next;  // TODO: should this be a stack_pop func?
         free(stack);
         stack = tmp;
 

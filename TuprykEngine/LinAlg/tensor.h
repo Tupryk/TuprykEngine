@@ -40,6 +40,7 @@ void tensor_add(tensor_t* a, tensor_t* b, tensor_t* out);
 void tensor_sub(tensor_t* a, tensor_t* b, tensor_t* out);
 void tensor_scalar_add(tensor_t* a, float b, tensor_t* out);
 void tensor_scalar_sub(tensor_t* a, float b, tensor_t* out);
+void tensor_scalar_pow(tensor_t* a, float b, tensor_t* out);
 tensor_t* tensor_add_give(tensor_t* a, tensor_t* b);
 tensor_t* tensor_sub_give(tensor_t* a, tensor_t* b);
 void tensor_loop(tensor_t* t, void (*func)(tensor_t*, int*));

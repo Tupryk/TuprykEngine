@@ -45,15 +45,15 @@ void vector_free(vector *v)
     free(v->data);
 }
 
-stack* stack_init()
+pstack_t* stack_init()
 {
-    stack* s = (stack*) malloc(sizeof(stack));
+    pstack_t* s = (pstack_t*) malloc(sizeof(stack_t));
     s->size = 0;
     s->next = NULL;
     return s;
 }
 
-void stack_free(stack* s)
+void stack_free(pstack_t* s)
 {
     while (s->next != NULL)
     {
@@ -62,7 +62,7 @@ void stack_free(stack* s)
     free(s);
 }
 
-void stack_push(stack* s, void* data)
+void stack_push(pstack_t* s, void* data)
 {
     struct stack_elem* new_elem = (struct stack_elem*) malloc(sizeof(struct stack_elem));
     new_elem->data = data;
@@ -71,7 +71,7 @@ void stack_push(stack* s, void* data)
     s->size++;
 }
 
-void* stack_pop(stack* s)
+void* stack_pop(pstack_t* s)
 {
     if (s->next != NULL)
     {
@@ -86,7 +86,7 @@ void* stack_pop(stack* s)
     return NULL;
 }
 
-void* stack_pop_at_index(stack* s, size_t i)
+void* stack_pop_at_index(pstack_t* s, size_t i)
 {
     #ifdef DEBUG
     if (i >= s->size)
@@ -120,15 +120,15 @@ void* stack_pop_at_index(stack* s, size_t i)
     return NULL;
 }
 
-int_stack* int_stack_init()
+int_stack_t* int_stack_init()
 {
-    int_stack* stack = (int_stack*) malloc(sizeof(int_stack));
+    int_stack_t* stack = (int_stack_t*) malloc(sizeof(int_stack_t));
     stack->size = 0;
     stack->next = NULL;
     return stack;
 }
 
-void int_stack_free(int_stack* s)
+void int_stack_free(int_stack_t* s)
 {
     while (s->next != NULL)
     {
@@ -137,7 +137,7 @@ void int_stack_free(int_stack* s)
     free(s);
 }
 
-void int_stack_push(int_stack* s, int value)
+void int_stack_push(int_stack_t* s, int value)
 {
     struct int_stack_elem* new_elem = (struct int_stack_elem*) malloc(sizeof(struct int_stack_elem));
     new_elem->value = value;
@@ -146,7 +146,7 @@ void int_stack_push(int_stack* s, int value)
     s->size++;
 }
 
-int int_stack_pop(int_stack* s)
+int int_stack_pop(int_stack_t* s)
 {
     if (s->next != NULL)
     {
@@ -161,7 +161,7 @@ int int_stack_pop(int_stack* s)
     return -1;
 }
 
-int int_stack_contains(int_stack* s, int value)
+int int_stack_contains(int_stack_t* s, int value)
 {
     struct int_stack_elem* tmp = s->next;
     while (tmp != NULL)

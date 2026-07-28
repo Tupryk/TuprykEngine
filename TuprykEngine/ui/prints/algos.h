@@ -4,6 +4,6 @@
 #include "../../Algos/lists.h"
 
 void print_int_vector(vector* v);
-void print_int_stack(int_stack* stack);
+void print_int_stack(int_stack_t* stack);
 
 #endif

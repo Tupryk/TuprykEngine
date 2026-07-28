@@ -441,7 +441,7 @@ void agent_feed(agent_t* a, int in_dim, int out_dim, float* input, float* output
     reset_agent(a);
 
     // Initialize the input layer
-    int_stack* stack = int_stack_init();
+    int_stack_t* stack = int_stack_init();
     for (int i = 0; i < in_dim; i++)
     {
         a->activations[i] = input[i];
@@ -450,7 +450,7 @@ void agent_feed(agent_t* a, int in_dim, int out_dim, float* input, float* output
     }
 
     // Forward through the network
-    int_stack* next_stack = int_stack_init();
+    int_stack_t* next_stack = int_stack_init();
     while (stack->size > 0)
     {
         int node_id = int_stack_pop(stack);

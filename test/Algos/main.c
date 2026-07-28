@@ -29,7 +29,7 @@ int test_vector()
 
 int test_int_stack()
 {
-    int_stack* s = int_stack_init();
+    int_stack_t* s = int_stack_init();
 
     for (int i = 0; i < 10; i++)
     {
@@ -54,7 +54,7 @@ int test_int_stack()
 
 int test_stack()
 {
-    stack* s = stack_init();
+    pstack_t* s = stack_init();
 
     int* v1 = malloc(sizeof(int));
     v1[0] = 1;

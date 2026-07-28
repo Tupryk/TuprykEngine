@@ -14,7 +14,7 @@ void print_int_vector(vector* v)
     printf("]\n");
 }
 
-void print_int_stack(int_stack* stack)
+void print_int_stack(int_stack_t* stack)
 {
     struct int_stack_elem* elem = stack->next;
     printf("Stack (%zu): [", stack->size);

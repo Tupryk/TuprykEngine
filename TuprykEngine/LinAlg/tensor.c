@@ -346,6 +346,13 @@ void tensor_scalar_sub(tensor_t* a, float b, tensor_t* out)
     }
 }
 
+void tensor_scalar_pow(tensor_t* a, float b, tensor_t* out)
+{
+    for (int i = 0; i < a->volume; i++) {
+        out->values[i] = powf(a->values[i], b);
+    }
+}
+
 tensor_t* tensor_add_give(tensor_t* a, tensor_t* b)
 {
     tensor_t* out = tensor_copy_shape(a);

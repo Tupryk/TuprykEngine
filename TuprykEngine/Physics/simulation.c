@@ -291,7 +291,7 @@ tensor_t* q_delta_from_forces(config* C)
 
 void load_collision_forces_to_joints(config* C)
 {
-    stack* contacts = config_get_contacts(C);
+    pstack_t* contacts = config_get_contacts(C);
     float correction_strength = 10.f;
     float velocity_damper = 2.f;
     float beta = 0.2f;
@@ -407,7 +407,7 @@ void apply_velocity_impulse(config* C, int frame_id, tensor_t* normal, float cor
 tensor_t* solve_contact_velocity_constraints(config* C)
 {
     tensor_t* q_delta = tensor_copy_shape(C->q_vel);
-    stack* contacts = config_get_contacts(C);
+    pstack_t* contacts = config_get_contacts(C);
 
     tensor_t* vel_a = new_tensor_vector(3, NULL);
     tensor_t* vel_b = new_tensor_vector(3, NULL);

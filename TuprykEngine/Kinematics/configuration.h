@@ -42,13 +42,13 @@ typedef struct
     tensor_t* q_max;
     tensor_t* q_min;
 
-    stack* forces;  // force_t
+    pstack_t* forces;  // force_t
     tensor_t* gravity;
 } config;
 
 int config_colliding(config* C);
-stack* config_get_contacts(config* C);
-void contacts_free(stack* s);
+pstack_t* config_get_contacts(config* C);
+void contacts_free(pstack_t* s);
 void config_compute_contacts(config* C);
 void config_populate_mass_inertias(config* C);
 void config_q_delta_from_impulse(config* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world, tensor_t* q_delta);

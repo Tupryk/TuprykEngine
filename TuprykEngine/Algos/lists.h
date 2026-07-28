@@ -26,13 +26,13 @@ typedef struct
 {
     size_t size;
     struct stack_elem* next;
-} stack;
+} pstack_t;
 
-stack* stack_init();
-void stack_free(stack* s);
-void stack_push(stack* s, void* data);
-void* stack_pop(stack* s);
-void* stack_pop_at_index(stack* s, size_t i);
+pstack_t* stack_init();
+void stack_free(pstack_t* s);
+void stack_push(pstack_t* s, void* data);
+void* stack_pop(pstack_t* s);
+void* stack_pop_at_index(pstack_t* s, size_t i);
 
 struct int_stack_elem
 {
@@ -44,12 +44,12 @@ typedef struct
 {
     size_t size;
     struct int_stack_elem* next;
-} int_stack;
+} int_stack_t;
 
-int_stack* int_stack_init();
-void int_stack_free(int_stack* s);
-void int_stack_push(int_stack* s, int value);
-int int_stack_pop(int_stack* s);
-int int_stack_contains(int_stack* s, int value);
+int_stack_t* int_stack_init();
+void int_stack_free(int_stack_t* s);
+void int_stack_push(int_stack_t* s, int value);
+int int_stack_pop(int_stack_t* s);
+int int_stack_contains(int_stack_t* s, int value);
 
 #endif

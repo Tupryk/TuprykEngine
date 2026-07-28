@@ -21,7 +21,7 @@ typedef struct
     float inital_std;
     float inital_scaling;
     size_t max_foam;
-    stack* force_fields;  // type: gaussian_t
+    pstack_t* force_fields;  // type: gaussian_t
 } foam_t;
 
 foam_t* foam_init(nlp_t* nlp, size_t max_foam, float inital_std, float inital_scaling);

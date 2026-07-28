@@ -32,7 +32,7 @@ float center_of_mass(config* C, int root, tensor_t* com)
     int bodies_count = 0;
     int body_ids[C->frame_count];
 
-    int_stack* frames_to_check = int_stack_init();
+    int_stack_t* frames_to_check = int_stack_init();
     int_stack_push(frames_to_check, root);
 
     while (frames_to_check->next != NULL)
@@ -94,7 +94,7 @@ void combined_inertia(config* C, int root, tensor_t* com, tensor_t* I_cm)
     int bodies_count = 0;
     int body_ids[C->frame_count];
 
-    int_stack* frames_to_check = int_stack_init();
+    int_stack_t* frames_to_check = int_stack_init();
     int_stack_push(frames_to_check, root);
 
     while (frames_to_check->next != NULL)

@@ -11,6 +11,6 @@ typedef struct
     int parent;
 } rrt_node;
 
-stack* rrt_find_path(config* C, tensor_t* q0, tensor_t* qT, float stepsize);
+pstack_t* rrt_find_path(config* C, tensor_t* q0, tensor_t* qT, float stepsize);
 
 #endif
