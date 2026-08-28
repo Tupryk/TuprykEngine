@@ -13,7 +13,7 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 1000;
+int g_point_count = 100;
 int g_max_point_count = 1000;
 tensor_t* cam_pos = NULL;
 
@@ -24,6 +24,8 @@ void follow_colors(struct ParticleSim* ps, tensor_t* acc)
 
     for (int i = 0; i < ps->max_count; i++)
     {
+        acc->values[i*3+2] = -1000.f;
+
         if (ps->energy->values[i] <= 0.f) continue;
         for (int j = 0; j < ps->max_count; j++)
         {
@@ -96,17 +98,6 @@ int test_particle_sim()
     cam_pos = new_tensor_vector(3, cam_pos_values);
 
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
-    // g_ps->pos->values[0] = -2.f;
-    // g_ps->pos->values[1] = 0.f;
-    // g_ps->pos->values[2] = 0.f;
-    // g_ps->pos->values[3] = 2.f;
-    // g_ps->pos->values[4] = 0.f;
-    // g_ps->pos->values[5] = 0.f;
-    
-    // g_ps->vel->values[0] = 1.f;
-    // g_ps->vel->values[3] = -1.f;
-
-    // g_ps->sizes->values[0] = 1.5f;
 
     window_wait_with_func(ps_loop);
 

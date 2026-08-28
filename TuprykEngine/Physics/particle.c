@@ -16,19 +16,21 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->max_count = max_particle_count;
     ps->t = 0;
     ps->tau = 0.01f;
-    ps->max_vel = 50.f;
+    ps->max_vel = 100.f;
 
     ps->pos = new_tensor_matrix(max_particle_count, 3, NULL);
     ps->vel = new_tensor_matrix(max_particle_count, 3, NULL);
     ps->color = new_tensor_matrix(max_particle_count, 3, NULL);
     ps->sizes = new_tensor_vector(max_particle_count, NULL);
     ps->energy = new_tensor_vector(max_particle_count, NULL);
+    ps->age = new_tensor_vector(max_particle_count, NULL);
     ps->links = new_sparse_matrix(max_particle_count, max_particle_count);
 
     tensor_fill_uniform(ps->pos, -50.f, 50.f);
     tensor_fill_uniform(ps->color, 0.5f, 1.f);
     tensor_fill_uniform(ps->sizes, 0.25f, 2.f);
     // tensor_fill(ps->sizes, 1.f);
+    tensor_fill_uniform(ps->age, 0.f, 5.f);
 
     for (int i = 0; i < init_particle_count; i++)
     {
@@ -45,6 +47,7 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->color);
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
+    tensor_free(ps->age);
     sparse_free(ps->links);
     free(ps);
 }
@@ -84,7 +87,7 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
     float impulse[3];
     float rel_vel[3];
     float dist_vec[3];
-    float restitution = 5.f;
+    float restitution = 1.f;
     float mass = 1.f;
 
     for (int i = 0; i < ps->max_count; i++)
@@ -189,11 +192,12 @@ void particle_sim_update_energy(struct ParticleSim* ps)
     float base_weight = 0.05f;
     float vel_weigth = 0.01f;
     
-    float sun_effect = 0.f;  // Barrier on z-axis
+    float sun_effect = -10.f;  // Barrier on z-axis
     float sun_max_effect = 50.f;
     float sun_weight = 0.2f;
 
     float* energy = ps->energy->values;
+    tensor_scalar_add(ps->age, ps->tau, ps->age);
 
     for (int i = 0; i < ps->max_count; i++)
     {
@@ -220,6 +224,7 @@ void particle_sim_update_energy(struct ParticleSim* ps)
             energy[i] += sun_energy * sun_weight * ps->tau;
         }
         
+        if (ps->age->values[i] >= 10.f) energy[i] = 0.f;  // Death from old-age.
         if (energy[i] <= 0.f) ps->count--;
     }
     tensor_clip(ps->energy, 0.f, 1.f);
@@ -229,8 +234,8 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 {
     if (ps->count == ps->max_count) return;
 
-    float duplicate_thresh = 0.9f;
-    float duplicate_cost = 0.25f;
+    float duplicate_thresh = 0.5f;
+    float duplicate_cost = 0.2f;
 
     float* energy = ps->energy->values;
 
@@ -259,18 +264,22 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
                 vel_child[1] = pos_child[1] - pos_parent[1];
                 vel_child[2] = pos_child[2] - pos_parent[2];
 
-                col_child[0] = col_parent[0] + rand_uni(-0.05f, 0.05f);
-                col_child[1] = col_parent[1] + rand_uni(-0.05f, 0.05f);
-                col_child[2] = col_parent[2] + rand_uni(-0.05f, 0.05f);
+                col_child[0] = col_parent[0] + rand_uni(-0.1f, 0.1f);
+                col_child[1] = col_parent[1] + rand_uni(-0.1f, 0.1f);
+                col_child[2] = col_parent[2] + rand_uni(-0.1f, 0.1f);
 
-                ps->sizes->values[j] = parent_size + rand_uni(-0.05f, 0.05f);
+                ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
+                ps->age->values[j] = 0.f;
                 
                 energy[j] = 0.5f;
 
                 energy[i] -= duplicate_cost;
                 ps->count++;
                 if (ps->count == ps->max_count) return;
+                break;
             }
         }
     }
+    tensor_clip(ps->color, 0.f, 1.f);
+    tensor_clip(ps->sizes, 0.1f, 2.5f);
 }

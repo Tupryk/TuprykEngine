@@ -32,9 +32,9 @@ void render_ps(struct ParticleSim* ps, tensor_t* cam_pos)
         {
             float intensity = 1.f - cam_dist / max_dist;
             set_rgba(
-                ps->color->values[i] * intensity,
-                ps->color->values[i+1] * intensity,
-                ps->color->values[i+2] * intensity,
+                ps->color->values[i*3] * intensity,
+                ps->color->values[i*3+1] * intensity,
+                ps->color->values[i*3+2] * intensity,
                 0.5f
             );
 

@@ -18,6 +18,7 @@ struct ParticleSim
     tensor_t* color;
     tensor_t* sizes;
     tensor_t* energy;
+    tensor_t* age;
     sparse_t* links;
 };
 
