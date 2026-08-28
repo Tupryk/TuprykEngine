@@ -13,7 +13,7 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 100;
+int g_point_count = 1000;
 int g_max_point_count = 1000;
 tensor_t* cam_pos = NULL;
 
@@ -24,7 +24,7 @@ void follow_colors(struct ParticleSim* ps, tensor_t* acc)
 
     for (int i = 0; i < ps->max_count; i++)
     {
-        acc->values[i*3+2] = -1000.f;
+        acc->values[i*3+2] = -500.f;
 
         if (ps->energy->values[i] <= 0.f) continue;
         for (int j = 0; j < ps->max_count; j++)
@@ -43,9 +43,9 @@ void follow_colors(struct ParticleSim* ps, tensor_t* acc)
                 dist_vec[0] * dist_vec[0] +
                 dist_vec[1] * dist_vec[1] +
                 dist_vec[2] * dist_vec[2]
-            );
+            ) - ps->sizes->values[i] - ps->sizes->values[j];
 
-            if (dist < 15.f && fabsf(dist) > 0.001f)
+            if (dist < 15.f && fabsf(dist) > 1.f)
             {
                 dir[0] = dist_vec[0] / dist;
                 dir[1] = dist_vec[1] / dist;

@@ -34,7 +34,7 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
 
     for (int i = 0; i < init_particle_count; i++)
     {
-        ps->energy->values[i] = 0.5f;
+        ps->energy->values[i] = 0.7f;
     }
 
     return ps;
@@ -234,8 +234,8 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 {
     if (ps->count == ps->max_count) return;
 
-    float duplicate_thresh = 0.5f;
-    float duplicate_cost = 0.2f;
+    float duplicate_thresh = 0.7f;
+    float duplicate_cost = 0.1f;
 
     float* energy = ps->energy->values;
 
@@ -280,6 +280,6 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
             }
         }
     }
-    tensor_clip(ps->color, 0.f, 1.f);
+    tensor_clip(ps->color, 0.5f, 1.f);
     tensor_clip(ps->sizes, 0.1f, 2.5f);
 }
