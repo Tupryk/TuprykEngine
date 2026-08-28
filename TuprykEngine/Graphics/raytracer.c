@@ -41,7 +41,7 @@ float ray_ball_hit(tensor_t* cam_pos, tensor_t* ray_dir, tensor_t* ball_pos, flo
     return camera_ball_dist;
 }
 
-void raytrace(config* C, int cam, tensor_t* out)
+void raytrace(config_t* C, int cam, tensor_t* out)
 {
     int frame_count = C->frame_count;
     if (cam == -1)

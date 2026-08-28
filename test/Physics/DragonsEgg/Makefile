@@ -14,7 +14,7 @@ SRCS = main.c \
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 
-all: $(TARGET)
+all: clean $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -24,3 +24,5 @@ $(TARGET): $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean

@@ -6,7 +6,7 @@
 #include "../Geom/quaternions.h"
 
 
-tensor_t* compute_mass_matrix(config* C)
+tensor_t* compute_mass_matrix(config_t* C)
 {
     // Maps joint accelerations to generalised forces
     // MuJoCo computes M efficiently via the Composite Rigid Body (CRB) algorithm
@@ -17,7 +17,7 @@ tensor_t* compute_mass_matrix(config* C)
     return M;
 }
 
-float center_of_mass(config* C, int root, tensor_t* com)
+float center_of_mass(config_t* C, int root, tensor_t* com)
 {
     #ifdef DEBUG
     if (com->shape_dim != 2 || com->shape[0] != 3 || com->shape[1] != 1)
@@ -74,7 +74,7 @@ float center_of_mass(config* C, int root, tensor_t* com)
     return total_mass;
 }
 
-void combined_inertia(config* C, int root, tensor_t* com, tensor_t* I_cm)
+void combined_inertia(config_t* C, int root, tensor_t* com, tensor_t* I_cm)
 {
     #ifdef DEBUG
     if (com->shape_dim != 2 || com->shape[0] != 3 || com->shape[1] != 1)
@@ -151,7 +151,7 @@ void combined_inertia(config* C, int root, tensor_t* com, tensor_t* I_cm)
     tensor_free(d);
 }
 
-// void centroidal_forces(config* C, int root, tensor_t* force, tensor_t* torque)
+// void centroidal_forces(config_t* C, int root, tensor_t* force, tensor_t* torque)
 // {
 //     // TODO:
 // }

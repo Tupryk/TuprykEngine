@@ -8,7 +8,7 @@
 
 frame_t* frame_init(const char *name, float* pos, float* rot)
 {
-    frame_t* f = (frame_t*) malloc(sizeof(frame));
+    frame_t* f = (frame_t*) malloc(sizeof(frame_t));
 
     if (name != NULL)
     {

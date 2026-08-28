@@ -14,7 +14,7 @@ void print_spaces(int count)
     }
 }
 
-void print_frame(config* C, frame_t* f, int id, int depth)
+void print_frame(config_t* C, frame_t* f, int id, int depth)
 {
     if (depth > 8)
     {
@@ -148,7 +148,7 @@ void print_frame(config* C, frame_t* f, int id, int depth)
     }
 }
 
-void print_config(config* C)
+void print_config(config_t* C)
 {
     printf("Total frame count: %d\n", C->frame_count);
     printf("Joints in scene (%d): [", C->joints_count);

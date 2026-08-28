@@ -3,6 +3,6 @@
 
 #include "../Kinematics/configuration.h"
 
-void sim_step(config* C, float tau);
+void sim_step(config_t* C, float tau);
 
 #endif

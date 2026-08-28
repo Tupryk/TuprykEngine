@@ -3,6 +3,6 @@
 
 #include "../../Kinematics/configuration.h"
 
-config* init_devastator_config();
+config_t* init_devastator_config();
 
 #endif

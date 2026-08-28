@@ -3,7 +3,7 @@
 
 #include "../../Kinematics/configuration.h"
 
-void print_frame(config* C, frame_t* f, int id, int depth);
-void print_config(config* C);
+void print_frame(config_t* C, frame_t* f, int id, int depth);
+void print_config(config_t* C);
 
 #endif

@@ -12,9 +12,11 @@ struct point_2d
 {
     float x;
     float y;
+    float depth;
 };
 
 void set_color(float r, float g, float b);
+void set_rgba(float r, float g, float b, float a);
 void draw_pixel(float x, float y, float r, float g, float b);
 void draw_gaussian(tensor_t* pos, tensor_t* A, float half_bounds);
 void draw_circle(int cx, int cy, int r);
@@ -24,6 +26,7 @@ void draw_line_3d(
     float end_x, float end_y, float end_z
 );
 void draw_3d_point(float x, float y, float z);
+void draw_sphere(float x, float y, float z);
 void draw_3d_mark(float x, float y, float z);
 void draw_3d_unit_cube();
 void plot_unit_func(

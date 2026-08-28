@@ -10,7 +10,7 @@
 #include "../ui/prints/linalg.h"
 
 
-tensor_t* q_acc_from_gravity(config* C)
+tensor_t* q_acc_from_gravity(config_t* C)
 {
     tensor_t* q_acc = tensor_copy(C->q_vel);
     float* q_acc_v = q_acc->values;
@@ -82,7 +82,7 @@ tensor_t* q_acc_from_gravity(config* C)
     return q_acc;
 }
 
-void apply_q_delta(config* C, tensor_t* q_delta)
+void apply_q_delta(config_t* C, tensor_t* q_delta)
 {
     float* q_delta_v = q_delta->values;
     int* joints = C->joints;
@@ -175,14 +175,14 @@ void apply_q_delta(config* C, tensor_t* q_delta)
     config_update_q(C);
 }
 
-void step_vels(config* C, float tau)
+void step_vels(config_t* C, float tau)
 {
     tensor_t* q_delta = tensor_scalar_mult_give(C->q_vel, tau);
     apply_q_delta(C, q_delta);
     tensor_free(q_delta);
 }
 
-void load_forces_to_joints(config* C)
+void load_forces_to_joints(config_t* C)
 {
     struct stack_elem* current_contact_elem = C->forces->next;
     while (current_contact_elem != NULL)
@@ -212,7 +212,7 @@ void load_forces_to_joints(config* C)
     }
 }
 
-float inverse_effective_mass_from_body(config* C, int root_id, tensor_t* point, tensor_t* normal)
+float inverse_effective_mass_from_body(config_t* C, int root_id, tensor_t* point, tensor_t* normal)
 {
     frame_t* jf = C->frames[root_id];
     joint_t* jd = (joint_t*) jf->data;
@@ -236,7 +236,7 @@ float inverse_effective_mass_from_body(config* C, int root_id, tensor_t* point, 
     return k;
 }
 
-tensor_t* q_delta_from_forces(config* C)
+tensor_t* q_delta_from_forces(config_t* C)
 {
     tensor_t* q_acc = tensor_copy_shape(C->q_vel);
     float* q_acc_v = q_acc->values;
@@ -289,7 +289,7 @@ tensor_t* q_delta_from_forces(config* C)
     return q_acc;
 }
 
-void load_collision_forces_to_joints(config* C)
+void load_collision_forces_to_joints(config_t* C)
 {
     pstack_t* contacts = config_get_contacts(C);
     float correction_strength = 10.f;
@@ -336,7 +336,7 @@ void load_collision_forces_to_joints(config* C)
     tensor_free(vel_rel);
 }
 
-void apply_velocity_impulse(config* C, int frame_id, tensor_t* normal, float correction, tensor_t* point, tensor_t* q_delta)
+void apply_velocity_impulse(config_t* C, int frame_id, tensor_t* normal, float correction, tensor_t* point, tensor_t* q_delta)
 {
     frame_t** frames = C->frames;
     float* q_delta_v = q_delta->values;
@@ -404,7 +404,7 @@ void apply_velocity_impulse(config* C, int frame_id, tensor_t* normal, float cor
     tensor_free(corrected_normal);
 }
 
-tensor_t* solve_contact_velocity_constraints(config* C)
+tensor_t* solve_contact_velocity_constraints(config_t* C)
 {
     tensor_t* q_delta = tensor_copy_shape(C->q_vel);
     pstack_t* contacts = config_get_contacts(C);
@@ -459,7 +459,7 @@ tensor_t* solve_contact_velocity_constraints(config* C)
     return q_delta;
 }
 
-void sim_step(config* C, float tau)
+void sim_step(config_t* C, float tau)
 {
     // Compute Joint COMs and Inertia Tensors
     config_populate_mass_inertias(C);

@@ -4,9 +4,9 @@
 #include "sparse.h"
 
 
-sparse* new_sparse(int* shape, int shape_dim)
+sparse_t* new_sparse(int* shape, int shape_dim)
 {
-    sparse* st = (sparse*) malloc(sizeof(sparse));
+    sparse_t* st = (sparse_t*) malloc(sizeof(sparse_t));
 
     st->shape_dim = shape_dim;
     st->shape = (int*) malloc(shape_dim * sizeof(int));
@@ -32,9 +32,21 @@ sparse* new_sparse(int* shape, int shape_dim)
     return st;
 }
 
-sparse* sparse_copy(sparse* s)
+sparse_t* new_sparse_vector(int dim)
 {
-    sparse* out = new_sparse(s->shape, s->shape_dim);
+    int shape[] = {dim, 1};
+    return new_sparse(shape, 2);
+}
+
+sparse_t* new_sparse_matrix(int cols, int rows)
+{
+    int shape[] = {cols, rows};
+    return new_sparse(shape, 2);
+}
+
+sparse_t* sparse_copy(sparse_t* s)
+{
+    sparse_t* out = new_sparse(s->shape, s->shape_dim);
     
     out->value_count = s->value_count;
     out->values = (float*) malloc(sizeof(float) * s->value_count);
@@ -49,9 +61,9 @@ sparse* sparse_copy(sparse* s)
     return out;
 }
 
-sparse* sparse_from_tensor(tensor_t* t)
+sparse_t* sparse_from_tensor(tensor_t* t)
 {
-    sparse* st = new_sparse(t->shape, t->shape_dim);
+    sparse_t* st = new_sparse(t->shape, t->shape_dim);
 
     // TODO: Make more efficient
     for (int i = 0; i < t->volume; i++)
@@ -65,9 +77,9 @@ sparse* sparse_from_tensor(tensor_t* t)
     return st;
 }
 
-sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
+sparse_t* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
 {
-    sparse* st = new_sparse(shape, shape_dim);
+    sparse_t* st = new_sparse(shape, shape_dim);
 
     // TODO: Make more efficient
     for (int i = 0; i < st->volume; i++)
@@ -82,7 +94,7 @@ sparse* sparse_from_func(int* shape, int shape_dim, float (*func)(int))
     return st;
 }
 
-tensor_t* tensor_from_sparse(sparse* st)
+tensor_t* tensor_from_sparse(sparse_t* st)
 {
     tensor_t* t = new_tensor(st->shape, st->shape_dim, NULL);
 
@@ -94,7 +106,7 @@ tensor_t* tensor_from_sparse(sparse* st)
     return t;
 }
 
-void sparse_free(sparse* st)
+void sparse_free(sparse_t* st)
 {
     free(st->shape);
     if (st->values != NULL)
@@ -105,7 +117,7 @@ void sparse_free(sparse* st)
     free(st);
 }
 
-void sparse_insert(sparse* st, float value, int index)
+void sparse_insert(sparse_t* st, float value, int index)
 {
     // TODO: Make more efficient
     st->value_count++;
@@ -166,7 +178,7 @@ void sparse_insert(sparse* st, float value, int index)
     st->values = new_values;
 }
 
-sparse* sparse_transpose(sparse* st)
+sparse_t* sparse_transpose(sparse_t* st)
 {
     // TODO:
     for (int i = 0; i < st->value_count; i++)
@@ -178,7 +190,7 @@ sparse* sparse_transpose(sparse* st)
     }
 }
 
-float sparse_get_density(sparse* st)
+float sparse_get_density(sparse_t* st)
 {
     return ((float) st->value_count) / ((float) st->volume);
 }

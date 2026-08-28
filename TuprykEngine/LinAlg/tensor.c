@@ -31,6 +31,8 @@ tensor_t* new_tensor(int* shape, int shape_dim, float* values)
     #endif
 
     tensor_t* t = (tensor_t*) malloc(sizeof(tensor_t));
+    t->grad = NULL;
+    t->is_slice = 0;
 
     t->shape_dim = shape_dim;
     t->shape = (int*) malloc(shape_dim * sizeof(int));
@@ -61,6 +63,12 @@ tensor_t* new_tensor(int* shape, int shape_dim, float* values)
     }
     // TODO: Add a universal allocated memory list so that everything can be removed from memory at once at the end of each program.
     return t;
+}
+
+tensor_t* new_tensor_slice(int* shape, int shape_dim, float* values)
+{
+    // TODO:
+    // t->is_slice = 1;
 }
 
 tensor_t* new_tensor_diagonal(int dim, float* values)
@@ -145,6 +153,15 @@ void tensor_set_values(tensor_t* t, float* values)
     }
 }
 
+void tensor_clip(tensor_t* t, float min, float max)
+{
+    for (int i = 0; i < t->volume; i++)
+    {
+        if (t->values[i] < min) t->values[i] = min;
+        if (t->values[i] > max) t->values[i] = max;
+    }
+}
+
 void tensor_transfer_all(tensor_t* to, tensor_t* from)
 {
     // TODO: should probably implement some safety stuff here...
@@ -167,7 +184,8 @@ void tensor_transfer_all(tensor_t* to, tensor_t* from)
 
 void tensor_free(tensor_t* t)
 {
-    free(t->values);
+    if (t->grad != NULL) tensor_free(t->grad);
+    if (!t->is_slice) free(t->values);
     free(t->shape);
     free(t);
 }
@@ -1047,6 +1065,26 @@ float tensor_xTAx(tensor_t* A, tensor_t* x)
     return out;
 }
 
+void tensor_xTx(tensor_t* x, tensor_t* out)
+{
+    tensor_t* xT = tensor_copy(x);
+    tensor_transpose(xT);
+    tensor_mult(xT, x, out);
+    tensor_free(xT);
+}
+
+void tensor_conv2d(tensor_t* kernel, tensor_t* image, tensor_t* out)
+{
+    // This will wrap around the image
+    for (int i = 0; i < image->shape[0]; i++)
+    {
+        for (int j = 0; j < kernel->volume; j++)
+        {
+            
+        }
+    }
+}
+
 void vector_cross(tensor_t* a, tensor_t* b, tensor_t* out)
 {
     #ifdef DEBUG
@@ -1072,6 +1110,18 @@ tensor_t* vector_cross_give(tensor_t* a, tensor_t* b)
     tensor_t* out = new_tensor(shape, 2, NULL);
     vector_cross(a, b, out);
     return out;
+}
+
+float vector_diff_norm(tensor_t* a, tensor_t* b)
+{
+    float e;
+    float sum = 0.f;
+    for (int i = 0; i < a->volume; i++)
+    {
+        e = a->values[i] - b->values[i];
+        sum += e * e;
+    }
+    return sum;
 }
 
 float vector_dot(tensor_t* a, tensor_t* b)

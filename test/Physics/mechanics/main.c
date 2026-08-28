@@ -20,7 +20,7 @@
 
 int test_com()
 {
-    config* C = init_devastator_config();
+    config_t* C = init_devastator_config();
     
     tensor_t* new_q = tensor_copy_shape(C->q);
     tensor_fill_uniform(new_q, -1.f, 1.f);
@@ -60,7 +60,7 @@ int test_com()
     return 0;
 }
 
-void add_trans_force(config* C, int frame_id, float* force_values, float* poa_values)
+void add_trans_force(config_t* C, int frame_id, float* force_values, float* poa_values)
 {
     force_t* f = (force_t*) malloc(sizeof(force_t));
     f->force = new_tensor_vector(3, force_values);
@@ -73,7 +73,7 @@ void add_trans_force(config* C, int frame_id, float* force_values, float* poa_va
 int test_forces()
 {
     float tau = 0.001f;
-    config* C = init_devastator_config();
+    config_t* C = init_devastator_config();
     
     tensor_t* new_q = tensor_copy_shape(C->q);
     tensor_fill(new_q, 0.f);

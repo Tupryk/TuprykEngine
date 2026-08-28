@@ -44,23 +44,23 @@ typedef struct
 
     pstack_t* forces;  // force_t
     tensor_t* gravity;
-} config;
+} config_t;
 
-int config_colliding(config* C);
-pstack_t* config_get_contacts(config* C);
+int config_colliding(config_t* C);
+pstack_t* config_get_contacts(config_t* C);
 void contacts_free(pstack_t* s);
-void config_compute_contacts(config* C);
-void config_populate_mass_inertias(config* C);
-void config_q_delta_from_impulse(config* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world, tensor_t* q_delta);
-void velocity_at_point(config* C, tensor_t* point, int frame_id, tensor_t* vel);
-void config_free_contacts(config* C);
-void config_set_q(config* C, float* q);
-void config_update_q(config* C);
-void config_empty_joints_accumulated_forces(config* C);
-void impulse_to_joints_force(config* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world);
-void config_free(config* C);
+void config_compute_contacts(config_t* C);
+void config_populate_mass_inertias(config_t* C);
+void config_q_delta_from_impulse(config_t* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world, tensor_t* q_delta);
+void velocity_at_point(config_t* C, tensor_t* point, int frame_id, tensor_t* vel);
+void config_free_contacts(config_t* C);
+void config_set_q(config_t* C, float* q);
+void config_update_q(config_t* C);
+void config_empty_joints_accumulated_forces(config_t* C);
+void impulse_to_joints_force(config_t* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world);
+void config_free(config_t* C);
 void force_free(force_t* f);
 void forces_add(force_t* a, force_t* b, force_t* out);
-int root_joint(config* C, int frame_id);
+int root_joint(config_t* C, int frame_id);
 
 #endif

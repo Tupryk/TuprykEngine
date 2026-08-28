@@ -17,6 +17,6 @@ struct cart_state
     float theta_dot;
 };
 
-void cart_step(struct cart_config* C, struct cart_state* state, float dt);
+void cart_step(struct cart_config_t* C, struct cart_state* state, float dt);
 
 #endif

@@ -1,5 +1,5 @@
 #define DEBUG
-// #define OPTIM_VERBOSE
+#define OPTIM_VERBOSE
 
 #include <stdio.h>
 #include "../functions.h"
@@ -205,9 +205,9 @@ int main()
 {
     int failure_count = 0;
 
-    // failure_count += test_aug_lagrangian();
+    failure_count += test_aug_lagrangian();
     // failure_count += test_nlp_feasibility();
-    failure_count += test_constraint_sampling();
+    // failure_count += test_constraint_sampling();
     // failure_count += test_nhr_constraint_sampling();
     // failure_count += test_mcmc_sampling();
     // failure_count += test_masem_constraint_sampling();

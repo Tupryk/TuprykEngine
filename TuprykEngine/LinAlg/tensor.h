@@ -9,12 +9,16 @@ typedef struct
     int shape_dim;
     float* values;
     int volume;
+    int is_slice;
+    struct tensor_t* grad;
+    
     // This could speed things up in a lot of cases (eg. Inverting). Value needs to be updated in certain cases.
     int type;  // -1: None, 0: diagonal, 1: orthogonal, 2: PSD // TODO: Decide this. Maybe each bit can encode a certain thing? Like positive, etc.
 } tensor_t;
 
 // Switch to always using tensor pointers (faster) ei. tensor new_tensor(...); -> tensor_t* new_tensor(...);
 tensor_t* new_tensor(int* shape, int shape_dim, float* values);
+tensor_t* new_tensor_slice(int* shape, int shape_dim, float* values);
 tensor_t* new_tensor_diagonal(int dim, float* values);
 tensor_t* new_tensor_diagonal_uniform(int dim, float value);
 tensor_t* new_tensor_vector(int dim, float* values);
@@ -26,6 +30,7 @@ void tensor_fill_uniform(tensor_t* t, float min, float max);
 void tensor_fill_gauss(tensor_t* t, float mean, float std);
 void tensor_transfer_values(tensor_t* to, tensor_t* from);
 void tensor_set_values(tensor_t* t, float* values);
+void tensor_clip(tensor_t* t, float min, float max);
 void tensor_free(tensor_t* t);
 int get_tensor_volume(tensor_t* t);
 int get_tensor_value_index(tensor_t* t, int* indices);
@@ -62,11 +67,14 @@ tensor_t* tensor_inverse_give(tensor_t* A);
 void tensor_flatten(tensor_t* t);
 float tensor_max(tensor_t* t);
 float tensor_xTAx(tensor_t* A, tensor_t* x);
+void tensor_xTx(tensor_t* x, tensor_t* out);
 float tensor_min(tensor_t* t);
 float tensor_trace(tensor_t* t);
 tensor_t* tensor_slice(tensor_t* t, int idx);
+void tensor_conv2d(tensor_t* kernel, tensor_t* image, tensor_t* out);
 void vector_cross(tensor_t* a, tensor_t* b, tensor_t* out);
 tensor_t* vector_cross_give(tensor_t* a, tensor_t* b);
+float vector_diff_norm(tensor_t* a, tensor_t* b);
 float vector_dot(tensor_t* a, tensor_t* b);
 float vector_norm(tensor_t* t);
 float vector_squared_norm(tensor_t* t);

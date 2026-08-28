@@ -4,7 +4,7 @@
 #include "../LinAlg/tensor.h"
 
 
-void cart_vec(struct cart_config* C, tensor_t* state, tensor_t* out)
+void cart_vec(struct cart_config_t* C, tensor_t* state, tensor_t* out)
 {
     float x_dot = state[1];
     float theta = state[2];
@@ -36,7 +36,7 @@ void cart_vec(struct cart_config* C, tensor_t* state, tensor_t* out)
     out[3] = theta_ddot;
 }
 
-void cart_step(struct cart_config* C, tensor_t* state, float dt)
+void cart_step(struct cart_config_t* C, tensor_t* state, float dt)
 {
     // RK4
     float state_[] = {

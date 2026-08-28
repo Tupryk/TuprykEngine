@@ -18,7 +18,7 @@
 
 int test_rrt()
 {
-    config* C = init_devastator_config();
+    config_t* C = init_devastator_config();
     print_config(C);
 
     tensor_t* q0 = tensor_copy_shape(C->q);

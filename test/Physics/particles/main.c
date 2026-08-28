@@ -8,59 +8,43 @@
 #include "../../../TuprykEngine/Physics/particle.h"
 
 #include "../../../TuprykEngine/ui/graphics/window.h"
-#include "../../../TuprykEngine/ui/graphics/basic.h"
+#include "../../../TuprykEngine/ui/graphics/particle_sim.h"
 
 
-static struct ParticleSim* g_ps = NULL;
-static int g_point_count = 0;
-static int g_dim = 0;
+struct ParticleSim* g_ps = NULL;
+int g_point_count = 100;
+tensor_t* cam_pos = NULL;
 
 void spin(struct ParticleSim* ps, tensor_t* acc)
 {
     for (int j = 0; j < g_point_count; j++)
     {
-        acc->values[j * g_dim + 0] = (ps->pos->values[j * g_dim + 1] - 0.5f) *  1.f;
-        acc->values[j * g_dim + 1] = (ps->pos->values[j * g_dim + 0] - 0.5f) * -1.f;
-    
-        // acc->values[j * g_dim + 0] += (ps->pos->values[j * g_dim + 0] - 0.5f) * -10.f;
-        // acc->values[j * g_dim + 1] += (ps->pos->values[j * g_dim + 1] - 0.5f) * -10.f;
+        acc->values[j * 3 + 0] = (ps->pos->values[j * 3 + 1] - 0.5f) *  1.f;
+        acc->values[j * 3 + 1] = (ps->pos->values[j * 3 + 0] - 0.5f) * -1.f;
     }
 }
 
-static void draw_ps(void)
+void ps_loop()
 {
-    particle_sim_step(g_ps, spin);
-
-    draw_3d_unit_cube();
-
-    for (int j = 0; j < g_point_count; j++)
-    {
-        draw_3d_point(
-            g_ps->pos->values[j * g_dim + 0],
-            g_ps->pos->values[j * g_dim + 1],
-            g_ps->pos->values[j * g_dim + 2]
-        );
-    }
-    add_global_rot(0.0f, 0.01f, 0.0f);
+    particle_sim_euler_step(g_ps, spin);
+    render_ps(g_ps, cam_pos);
 }
 
-int test_particle_sim(void)
+int test_particle_sim()
 {
-    g_dim = 3;
-    g_point_count = 100;
-    
-    g_ps = particle_sim_init(g_point_count, g_dim);
+    float cam_pos_values[] = {0.f, -100.f, 0.f};
+    cam_pos = new_tensor_vector(3, cam_pos_values);
 
-    window_wait_with_func(draw_ps);
+    g_ps = particle_sim_init(g_point_count);
+
+    window_wait_with_func(ps_loop);
 
     particle_sim_free(g_ps);
-
-    g_ps = NULL;
-
+    tensor_free(cam_pos);
     return 0;
 }
 
-int main(void)
+int main()
 {
     init_window();
 

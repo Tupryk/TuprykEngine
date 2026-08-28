@@ -9,18 +9,19 @@
 int test_linear()
 {
     int failure = 0;
-    printf("--- Test 1: Linear Function ---\n");
+    printf("--- Test 1: Square Function ---\n");
 
     float x_values[] = { 3.f };
     tensor_t* x = new_tensor_vector(1, x_values);
-    gtensor_t* y = new_gtensor_vector(1, NULL);
+    tensor_t* y = new_tensor_vector(1, NULL);
 
-    // y = x**2 + 5
-    gtensor_scalar_pow(x, 2.f, y);
-    gtensor_scalar_add(y->t, 5.f, y);
+    // y = x^T * x + 5
+    gtensor_xTx(x, y);
+    gtensor_scalar_add(y, 5.f, y);
+    
+    gtensor_backward(y);
 
-    tensor_t* grad = gtensor_backward(y);
-    if (fabsf(grad->values[0] - 0.6f) > 0.001) failure++;
+    if (fabsf(x->grad->values[0] - 0.6f) > 0.001) failure++;
 
     if (failure > 0) {
         printf("\033[1;31mFail\033[0m\n");

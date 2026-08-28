@@ -3,6 +3,6 @@
 
 #include "../Kinematics/configuration.h"
 
-config* load_scene(const char* path);
+config_t* load_scene(const char* path);
 
 #endif

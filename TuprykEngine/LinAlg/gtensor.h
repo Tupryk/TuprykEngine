@@ -7,18 +7,13 @@
 typedef struct
 {
 
+
 } grad_elem_t;
 
-typedef struct
-{
-    tensor_t* t;
-    pstack_t* grad_chain;
-} gtensor_t;
-
-gtensor_t* new_gtensor_vector(int dim, float* values);
-tensor_t* gtensor_backward(gtensor_t* gt);
-void gtensor_scalar_add(tensor_t* a, float b, gtensor_t* out);
-void gtensor_scalar_pow(tensor_t* a, float b, gtensor_t* out);
-void gtensor_free(gtensor_t* gt);
+tensor_t* new_gtensor_vector(int dim, float* values);
+tensor_t* gtensor_backward(tensor_t* gt);
+void gtensor_scalar_add(tensor_t* a, float b, tensor_t* out);
+void gtensor_mult(tensor_t* a, tensor_t* b, tensor_t* out);
+void gtensor_xTx(tensor_t* x, tensor_t* out);
 
 #endif

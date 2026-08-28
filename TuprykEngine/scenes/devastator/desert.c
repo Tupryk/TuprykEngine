@@ -8,7 +8,7 @@
 
 geom_t* ball_geom_give(float radius)
 {
-    geom_t* ball_geom = (geom_t*) malloc(sizeof(geom));
+    geom_t* ball_geom = (geom_t*) malloc(sizeof(geom_t));
     
     ball_geom->type = 0;
     
@@ -36,7 +36,7 @@ geom_t* ball_geom_give(float radius)
 }
 
 void add_tentacle_piece_to_config(
-    config* C,
+    config_t* C,
     float* pos_values,
     int joint_idx,
     int parent_idx,
@@ -142,12 +142,12 @@ void add_tentacle_piece_to_config(
     C->frames[ball_idx] = ball;
 }
 
-config* init_devastator_config()
+config_t* init_devastator_config()
 {
     float origin_pos[] = {0.f, 0.f, 0.f};
     float origin_rot[] = {1.f, 0.f, 0.f, 0.f};
 
-    config* C = (config*) malloc(sizeof(config));
+    config_t* C = (config_t*) malloc(sizeof(config_t));
     C->forces = stack_init();
     C->gravity = new_tensor_vector(3, NULL);
     C->gravity->values[2] = -9.81f;

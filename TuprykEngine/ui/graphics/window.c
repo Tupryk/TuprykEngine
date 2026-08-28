@@ -63,7 +63,7 @@ void window_wait_with_func(void (*func)())
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_Delay(16); // ~60 FPS
+        // SDL_Delay(16); // ~60 FPS
     }
 }
 

@@ -5,7 +5,7 @@
 #include "loader.h"
 
 
-void read_frame(config* C, FILE *file, frame_t* new_frame, int new_frame_id, int* current_id)
+void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, int* current_id)
 {
     char line[256];
     while (fgets(line, sizeof(line), file))
@@ -106,7 +106,7 @@ void read_frame(config* C, FILE *file, frame_t* new_frame, int new_frame_id, int
             {
                 child->type = 1;
 
-                geom_t* ball_geom = (geom_t*) malloc(sizeof(geom));
+                geom_t* ball_geom = (geom_t*) malloc(sizeof(geom_t));
     
                 ball_geom->type = 0;
                 
@@ -177,7 +177,7 @@ void read_frame(config* C, FILE *file, frame_t* new_frame, int new_frame_id, int
     }
 }
 
-config* load_scene(const char* path)
+config_t* load_scene(const char* path)
 {
     FILE *file = fopen(path, "r");
     if (!file)
@@ -187,7 +187,7 @@ config* load_scene(const char* path)
     }
 
     // Init config
-    config* C = (config*) malloc(sizeof(config));
+    config_t* C = (config_t*) malloc(sizeof(config_t));
     C->forces = stack_init();
     C->gravity = new_tensor_vector(3, NULL);
     C->gravity->values[2] = -9.81f;

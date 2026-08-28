@@ -16,6 +16,12 @@ void set_color(float r, float g, float b)
     SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), 255);
 }
 
+void set_rgba(float r, float g, float b, float a)
+{
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), (int) (a * 255.f));
+}
+
 void draw_pixel(float x, float y, float r, float g, float b)
 {
     SDL_SetRenderDrawColor(renderer, (int) (r * 255.f), (int) (g * 255.f), (int) (b * 255.f), 255);
@@ -53,6 +59,7 @@ struct point_2d unit_3d_to_2d(float x, float y, float z)
     struct point_2d p;
     p.x = x3 / depth + 0.5f;
     p.y = y3 / depth + 0.5f;
+    p.depth = depth;
 
     return p;
 }
@@ -130,7 +137,17 @@ void draw_3d_point(float x, float y, float z)
 {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     struct point_2d p = unit_3d_to_2d(x, y, z);
-    draw_circle(p.x * 480.f, p.y * 480.f, 2);
+    draw_circle(p.x * WINDOW_W, p.y * WINDOW_H, 2);
+}
+
+void draw_sphere(float x, float y, float z)
+{
+    if (fabsf(z) > 0.01f)
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        struct point_2d p = unit_3d_to_2d(x, y, z);
+        draw_circle(p.x * WINDOW_W, p.y * WINDOW_H, (0.01f/p.depth) * WINDOW_W);
+    }
 }
 
 void draw_3d_mark(float x, float y, float z)

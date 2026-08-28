@@ -136,7 +136,7 @@ void print_shape(int* shape, int shape_dim)
     }
 }
 
-void print_sparse(sparse* st)
+void print_sparse(sparse_t* st)
 {
     for (int i = 0; i < st->value_count; i++)
     {

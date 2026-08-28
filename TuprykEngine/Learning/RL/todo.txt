@@ -1,9 +1,11 @@
-- Q
+- DQN
 - TRPO
 - PPO
+- C51
 - DDPG
-- SAC
 - TD3
+- SAC
+- PPG
 - TD7
 - HER
 - CSRL

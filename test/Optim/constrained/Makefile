@@ -4,6 +4,7 @@ LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
+	../../../TuprykEngine/LinAlg/sparse.c \
 	../../../TuprykEngine/ui/prints/linalg.c \
 	../../../TuprykEngine/Optim/unconstrained/gradient_descent.c \
 	../../../TuprykEngine/Optim/unconstrained/newton.c \

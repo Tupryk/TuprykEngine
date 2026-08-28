@@ -5,6 +5,6 @@
 #include "../Kinematics/frame.h"
 #include "../Kinematics/configuration.h"
 
-void raytrace(config* C, int cam, tensor_t* out);
+void raytrace(config_t* C, int cam, tensor_t* out);
 
 #endif

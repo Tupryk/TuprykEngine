@@ -7,7 +7,7 @@
 #include "../ui/prints/linalg.h"
 
 
-int config_colliding(config* C)
+int config_colliding(config_t* C)
 {
     // TODO: KD_Tree
     frame_t** frames = C->frames;
@@ -43,7 +43,7 @@ int config_colliding(config* C)
     return 0;
 }
 
-void velocity_at_point(config* C, tensor_t* point, int frame_id, tensor_t* vel)
+void velocity_at_point(config_t* C, tensor_t* point, int frame_id, tensor_t* vel)
 {
     int index = frame_id;
     float* q_vel = C->q_vel->values;
@@ -98,7 +98,7 @@ void velocity_at_point(config* C, tensor_t* point, int frame_id, tensor_t* vel)
     tensor_free(c_r);
 }
 
-pstack_t* config_get_contacts(config* C)
+pstack_t* config_get_contacts(config_t* C)
 {
     // TODO: KD_Tree
     pstack_t* contacts = stack_init();
@@ -149,7 +149,7 @@ pstack_t* config_get_contacts(config* C)
     return contacts;
 }
 
-void config_populate_mass_inertias(config* C)
+void config_populate_mass_inertias(config_t* C)
 {
     int* joints = C->joints;
     int joints_count = C->joints_count;
@@ -172,7 +172,7 @@ void config_populate_mass_inertias(config* C)
     }
 }
 
-void config_empty_joints_accumulated_forces(config* C)
+void config_empty_joints_accumulated_forces(config_t* C)
 {
     int* joints = C->joints;
     int joints_count = C->joints_count;
@@ -233,7 +233,7 @@ void impulse_to_joint_force(frame_t* joint_frame, tensor_t* impulse_world, tenso
     tensor_free(c_r);
 }
 
-void impulse_to_joints_force(config* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world)
+void impulse_to_joints_force(config_t* C, int from_frame_id, tensor_t* impulse_world, tensor_t* poa_world)
 {
     int index = from_frame_id;
     while(index != -1)
@@ -260,7 +260,7 @@ void contacts_free(pstack_t* s)
     free(s);
 }
 
-void config_set_q(config* C, float* q)
+void config_set_q(config_t* C, float* q)
 {
     int q_dim = C->q->volume;
     for (int i = 0; i < q_dim; i++)
@@ -270,7 +270,7 @@ void config_set_q(config* C, float* q)
     config_update_q(C);
 }
 
-void config_update_frame_pose(config* C, frame_t* f)
+void config_update_frame_pose(config_t* C, frame_t* f)
 {
     if (f->parent != -1)
     {
@@ -287,7 +287,7 @@ void config_update_frame_pose(config* C, frame_t* f)
     }
 }
 
-void config_update_q(config* C)
+void config_update_q(config_t* C)
 {
     // Update relative poses based on q
     int joints_count = C->joints_count;
@@ -342,7 +342,7 @@ void config_update_q(config* C)
     config_update_frame_pose(C, C->frames[0]);
 }
 
-void config_free(config* C)
+void config_free(config_t* C)
 {
     if (C->frame_count)
     {
@@ -403,7 +403,7 @@ void forces_add(force_t* a, force_t* b, force_t* out)
     // TODO: poa?
 }
 
-int root_joint(config* C, int frame_id)
+int root_joint(config_t* C, int frame_id)
 {
     int index = frame_id;
     int last_joint_id = -1;

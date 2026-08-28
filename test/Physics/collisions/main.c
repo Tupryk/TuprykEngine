@@ -14,20 +14,20 @@
 
 
 // Returns the dt at collision and -1.f if no collision.
-float collision_in_time(config* C, float time)
+float collision_in_time(config_t* C, float time)
 {
     return -1.f;
 }
 
 int main(void)
 {
-    config* C = load_scene("../../../TuprykEngine/scenes/files/two_balls.sn");
+    config_t* C = load_scene("../../../TuprykEngine/scenes/files/two_balls.sn");
     print_config(C);
     
     // tensor_t* im = new_image(WINDOW_W, WINDOW_H, 3);
     // raytrace(C, -1, im);
 
-    // collision_in_time(config* C, float time);
+    // collision_in_time(config_t* C, float time);
 
     config_free(C);
 
