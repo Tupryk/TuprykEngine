@@ -8,13 +8,13 @@ typedef struct {
     size_t elem_size;
     size_t size;
     size_t capacity;
-} vector;
+} vector_t;
 
-vector vector_create(size_t elem_size);
-void vector_push(vector *v, void *element);
-void vector_set(vector *v, size_t index, void *element);
-void* vector_get(vector *v, size_t index);
-void vector_free(vector *v);
+vector_t vector_create(size_t elem_size);
+void vector_push(vector_t *v, void *element);
+void vector_set(vector_t *v, size_t index, void *element);
+void* vector_get(vector_t *v, size_t index);
+void vector_free(vector_t *v);
 
 struct stack_elem
 {
@@ -29,7 +29,7 @@ typedef struct
 } pstack_t;
 
 pstack_t* stack_init();
-void stack_free(pstack_t* s);
+void stack_free(pstack_t* s, void (*elem_freer)(void*));
 void stack_push(pstack_t* s, void* data);
 void* stack_pop(pstack_t* s);
 void* stack_pop_at_index(pstack_t* s, size_t i);

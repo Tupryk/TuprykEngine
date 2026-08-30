@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 
-vector vector_create(size_t elem_size)
+vector_t vector_create(size_t elem_size)
 {
-    vector v;
+    vector_t v;
     v.elem_size = elem_size;
     v.size = 0;
     v.capacity = 4;
@@ -15,7 +15,7 @@ vector vector_create(size_t elem_size)
     return v;
 }
 
-void vector_push(vector *v, void *element)
+void vector_push(vector_t* v, void* element)
 {
     if (v->size == v->capacity)
     {
@@ -23,24 +23,24 @@ void vector_push(vector *v, void *element)
         v->data = realloc(v->data, v->capacity * v->elem_size);
     }
 
-    void *dest = (char*)v->data + v->size * v->elem_size;
+    void *dest = (char*) v->data + v->size * v->elem_size;
     memcpy(dest, element, v->elem_size);
 
     v->size++;
 }
 
-void vector_set(vector *v, size_t index, void *element)
+void vector_set(vector_t* v, size_t index, void* element)
 {
-    void *dest = (char*)v->data + index * v->elem_size;
+    void* dest = (char*)v->data + index * v->elem_size;
     memcpy(dest, element, v->elem_size);
 }
 
-void* vector_get(vector *v, size_t index)
+void* vector_get(vector_t* v, size_t index)
 {
     return (char*)v->data + index * v->elem_size;
 }
 
-void vector_free(vector *v)
+void vector_free(vector_t* v)
 {
     free(v->data);
 }
@@ -53,11 +53,12 @@ pstack_t* stack_init()
     return s;
 }
 
-void stack_free(pstack_t* s)
+void stack_free(pstack_t* s, void (*elem_freer)(void*))
 {
     while (s->next != NULL)
     {
-        stack_pop(s);
+        void* elem = stack_pop(s);
+        if (elem_freer != NULL) elem_freer(elem);
     }
     free(s);
 }

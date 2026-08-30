@@ -24,20 +24,46 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->sizes = new_tensor_vector(max_particle_count, NULL);
     ps->energy = new_tensor_vector(max_particle_count, NULL);
     ps->age = new_tensor_vector(max_particle_count, NULL);
-    ps->links = new_sparse_matrix(max_particle_count, max_particle_count);
 
     tensor_fill_uniform(ps->pos, -50.f, 50.f);
     tensor_fill_uniform(ps->color, 0.5f, 1.f);
     tensor_fill_uniform(ps->sizes, 0.25f, 2.f);
-    // tensor_fill(ps->sizes, 1.f);
     tensor_fill_uniform(ps->age, 0.f, 5.f);
+    for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.7f;
 
-    for (int i = 0; i < init_particle_count; i++)
-    {
-        ps->energy->values[i] = 0.7f;
-    }
+    ps->organisms = stack_init();
 
     return ps;
+}
+
+link_t* new_link(int from, int to, float strength, float damping, float rel_x, float rel_y, float rel_z)
+{
+    link_t* link = (link_t*) malloc(sizeof(link_t));
+    link->from = from;
+    link->to = to;
+    link->strength = strength;
+    link->damping = damping;
+    float rel_pos[] = {rel_x, rel_y, rel_z};
+    link->rel_pos = new_tensor_vector(3, rel_pos);
+    vector_normalize(link->rel_pos);
+    return link;
+}
+
+void link_free(link_t* link)
+{
+    tensor_free(link->rel_pos);
+    free(link);
+}
+
+void organism_free(organism_t* or)
+{
+    int_stack_free(or->particle_ids);
+    stack_free(or->links, (void(*)(void*)) link_free);
+    tensor_free(or->com);
+    tensor_free(or->rot);
+    tensor_free(or->vel);
+    tensor_free(or->ang_vel);
+    free(or);
 }
 
 void particle_sim_free(struct ParticleSim* ps)
@@ -48,7 +74,7 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
     tensor_free(ps->age);
-    sparse_free(ps->links);
+    stack_free(ps->organisms, (void(*)(void*)) organism_free);
     free(ps);
 }
 
@@ -280,6 +306,24 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
             }
         }
     }
-    tensor_clip(ps->color, 0.5f, 1.f);
+    // tensor_clip(ps->color, 0.5f, 1.f);
+    tensor_clip(ps->color, 0.f, 1.f);
     tensor_clip(ps->sizes, 0.1f, 2.5f);
+}
+
+void particle_sim_run_genes(struct ParticleSim* ps)
+{
+    float expansion_speed = 0.1f;
+    for (int i = 0; i < ps->max_count; i++)
+    {
+        if (ps->energy->values[i] <= 0.f) continue;
+        
+        float delta = expansion_speed * ps->tau;
+        ps->sizes->values[i] += ((ps->t + 1) / 1000) % 2 ? -delta : delta;
+    }
+}
+
+void particle_sim_glue_links(struct ParticleSim* ps)
+{
+
 }

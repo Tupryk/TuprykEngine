@@ -13,8 +13,8 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 2;
-int g_max_point_count = 2;
+int g_point_count = 3;
+int g_max_point_count = 10;
 tensor_t* cam_pos = NULL;
 
 void none(struct ParticleSim* ps, tensor_t* acc) { }
@@ -24,9 +24,10 @@ void ps_loop()
     particle_sim_euler_step(g_ps, none);
     particle_sim_resolve_collisions(g_ps);
     particle_sim_cap_vels(g_ps);
-    particle_sim_update_energy(g_ps);
+    // particle_sim_update_energy(g_ps);
     particle_sim_duplicate_particles(g_ps);
     particle_sim_wrap_pos(g_ps, 64.f);
+    particle_sim_run_genes(g_ps);
 
     render_ps(g_ps, cam_pos);
     
@@ -40,25 +41,45 @@ int test_particle_sim()
 
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
 
-    g_ps->pos->values[0] = -2.f;
-    g_ps->pos->values[1] = 0.f;
-    g_ps->pos->values[2] = 0.f;
-    g_ps->pos->values[3] = 2.f;
-    g_ps->pos->values[4] = 0.f;
-    g_ps->pos->values[5] = 0.f;
+    // TEST ORGANISM
+    organism_t* organism = (organism_t*) malloc(sizeof(organism_t));
+    organism->particle_ids = int_stack_init();
+    int_stack_push(organism->particle_ids, 0);
+    int_stack_push(organism->particle_ids, 1);
+    int_stack_push(organism->particle_ids, 2);
 
-    g_ps->color->values[0] = 0.f;
-    g_ps->color->values[1] = 1.f;
-    g_ps->color->values[2] = 0.f;
+    organism->links = stack_init();
+    link_t* link_a = new_link(
+        1, 0, 1.f, 1.f,
+        -1.f, 0.f, 0.f
+    );
+    stack_push(organism->links, link_a);
+    link_t* link_b = new_link(
+        1, 2, 1.f, 1.f,
+        1.f, 0.f, 0.f
+    );
+    stack_push(organism->links, link_b);
+
+    organism->com = new_tensor_vector(3, NULL);
+    organism->rot = new_tensor_vector(4, NULL);
+    organism->vel = new_tensor_vector(3, NULL);
+    organism->ang_vel = new_tensor_vector(3, NULL);
+
+    stack_push(g_ps->organisms, organism);
+
+    // PARTICLE SPECIFICATIONS
+    tensor_fill(g_ps->pos, 0.f);
+    g_ps->pos->values[0] = -1.f;
+    g_ps->pos->values[6] = 1.f;
+
+    tensor_fill(g_ps->color, 0.f);
+    g_ps->color->values[0] = 1.f;
     g_ps->color->values[3] = 1.f;
-    g_ps->color->values[4] = 0.f;
-    g_ps->color->values[5] = 0.f;
+    g_ps->color->values[6] = 1.f;
     
-    g_ps->vel->values[0] = 1.f;
-    g_ps->vel->values[3] = -1.f;
-
-    g_ps->sizes->values[0] = 1.5f;
+    g_ps->sizes->values[0] = 1.f;
     g_ps->sizes->values[1] = 1.f;
+    g_ps->sizes->values[2] = 1.f;
 
     window_wait_with_func(ps_loop);
 
