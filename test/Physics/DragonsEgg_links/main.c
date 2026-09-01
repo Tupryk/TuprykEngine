@@ -37,11 +37,12 @@ void ps_loop()
     particle_sim_euler_step(g_ps, none);
     particle_sim_resolve_collisions(g_ps);
     particle_sim_cap_vels(g_ps);
-    // particle_sim_update_energy(g_ps);
+    particle_sim_update_energy(g_ps);
     particle_sim_duplicate_particles(g_ps);
     particle_sim_wrap_pos(g_ps, 64.f);
     particle_sim_run_genes(g_ps);
     particle_sim_resolve_links(g_ps);
+    particle_sim_distribute_energy(g_ps);
 
     render_ps(g_ps, cam_pos);
     
@@ -56,11 +57,14 @@ int test_particle_sim()
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
     tensor_fill(g_ps->pos, 0.0f);
     tensor_fill(g_ps->color, 0.0f);
-    tensor_fill(g_ps->sizes, 0.5f);
-
-    // Create an organism manually
+    tensor_fill(g_ps->energy, 1.f);
+    tensor_fill(g_ps->age, 0.f);
+    g_ps->energy->values[0] = 0.1f;
     g_ps->link_data = stack_init();
 
+    // Creating an organism manually
+    // RING
+    tensor_fill(g_ps->sizes, 0.5f);
     for (int i = 0; i < g_point_count; i++)
     {
         int i3 = i*3;
@@ -79,6 +83,33 @@ int test_particle_sim()
         vector_push(&g_ps->links[to], &link);
         stack_push(g_ps->link_data, link);
     }
+
+    // FISH
+    // tensor_fill(g_ps->sizes, 0.5f);
+    // tensor_fill(g_ps->color, 1.0f);
+    // for (int i = 0; i < g_point_count; i++)
+    // {
+    //     int i3 = i * 3;
+    //     g_ps->color->values[i3] = 1.f;
+    //     g_ps->pos->values[i3] = ((float) i) - 5.f;
+    //     g_ps->pos->values[i3+2] = ((float) (i % 3));
+        
+    //     int from = i==0 ? g_point_count-1 : i-1;
+    //     int to = i;
+        
+    //     link_t* link = new_link(
+    //         from, to, -1.f, 0.f, 0.f
+    //     );
+    //     vector_push(&g_ps->links[from], &link);
+    //     vector_push(&g_ps->links[to], &link);
+    //     stack_push(g_ps->link_data, link);
+        
+    //     if ((i+2) % 3)
+    //     {
+    //         g_ps->color->values[i3+1] = 0.f;
+    //         g_ps->color->values[i3+2] = 0.f;
+    //     }
+    // }
 
     window_wait_with_func(ps_loop);
 

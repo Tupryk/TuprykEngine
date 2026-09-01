@@ -17,6 +17,7 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->t = 0;
     ps->tau = 0.01f;
     ps->max_vel = 100.f;
+    ps->max_age = 1000.f;
     
     ps->links = (vector_t*) malloc(sizeof(vector_t) * ps->max_count);
     for (int i = 0; i < ps->max_count; i++) ps->links[i] = vector_init(sizeof(link_t*));
@@ -187,10 +188,19 @@ void particle_sim_wrap_pos(struct ParticleSim* ps, float bounds)
     }
 }
 
+void particle_sim_remove_dead_links(struct ParticleSim* ps, int particle_id)
+{
+    // for (size_t i = 0; i < ps->links[particle_id].size; i++)
+    // {
+    //     link_t* link = *(link_t**)vector_get(&ps->links[particle_id], i);
+    //     free(link);
+    // }
+    ps->links[particle_id].size = 0;
+}
+
 void particle_sim_update_energy(struct ParticleSim* ps)
 {
     float base_weight = 0.05f;
-    float vel_weigth = 0.01f;
     
     float sun_effect = -10.f;  // Barrier on z-axis
     float sun_max_effect = 50.f;
@@ -204,17 +214,9 @@ void particle_sim_update_energy(struct ParticleSim* ps)
         if (energy[i] <= 0.f) continue;
 
         float* pos = &ps->pos->values[i * 3];
-        float* vel = &ps->vel->values[i * 3];
-        
-        float norm_vel = sqrtf(
-            vel[0] * vel[0] +
-            vel[1] * vel[1] +
-            vel[2] * vel[2]
-        );
         
         // Minus Energy
         energy[i] -= base_weight * ps->tau;
-        energy[i] -= (norm_vel / ps->max_vel * vel_weigth) * ps->tau;
 
         // Plus Energy
         if (pos[2] > sun_effect)
@@ -224,8 +226,12 @@ void particle_sim_update_energy(struct ParticleSim* ps)
             energy[i] += sun_energy * sun_weight * ps->tau;
         }
         
-        if (ps->age->values[i] >= 10.f) energy[i] = 0.f;  // Death from old-age.
-        if (energy[i] <= 0.f) ps->count--;
+        if (ps->age->values[i] >= ps->max_age) energy[i] = 0.f;  // Death from old-age.
+        if (energy[i] <= 0.f)
+        {
+            ps->count--;
+            particle_sim_remove_dead_links(ps, i);
+        }
     }
     tensor_clip(ps->energy, 0.f, 1.f);
 }
@@ -242,31 +248,40 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
     for (int i = 0; i < ps->max_count; i++)
     {
         if (energy[i] <= duplicate_thresh) continue;
+        int i3 = i*3;
         
         for (int j = 0; j < ps->max_count; j++)
         {
             if (energy[j] <= 0.f)
             {
-                float* pos_parent = &ps->pos->values[i * 3];
-                float* vel_parent = &ps->vel->values[i * 3];
-                float* col_parent = &ps->color->values[i * 3];
+                int j3 = j * 3;
+
+                float* pos_parent = &ps->pos->values[i3];
+                float* vel_parent = &ps->vel->values[i3];
+                float* col_parent = &ps->color->values[i3];
                 float parent_size = ps->sizes->values[i];
 
-                float* pos_child = &ps->pos->values[j * 3];
-                float* vel_child = &ps->vel->values[j * 3];
-                float* col_child = &ps->color->values[j * 3];
+                float* pos_child = &ps->pos->values[j3];
+                float* vel_child = &ps->vel->values[j3];
+                float* col_child = &ps->color->values[j3];
 
+                // Position
                 pos_child[0] = pos_parent[0] + rand_uni(-parent_size, parent_size);
                 pos_child[1] = pos_parent[1] + rand_uni(-parent_size, parent_size);
                 pos_child[2] = pos_parent[2] + rand_uni(-parent_size, parent_size);
 
+                // Velocity
                 vel_child[0] = pos_child[0] - pos_parent[0];
                 vel_child[1] = pos_child[1] - pos_parent[1];
                 vel_child[2] = pos_child[2] - pos_parent[2];
 
-                col_child[0] = col_parent[0] + rand_uni(-0.1f, 0.1f);
-                col_child[1] = col_parent[1] + rand_uni(-0.1f, 0.1f);
-                col_child[2] = col_parent[2] + rand_uni(-0.1f, 0.1f);
+                // Color
+                for (int c = 0; c < 3; c++)
+                {
+                    col_child[c] = col_parent[c] + rand_uni(-0.1f, 0.1f);
+                    if (col_child[c] > 1.f) col_child[c] = 1.f;
+                    if (col_child[c] < 0.f) col_child[c] = 0.f;
+                }
 
                 ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
                 ps->age->values[j] = 0.f;
@@ -280,20 +295,21 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
             }
         }
     }
-    // tensor_clip(ps->color, 0.5f, 1.f);
-    tensor_clip(ps->color, 0.f, 1.f);
     tensor_clip(ps->sizes, 0.1f, 2.5f);
 }
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
-    float expansion_speed = 0.05f;
+    float expansion_speed = 0.5f;
     for (int i = 0; i < ps->max_count; i++)
     {
         if (ps->energy->values[i] <= 0.f) continue;
         
-        float delta = expansion_speed * ps->tau;
-        ps->sizes->values[i] += ((ps->t + 1) / 1000) % 2 ? -delta : delta;
+        if (ps->color->values[i*3+1] < 1.f && ps->color->values[i*3+2] < 1.f)
+        {
+            float delta = expansion_speed * ps->tau;
+            ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
+        }
     }
 }
 
@@ -310,7 +326,7 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
             link_t* link = *(link_t**)vector_get(&ps->links[i], j);
             
             int idx = (link->from == i) ? link->to : link->from;
-            if (idx < i) continue;
+            if (idx < i || ps->energy->values[idx] <= 0.f) continue;
     
             float size_i = ps->sizes->values[i];
             float target = ps->sizes->values[idx] + size_i;
@@ -338,4 +354,32 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
     }
     tensor_add(ps->pos, pos_delta, ps->pos);
     tensor_free(pos_delta);
+}
+
+void particle_sim_distribute_energy(struct ParticleSim* ps)
+{
+    // This computes the graph laplacian! (kind of?)
+    float energy_disipation_delta = 0.01f;
+    tensor_t* energy_delta = tensor_copy_shape(ps->energy);
+    
+    for (int i = 0; i < ps->max_count; i++)
+    {
+        if (ps->energy->values[i] <= 0.f) continue;
+
+        float node_count = 1.f;
+        float mean = ps->energy->values[i];
+        for (size_t j = 0; j < ps->links[i].size; j++)
+        {
+            link_t* link = *(link_t**)vector_get(&ps->links[i], j);
+            int idx = (link->from == i) ? link->to : link->from;
+            if (ps->energy->values[idx] <= 0.f) continue;
+            
+            mean += ps->energy->values[idx];
+            node_count++;
+        }
+        mean /= node_count;
+        energy_delta->values[i] = (mean - ps->energy->values[i]) * ps->tau;
+    }
+    tensor_add(ps->energy, energy_delta, ps->energy);
+    tensor_free(energy_delta);
 }

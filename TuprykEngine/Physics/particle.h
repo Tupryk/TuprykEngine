@@ -34,8 +34,10 @@ struct ParticleSim
     int t;
     int count;
     int max_count;
+    
     float tau;
     float max_vel;
+    float max_age;
 
     vector_t* links;
     stack_t* link_data;
@@ -60,5 +62,6 @@ void particle_sim_update_energy(struct ParticleSim* ps);
 void particle_sim_duplicate_particles(struct ParticleSim* ps);
 void particle_sim_run_genes(struct ParticleSim* ps);
 void particle_sim_resolve_links(struct ParticleSim* ps);
+void particle_sim_distribute_energy(struct ParticleSim* ps);
 
 #endif
