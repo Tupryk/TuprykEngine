@@ -17,6 +17,10 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->t = 0;
     ps->tau = 0.01f;
     ps->max_vel = 100.f;
+    
+    ps->links = (vector_t*) malloc(sizeof(vector_t) * ps->max_count);
+    for (int i = 0; i < ps->max_count; i++) ps->links[i] = vector_init(sizeof(link_t*));
+    ps->link_data = stack_init();
 
     ps->pos = new_tensor_matrix(max_particle_count, 3, NULL);
     ps->vel = new_tensor_matrix(max_particle_count, 3, NULL);
@@ -31,39 +35,7 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     tensor_fill_uniform(ps->age, 0.f, 5.f);
     for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.7f;
 
-    ps->organisms = stack_init();
-
     return ps;
-}
-
-link_t* new_link(int from, int to, float strength, float damping, float rel_x, float rel_y, float rel_z)
-{
-    link_t* link = (link_t*) malloc(sizeof(link_t));
-    link->from = from;
-    link->to = to;
-    link->strength = strength;
-    link->damping = damping;
-    float rel_pos[] = {rel_x, rel_y, rel_z};
-    link->rel_pos = new_tensor_vector(3, rel_pos);
-    vector_normalize(link->rel_pos);
-    return link;
-}
-
-void link_free(link_t* link)
-{
-    tensor_free(link->rel_pos);
-    free(link);
-}
-
-void organism_free(organism_t* or)
-{
-    int_stack_free(or->particle_ids);
-    stack_free(or->links, (void(*)(void*)) link_free);
-    tensor_free(or->com);
-    tensor_free(or->rot);
-    tensor_free(or->vel);
-    tensor_free(or->ang_vel);
-    free(or);
 }
 
 void particle_sim_free(struct ParticleSim* ps)
@@ -74,7 +46,9 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
     tensor_free(ps->age);
-    stack_free(ps->organisms, (void(*)(void*)) organism_free);
+    for (int i = 0; i < ps->max_count; i++) vector_free(&ps->links[i]);
+    free(ps->links);
+    stack_free(ps->link_data, free);
     free(ps);
 }
 
@@ -313,7 +287,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
-    float expansion_speed = 0.1f;
+    float expansion_speed = 0.05f;
     for (int i = 0; i < ps->max_count; i++)
     {
         if (ps->energy->values[i] <= 0.f) continue;
@@ -323,7 +297,45 @@ void particle_sim_run_genes(struct ParticleSim* ps)
     }
 }
 
-void particle_sim_glue_links(struct ParticleSim* ps)
+void particle_sim_resolve_links(struct ParticleSim* ps)
 {
+    tensor_t* pos_delta = tensor_copy_shape(ps->pos);
+    float expansion_speed = 0.01f;
+    for (int i = 0; i < ps->max_count; i++)
+    {
+        if (ps->energy->values[i] <= 0.f) continue;
 
+        for (size_t j = 0; j < ps->links[i].size; j++)
+        {
+            link_t* link = *(link_t**)vector_get(&ps->links[i], j);
+            
+            int idx = (link->from == i) ? link->to : link->from;
+            if (idx < i) continue;
+    
+            float size_i = ps->sizes->values[i];
+            float target = ps->sizes->values[idx] + size_i;
+    
+            int i3 = i * 3;
+            int l3 = idx * 3;
+    
+            float dl[3] = {
+                ps->pos->values[l3]   - ps->pos->values[i3],
+                ps->pos->values[l3+1] - ps->pos->values[i3+1],
+                ps->pos->values[l3+2] - ps->pos->values[i3+2]
+            };
+    
+            float dist  = sqrtf(dl[0]*dl[0] + dl[1]*dl[1] + dl[2]*dl[2]);
+    
+            float scale  = (target  - dist)  / dist  * 0.5f;
+    
+            for (int c = 0; c < 3; c++) {
+                float f  = dl[c] * scale;
+    
+                pos_delta->values[i3+c] -= f;
+                pos_delta->values[l3+c] += f;
+            }
+        }
+    }
+    tensor_add(ps->pos, pos_delta, ps->pos);
+    tensor_free(pos_delta);
 }

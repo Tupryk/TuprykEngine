@@ -10,24 +10,24 @@ typedef struct
 {
     int from;
     int to;
+    
     float strength;
     float damping;
-    tensor_t* rel_pos;
+    
+    float phi;
+    float theta;
+    
+    // Spherical coordinates to 3D relative position:
+    // x = p * sin(phi) * cos(theta)
+    // y = p * sin(phi) * sin(theta)
+    // z = p * cos(phi)
+    // p = r1 + r2
+
+    // 3D relative position to Spherical coordinates:
+    // phi = cos^-1(z / p)
+    // theta = cos^-1(x / (p * sin(phi)))
+
 } link_t;
-
-typedef struct
-{
-    int_stack_t* particle_ids;
-
-    pstack_t* links;
-
-    tensor_t* com;
-    tensor_t* rot;
-
-    tensor_t* vel;
-    tensor_t* ang_vel;
-
-} organism_t;
 
 struct ParticleSim
 {
@@ -36,6 +36,9 @@ struct ParticleSim
     int max_count;
     float tau;
     float max_vel;
+
+    vector_t* links;
+    stack_t* link_data;
     
     tensor_t* pos;
     tensor_t* vel;
@@ -45,8 +48,6 @@ struct ParticleSim
     
     tensor_t* energy;
     tensor_t* age;
-
-    pstack_t* organisms;
 };
 
 struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_count);
@@ -58,6 +59,6 @@ void particle_sim_wrap_pos(struct ParticleSim* ps, float bounds);
 void particle_sim_update_energy(struct ParticleSim* ps);
 void particle_sim_duplicate_particles(struct ParticleSim* ps);
 void particle_sim_run_genes(struct ParticleSim* ps);
-link_t* new_link(int from, int to, float strength, float damping, float rel_x, float rel_y, float rel_z);
+void particle_sim_resolve_links(struct ParticleSim* ps);
 
 #endif

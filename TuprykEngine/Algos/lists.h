@@ -10,7 +10,7 @@ typedef struct {
     size_t capacity;
 } vector_t;
 
-vector_t vector_create(size_t elem_size);
+vector_t vector_init(size_t elem_size);
 void vector_push(vector_t *v, void *element);
 void vector_set(vector_t *v, size_t index, void *element);
 void* vector_get(vector_t *v, size_t index);

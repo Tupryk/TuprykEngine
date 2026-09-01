@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 
-vector_t vector_create(size_t elem_size)
+vector_t vector_init(size_t elem_size)
 {
     vector_t v;
     v.elem_size = elem_size;

@@ -13,7 +13,7 @@
 
 int test_vector()
 {
-    vector v = vector_create(sizeof(int));
+    vector v = vector_init(sizeof(int));
 
     for (int i = 0; i < 10; i++)
     {

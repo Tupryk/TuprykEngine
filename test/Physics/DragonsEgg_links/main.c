@@ -13,9 +13,22 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 3;
+int g_point_count = 10;
 int g_max_point_count = 10;
 tensor_t* cam_pos = NULL;
+
+link_t* new_link(int from, int to, float x, float y, float z)
+{
+    link_t* link = (link_t*) malloc(sizeof(link_t));
+    link->from = from;
+    link->to = to;
+    link->strength = 1.f;
+    link->damping = 1.f;
+    float p = sqrt(x*x + y*y + z*z);
+    link->phi = acos(z / p);
+    link->theta = atan2(y, x);
+    return link;
+}
 
 void none(struct ParticleSim* ps, tensor_t* acc) { }
 
@@ -28,6 +41,7 @@ void ps_loop()
     particle_sim_duplicate_particles(g_ps);
     particle_sim_wrap_pos(g_ps, 64.f);
     particle_sim_run_genes(g_ps);
+    particle_sim_resolve_links(g_ps);
 
     render_ps(g_ps, cam_pos);
     
@@ -40,46 +54,31 @@ int test_particle_sim()
     cam_pos = new_tensor_vector(3, cam_pos_values);
 
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
+    tensor_fill(g_ps->pos, 0.0f);
+    tensor_fill(g_ps->color, 0.0f);
+    tensor_fill(g_ps->sizes, 0.5f);
 
-    // TEST ORGANISM
-    organism_t* organism = (organism_t*) malloc(sizeof(organism_t));
-    organism->particle_ids = int_stack_init();
-    int_stack_push(organism->particle_ids, 0);
-    int_stack_push(organism->particle_ids, 1);
-    int_stack_push(organism->particle_ids, 2);
+    // Create an organism manually
+    g_ps->link_data = stack_init();
 
-    organism->links = stack_init();
-    link_t* link_a = new_link(
-        1, 0, 1.f, 1.f,
-        -1.f, 0.f, 0.f
-    );
-    stack_push(organism->links, link_a);
-    link_t* link_b = new_link(
-        1, 2, 1.f, 1.f,
-        1.f, 0.f, 0.f
-    );
-    stack_push(organism->links, link_b);
-
-    organism->com = new_tensor_vector(3, NULL);
-    organism->rot = new_tensor_vector(4, NULL);
-    organism->vel = new_tensor_vector(3, NULL);
-    organism->ang_vel = new_tensor_vector(3, NULL);
-
-    stack_push(g_ps->organisms, organism);
-
-    // PARTICLE SPECIFICATIONS
-    tensor_fill(g_ps->pos, 0.f);
-    g_ps->pos->values[0] = -1.f;
-    g_ps->pos->values[6] = 1.f;
-
-    tensor_fill(g_ps->color, 0.f);
-    g_ps->color->values[0] = 1.f;
-    g_ps->color->values[3] = 1.f;
-    g_ps->color->values[6] = 1.f;
-    
-    g_ps->sizes->values[0] = 1.f;
-    g_ps->sizes->values[1] = 1.f;
-    g_ps->sizes->values[2] = 1.f;
+    for (int i = 0; i < g_point_count; i++)
+    {
+        int i3 = i*3;
+        g_ps->color->values[i3] = 1.f;
+        float ang = ((float)i) / ((float)g_point_count) * M_PI * 2.f;
+        g_ps->pos->values[i3] = cosf(ang);
+        g_ps->pos->values[i3 + 2] = -sinf(ang);
+        
+        int from = i==0 ? g_point_count-1 : i-1;
+        int to = i;
+        
+        link_t* link = new_link(
+            from, to, -1.f, 0.f, 0.f
+        );
+        vector_push(&g_ps->links[from], &link);
+        vector_push(&g_ps->links[to], &link);
+        stack_push(g_ps->link_data, link);
+    }
 
     window_wait_with_func(ps_loop);
 

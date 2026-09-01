@@ -170,12 +170,12 @@ population_t* init_population(int in_dim, int out_dim)
 
     pop->agent_to_species = malloc(sizeof(int) * pop->size);
     memset(pop->agent_to_species, -1, sizeof(int) * pop->size);
-    pop->species = vector_create(sizeof(agent_t*));
+    pop->species = vector_init(sizeof(agent_t*));
         
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
     #endif
-    pop->innovations = vector_create(sizeof(gene_t));
+    pop->innovations = vector_init(sizeof(gene_t));
     for (int i = 0; i < in_dim; i++)
     {
         for (int j = 0; j < out_dim; j++)

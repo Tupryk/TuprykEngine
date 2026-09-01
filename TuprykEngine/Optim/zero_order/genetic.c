@@ -334,7 +334,7 @@ population_t* init_population(int in_dim, int out_dim)
     #ifdef DEBUG
     printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
     #endif
-    pop->innovations = vector_create(sizeof(gene));
+    pop->innovations = vector_init(sizeof(gene));
     gene in_gene = basic_layer_gene(in_dim);
     gene out_gene = basic_layer_gene(out_dim);
     vector_push(&pop->innovations, &in_gene);
