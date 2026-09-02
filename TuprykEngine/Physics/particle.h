@@ -27,6 +27,10 @@ typedef struct
     // phi = cos^-1(z / p)
     // theta = cos^-1(x / (p * sin(phi)))
 
+    struct stack_elem* from_elem;
+    struct stack_elem* to_elem;
+    struct stack_elem* data_elem;
+
 } link_t;
 
 struct ParticleSim
@@ -39,8 +43,8 @@ struct ParticleSim
     float max_vel;
     float max_age;
 
-    vector_t* links;
-    stack_t* link_data;
+    pstack_t** links;
+    pstack_t* link_data;
     
     tensor_t* pos;
     tensor_t* vel;

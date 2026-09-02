@@ -46,7 +46,7 @@ void ps_loop()
 
     render_ps(g_ps, cam_pos);
     
-    printf("(Time %d) - Particle count: %d/%d\n", g_ps->t, g_ps->count, g_ps->max_count);
+    printf("Time %d (%gs) - Particle count: %d/%d\n", g_ps->t, ((float)g_ps->t) * g_ps->tau, g_ps->count, g_ps->max_count);
 }
 
 int test_particle_sim()
@@ -57,10 +57,9 @@ int test_particle_sim()
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
     tensor_fill(g_ps->pos, 0.0f);
     tensor_fill(g_ps->color, 0.0f);
-    tensor_fill(g_ps->energy, 1.f);
+    tensor_fill(g_ps->energy, 0.2f);
     tensor_fill(g_ps->age, 0.f);
-    g_ps->energy->values[0] = 0.1f;
-    g_ps->link_data = stack_init();
+    g_ps->energy->values[0] = 1.f;
 
     // Creating an organism manually
     // RING
@@ -79,9 +78,9 @@ int test_particle_sim()
         link_t* link = new_link(
             from, to, -1.f, 0.f, 0.f
         );
-        vector_push(&g_ps->links[from], &link);
-        vector_push(&g_ps->links[to], &link);
-        stack_push(g_ps->link_data, link);
+        link->from_elem = stack_push(g_ps->links[from], link);
+        link->to_elem = stack_push(g_ps->links[to], link);
+        link->data_elem = stack_push(g_ps->link_data, link);
     }
 
     // FISH
@@ -112,6 +111,7 @@ int test_particle_sim()
     // }
 
     window_wait_with_func(ps_loop);
+    // while (1) ps_loop();
 
     particle_sim_free(g_ps);
     tensor_free(cam_pos);

@@ -20,6 +20,7 @@ struct stack_elem
 {
     void* data;
     struct stack_elem* next;
+    struct stack_elem* prev;
 };
 
 typedef struct
@@ -30,9 +31,10 @@ typedef struct
 
 pstack_t* stack_init();
 void stack_free(pstack_t* s, void (*elem_freer)(void*));
-void stack_push(pstack_t* s, void* data);
+struct stack_elem* stack_push(pstack_t* s, void* data);
 void* stack_pop(pstack_t* s);
 void* stack_pop_at_index(pstack_t* s, size_t i);
+void* stack_pop_elem(pstack_t* s, struct stack_elem* elem);
 
 struct int_stack_elem
 {

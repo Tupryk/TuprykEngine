@@ -89,7 +89,7 @@ void ps_loop()
 
     render_ps(g_ps, cam_pos);
     
-    printf("(Time %d) - Particle count: %d/%d\n", g_ps->t, g_ps->count, g_ps->max_count);
+    printf("Time %d (%gs) - Particle count: %d/%d\n", g_ps->t, ((float)g_ps->t) * g_ps->tau, g_ps->count, g_ps->max_count);
 }
 
 int test_particle_sim()

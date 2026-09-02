@@ -19,8 +19,8 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->max_vel = 100.f;
     ps->max_age = 1000.f;
     
-    ps->links = (vector_t*) malloc(sizeof(vector_t) * ps->max_count);
-    for (int i = 0; i < ps->max_count; i++) ps->links[i] = vector_init(sizeof(link_t*));
+    ps->links = (pstack_t**) malloc(sizeof(pstack_t*) * ps->max_count);
+    for (int i = 0; i < ps->max_count; i++) ps->links[i] = stack_init();
     ps->link_data = stack_init();
 
     ps->pos = new_tensor_matrix(max_particle_count, 3, NULL);
@@ -47,7 +47,7 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
     tensor_free(ps->age);
-    for (int i = 0; i < ps->max_count; i++) vector_free(&ps->links[i]);
+    for (int i = 0; i < ps->max_count; i++) stack_free(ps->links[i], NULL);
     free(ps->links);
     stack_free(ps->link_data, free);
     free(ps);
@@ -190,12 +190,25 @@ void particle_sim_wrap_pos(struct ParticleSim* ps, float bounds)
 
 void particle_sim_remove_dead_links(struct ParticleSim* ps, int particle_id)
 {
-    // for (size_t i = 0; i < ps->links[particle_id].size; i++)
-    // {
-    //     link_t* link = *(link_t**)vector_get(&ps->links[particle_id], i);
-    //     free(link);
-    // }
-    ps->links[particle_id].size = 0;
+    pstack_t* s = ps->links[particle_id];
+
+    while (s->size)
+    {
+        link_t* link = stack_pop(s);
+
+        stack_pop_elem(ps->link_data, link->data_elem);
+
+        if (link->from == particle_id)
+        {
+            stack_pop_elem(ps->links[link->to], link->to_elem);
+        }
+        else
+        {
+            stack_pop_elem(ps->links[link->from], link->from_elem);
+        }
+
+        free(link);
+    }
 }
 
 void particle_sim_update_energy(struct ParticleSim* ps)
@@ -321,9 +334,11 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
     {
         if (ps->energy->values[i] <= 0.f) continue;
 
-        for (size_t j = 0; j < ps->links[i].size; j++)
+        struct stack_elem* current_elem = ps->links[i]->next;
+        while (current_elem != NULL)
         {
-            link_t* link = *(link_t**)vector_get(&ps->links[i], j);
+            link_t* link = (link_t*) current_elem->data;
+            current_elem = current_elem->next;
             
             int idx = (link->from == i) ? link->to : link->from;
             if (idx < i || ps->energy->values[idx] <= 0.f) continue;
@@ -368,9 +383,13 @@ void particle_sim_distribute_energy(struct ParticleSim* ps)
 
         float node_count = 1.f;
         float mean = ps->energy->values[i];
-        for (size_t j = 0; j < ps->links[i].size; j++)
+        
+        struct stack_elem* current_elem = ps->links[i]->next;
+        while (current_elem != NULL)
         {
-            link_t* link = *(link_t**)vector_get(&ps->links[i], j);
+            link_t* link = (link_t*) current_elem->data;
+            current_elem = current_elem->next;
+
             int idx = (link->from == i) ? link->to : link->from;
             if (ps->energy->values[idx] <= 0.f) continue;
             
