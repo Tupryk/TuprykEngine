@@ -60,6 +60,7 @@ int test_particle_sim()
     tensor_fill(g_ps->energy, 0.2f);
     tensor_fill(g_ps->age, 0.f);
     g_ps->energy->values[0] = 1.f;
+    g_ps->code_state[0] = 1;
 
     // Creating an organism manually
     // RING

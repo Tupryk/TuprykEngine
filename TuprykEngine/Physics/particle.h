@@ -42,6 +42,10 @@ struct ParticleSim
     float tau;
     float max_vel;
     float max_age;
+    
+    // char** genes;
+    int* code_state;  // Current line being read in the genetic code
+    int* code_inbox;
 
     pstack_t** links;
     pstack_t* link_data;
@@ -54,6 +58,8 @@ struct ParticleSim
     
     tensor_t* energy;
     tensor_t* age;
+
+    tensor_t* last_read;
 };
 
 struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_count);

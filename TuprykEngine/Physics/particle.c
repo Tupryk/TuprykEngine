@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../LinAlg/tensor.h"
 #include "../Stochastic/sample.h"
@@ -19,6 +20,12 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->max_vel = 100.f;
     ps->max_age = 1000.f;
     
+    ps->code_state = (int*) malloc(sizeof(int) * ps->max_count);
+    memset(ps->code_state, 0, ps->max_count * sizeof(*ps->code_state));
+
+    ps->code_inbox = (int*) malloc(sizeof(int) * ps->max_count);
+    memset(ps->code_inbox, -1, ps->max_count * sizeof(*ps->code_inbox));
+    
     ps->links = (pstack_t**) malloc(sizeof(pstack_t*) * ps->max_count);
     for (int i = 0; i < ps->max_count; i++) ps->links[i] = stack_init();
     ps->link_data = stack_init();
@@ -29,11 +36,13 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->sizes = new_tensor_vector(max_particle_count, NULL);
     ps->energy = new_tensor_vector(max_particle_count, NULL);
     ps->age = new_tensor_vector(max_particle_count, NULL);
+    ps->last_read = new_tensor_vector(max_particle_count, NULL);
 
     tensor_fill_uniform(ps->pos, -50.f, 50.f);
     tensor_fill_uniform(ps->color, 0.5f, 1.f);
     tensor_fill_uniform(ps->sizes, 0.25f, 2.f);
     tensor_fill_uniform(ps->age, 0.f, 5.f);
+    tensor_fill_uniform(ps->last_read, 0.f, 5.f);
     for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.7f;
 
     return ps;
@@ -47,9 +56,12 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
     tensor_free(ps->age);
+    tensor_free(ps->last_read);
     for (int i = 0; i < ps->max_count; i++) stack_free(ps->links[i], NULL);
     free(ps->links);
     stack_free(ps->link_data, free);
+    free(ps->code_state);
+    free(ps->code_inbox);
     free(ps);
 }
 
@@ -298,6 +310,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
                 ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
                 ps->age->values[j] = 0.f;
+                ps->last_read->values[j] = 0.f;
                 
                 energy[j] = 0.5f;
 
@@ -313,17 +326,57 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
+    float read_cooldown = 1.0;
     float expansion_speed = 0.5f;
     for (int i = 0; i < ps->max_count; i++)
     {
-        if (ps->energy->values[i] <= 0.f) continue;
+        if (
+            ps->energy->values[i] <= 0.f ||
+            ps->last_read->values[i] < read_cooldown
+        ) continue;
         
-        if (ps->color->values[i*3+1] < 1.f && ps->color->values[i*3+2] < 1.f)
+        ps->last_read->values[i] = 0.f;
+
+        int i3 = i * 3;
+        if (ps->code_state[i] == 0)
         {
-            float delta = expansion_speed * ps->tau;
-            ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
+            // Wait for signal
+            if (ps->code_inbox[i] != -1)
+            {
+                ps->code_state[i] = ps->code_inbox[i];
+                ps->code_inbox[i] = -1;
+            }
         }
+        else if (ps->code_state[i] == 1)
+        {
+            // Comunicate
+            struct stack_elem* current_elem = ps->links[i]->next;
+            while (current_elem != NULL)
+            {
+                link_t* link = (link_t*) current_elem->data;
+                current_elem = current_elem->next;
+
+                int idx = (link->from == i) ? link->to : link->from;
+
+                ps->code_inbox[idx] = 1;
+            }
+            ps->code_state[i] = 2;
+        }
+        else if (ps->code_state[i] == 2)
+        {
+            // Expand or contract
+            if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
+            {
+                float delta = expansion_speed * ps->tau;
+                ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
+                if (ps->sizes->values[i] < 0.25) ps->sizes->values[i] = 0.25;
+                if (ps->sizes->values[i] > 1.0) ps->sizes->values[i] = 1.0;
+            }
+            ps->last_read->values[i] = read_cooldown;
+        }
+        ps->code_state[i] %= 3;
     }
+    tensor_scalar_add(ps->last_read, ps->tau, ps->last_read);
 }
 
 void particle_sim_resolve_links(struct ParticleSim* ps)
