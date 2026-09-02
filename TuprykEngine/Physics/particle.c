@@ -19,12 +19,17 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->tau = 0.01f;
     ps->max_vel = 100.f;
     ps->max_age = 1000.f;
+    ps->memory_size = 64;
     
     ps->code_state = (int*) malloc(sizeof(int) * ps->max_count);
-    memset(ps->code_state, 0, ps->max_count * sizeof(*ps->code_state));
+    memset(ps->code_state, 0, ps->max_count * sizeof(int));
 
-    ps->code_inbox = (int*) malloc(sizeof(int) * ps->max_count);
-    memset(ps->code_inbox, -1, ps->max_count * sizeof(*ps->code_inbox));
+    ps->code_memory = (int**) malloc(sizeof(int*) * ps->max_count);
+    for (int i = 0; i < ps->max_count; i++)
+    {
+        ps->code_memory[i] = (int*) malloc(sizeof(int) * ps->memory_size);
+        memset(ps->code_memory[i], 0, ps->memory_size * sizeof(int));
+    }
     
     ps->links = (pstack_t**) malloc(sizeof(pstack_t*) * ps->max_count);
     for (int i = 0; i < ps->max_count; i++) ps->links[i] = stack_init();
@@ -61,7 +66,8 @@ void particle_sim_free(struct ParticleSim* ps)
     free(ps->links);
     stack_free(ps->link_data, free);
     free(ps->code_state);
-    free(ps->code_inbox);
+    for (int i = 0; i < ps->max_count; i++) free(ps->code_memory[i]);
+    free(ps->code_memory);
     free(ps);
 }
 
@@ -311,6 +317,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
                 ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
                 ps->age->values[j] = 0.f;
                 ps->last_read->values[j] = 0.f;
+                memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
                 
                 energy[j] = 0.5f;
 
@@ -326,8 +333,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
-    float read_cooldown = 1.0;
-    float expansion_speed = 0.5f;
+    float read_cooldown = 0.;
     for (int i = 0; i < ps->max_count; i++)
     {
         if (
@@ -336,45 +342,62 @@ void particle_sim_run_genes(struct ParticleSim* ps)
         ) continue;
         
         ps->last_read->values[i] = 0.f;
+        
+        int* memory = ps->code_memory[i];
 
-        int i3 = i * 3;
-        if (ps->code_state[i] == 0)
+        int current_line = ps->code_state[i];
+        int next_line = current_line + 1;
+
+        switch (memory[current_line])
         {
-            // Wait for signal
-            if (ps->code_inbox[i] != -1)
+            case 0: // goto (where)
             {
-                ps->code_state[i] = ps->code_inbox[i];
-                ps->code_inbox[i] = -1;
+                int where_id = memory[current_line + 1];
+                next_line = memory[where_id];
+                break;
+            }
+            case 1: // write (what; where)
+            {
+                int what_id = memory[current_line + 1];
+                int where_id = memory[current_line + 2];
+                memory[where_id] = memory[what_id];
+                next_line = current_line + 3;
+                break;
+            }
+            case 2: // write links (what; where)
+            {
+                int what_id = memory[current_line+1];
+                int where_id = memory[current_line+2];
+
+                struct stack_elem* current_elem = ps->links[i]->next;
+                while (current_elem != NULL)
+                {
+                    link_t* link = (link_t*) current_elem->data;
+                    current_elem = current_elem->next;
+
+                    int idx = (link->from == i) ? link->to : link->from;
+
+                    ps->code_memory[idx][where_id] = what_id;
+                }
+                next_line = current_line + 3;
+                break;
+            }
+            case 3: // contract
+            {
+                float expansion_speed = 0.5f;
+                int i3 = i * 3;
+                if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
+                {
+                    float delta = expansion_speed * ps->tau;
+                    ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
+                    if (ps->sizes->values[i] < 0.25) ps->sizes->values[i] = 0.25;
+                    if (ps->sizes->values[i] > 1.0) ps->sizes->values[i] = 1.0;
+                }
+                ps->last_read->values[i] = read_cooldown;
+                break;
             }
         }
-        else if (ps->code_state[i] == 1)
-        {
-            // Comunicate
-            struct stack_elem* current_elem = ps->links[i]->next;
-            while (current_elem != NULL)
-            {
-                link_t* link = (link_t*) current_elem->data;
-                current_elem = current_elem->next;
-
-                int idx = (link->from == i) ? link->to : link->from;
-
-                ps->code_inbox[idx] = 1;
-            }
-            ps->code_state[i] = 2;
-        }
-        else if (ps->code_state[i] == 2)
-        {
-            // Expand or contract
-            if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
-            {
-                float delta = expansion_speed * ps->tau;
-                ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
-                if (ps->sizes->values[i] < 0.25) ps->sizes->values[i] = 0.25;
-                if (ps->sizes->values[i] > 1.0) ps->sizes->values[i] = 1.0;
-            }
-            ps->last_read->values[i] = read_cooldown;
-        }
-        ps->code_state[i] %= 3;
+        ps->code_state[i] = next_line % ps->memory_size;
     }
     tensor_scalar_add(ps->last_read, ps->tau, ps->last_read);
 }

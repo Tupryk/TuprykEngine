@@ -1,0 +1,7 @@
+// Everyone! Contract!!!
+0: goto [0]
+1: write_neigh 1 [0]
+2: contract
+3: goto 2
+{  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10 }
+{  0,  8,  2,  2,  8,  3,  0, 10,  0,  2,  5 }

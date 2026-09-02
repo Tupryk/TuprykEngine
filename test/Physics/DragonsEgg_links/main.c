@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../../TuprykEngine/ui/prints/linalg.h"
 #include "../../../TuprykEngine/LinAlg/tensor.h"
@@ -60,7 +61,10 @@ int test_particle_sim()
     tensor_fill(g_ps->energy, 0.2f);
     tensor_fill(g_ps->age, 0.f);
     g_ps->energy->values[0] = 1.f;
-    g_ps->code_state[0] = 1;
+    
+    int src[] = {  0,  8,  2,  2,  8,  3,  0, 10,  0,  2,  5 };
+    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 11 * sizeof(int));
+    g_ps->code_state[0] = 2;
 
     // Creating an organism manually
     // RING
