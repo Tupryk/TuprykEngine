@@ -21,6 +21,7 @@ void draw_pixel(float x, float y, float r, float g, float b);
 void draw_gaussian(tensor_t* pos, tensor_t* A, float half_bounds);
 void draw_circle(int cx, int cy, int r);
 void draw_line(float start_x, float start_y, float end_x, float end_y);
+void draw_line_px(int start_x, int start_y, int end_x, int end_y);
 void draw_line_3d(
     float start_x, float start_y, float start_z,
     float end_x, float end_y, float end_z

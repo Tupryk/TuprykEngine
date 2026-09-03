@@ -42,6 +42,8 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->energy = new_tensor_vector(max_particle_count, NULL);
     ps->age = new_tensor_vector(max_particle_count, NULL);
     ps->last_read = new_tensor_vector(max_particle_count, NULL);
+    ps->charge = new_tensor_vector(max_particle_count, NULL);
+    ps->charge_cooldown = new_tensor_vector(max_particle_count, NULL);
 
     tensor_fill_uniform(ps->pos, -50.f, 50.f);
     tensor_fill_uniform(ps->color, 0.5f, 1.f);
@@ -63,6 +65,8 @@ void particle_sim_free(struct ParticleSim* ps)
     tensor_free(ps->color);
     tensor_free(ps->sizes);
     tensor_free(ps->energy);
+    tensor_free(ps->charge);
+    tensor_free(ps->charge_cooldown);
     tensor_free(ps->age);
     tensor_free(ps->last_read);
     for (int i = 0; i < ps->max_count; i++) stack_free(ps->links[i], NULL);
@@ -106,6 +110,7 @@ void particle_sim_euler_step(struct ParticleSim* ps, void (*dydt)(struct Particl
 
 void particle_sim_resolve_collisions(struct ParticleSim* ps)
 {
+    // TODO: use pos_delta and vel_delta and combine with link resolution
     float normal[3];
     float impulse[3];
     float rel_vel[3];
@@ -322,6 +327,8 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
         
         energy[j] = 0.5f;
+        ps->charge->values[j] = 0.f;
+        ps->charge_cooldown->values[j] = 0.f;
 
         energy[i] -= duplicate_cost;
         ps->count++;
@@ -416,7 +423,7 @@ void particle_sim_run_genes(struct ParticleSim* ps)
                 ps->last_read->values[i] = read_cooldown;
                 break;
             }
-            case 5: // break link
+            case 5: // duplicate
             {
                 break;
             }
@@ -428,6 +435,7 @@ void particle_sim_run_genes(struct ParticleSim* ps)
 
 void particle_sim_resolve_links(struct ParticleSim* ps)
 {
+    // TODO: use vel_delta and combine with collision resolution (collisions should have priority as links can break)
     tensor_t* pos_delta = tensor_copy_shape(ps->pos);
     float expansion_speed = 0.01f;
     for (int i = 0; i < ps->max_count; i++)
@@ -491,7 +499,7 @@ void particle_sim_distribute_energy(struct ParticleSim* ps)
             current_elem = current_elem->next;
 
             int idx = (link->from == i) ? link->to : link->from;
-            if (ps->energy->values[idx] <= 0.f) continue;
+            if (ps->energy->values[idx] <= 0.f) continue;  // TODO: Probably don't need this...
             
             mean += ps->energy->values[idx];
             node_count++;
@@ -527,7 +535,10 @@ void particle_sim_break_links(struct ParticleSim* ps)
         float r1 = ps->sizes->values[link->from];
         float r2 = ps->sizes->values[link->to];
 
-        if (dist > (r1 + r2) * 1.25f)
+        float desired_dist = r1 + r2;
+        float offset = fabsf(dist - desired_dist);
+
+        if (offset > desired_dist * link->relative_tolerance)
         {
             stack_pop_elem(ps->link_data, link->data_elem);
             stack_pop_elem(ps->links[link->to], link->to_elem);
@@ -535,4 +546,40 @@ void particle_sim_break_links(struct ParticleSim* ps)
             free(link);
         }
     }
+}
+
+void particle_sim_update_charge(struct ParticleSim* ps)
+{
+    float charge_tau = 0.5f;
+    float decharge_thresh = 0.5;
+    tensor_t* charge_next = tensor_copy(ps->charge);
+    for (int i = 0; i < ps->max_count; i++)
+    {
+        if (
+            ps->energy->values[i] <= 0.f ||
+            ps->charge->values[i] < decharge_thresh ||
+            ps->charge_cooldown->values[i] < charge_tau
+        ) continue;
+
+        float charge = ps->charge->values[i];
+        charge_next->values[i] = 0.f;
+        ps->charge_cooldown->values[i] = 0.f;
+
+        struct stack_elem* current_elem = ps->links[i]->next;
+        while (current_elem != NULL)
+        {
+            link_t* link = (link_t*) current_elem->data;
+            current_elem = current_elem->next;
+
+            if (link->from == i)
+            {
+                float new_charge = ps->charge->values[link->to] + charge;
+                charge_next->values[link->to] = new_charge > 1.f ? 1.f : new_charge;
+            }
+
+        }
+    }
+    tensor_transfer_values(ps->charge, charge_next);
+    tensor_scalar_add(ps->charge_cooldown, ps->tau, ps->charge_cooldown);
+    tensor_free(charge_next);
 }

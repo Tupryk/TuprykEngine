@@ -45,6 +45,7 @@ void ps_loop()
     particle_sim_resolve_links(g_ps);
     particle_sim_distribute_energy(g_ps);
     particle_sim_break_links(g_ps);
+    particle_sim_update_charge(g_ps);
 
     render_ps(g_ps, cam_pos);
     
@@ -62,6 +63,7 @@ int test_particle_sim()
     tensor_fill(g_ps->energy, 0.2f);
     tensor_fill(g_ps->age, 0.f);
     g_ps->energy->values[0] = 1.f;
+    g_ps->charge->values[0] = 1.f;
     
     int src[] = {  3, 13, 14,  0, 12,  2, 11, 12,  4,  0, 15,  5,  0,  0, 128,  8 };
     for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 16 * sizeof(int));
@@ -84,6 +86,7 @@ int test_particle_sim()
         link_t* link = new_link(
             from, to, -1.f, 0.f, 0.f
         );
+        link->relative_tolerance = 1.f;
         link->from_elem = stack_push(g_ps->links[from], link);
         link->to_elem = stack_push(g_ps->links[to], link);
         link->data_elem = stack_push(g_ps->link_data, link);

@@ -35,6 +35,11 @@ void draw_line(float start_x, float start_y, float end_x, float end_y)
     SDL_RenderDrawLine(renderer, start_x * WINDOW_W, start_y * WINDOW_H, end_x * WINDOW_W, end_y * WINDOW_H);
 }
 
+void draw_line_px(int start_x, int start_y, int end_x, int end_y)
+{
+    SDL_RenderDrawLine(renderer, start_x, start_y, end_x, end_y);
+}
+
 struct point_2d unit_3d_to_2d(float x, float y, float z)
 {
     float x0 = x - 0.5f;

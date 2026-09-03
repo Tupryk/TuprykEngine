@@ -13,6 +13,7 @@ typedef struct
     
     float strength;
     float damping;
+    float relative_tolerance;
     
     float phi;
     float theta;
@@ -58,6 +59,8 @@ struct ParticleSim
     tensor_t* sizes;
     
     tensor_t* energy;
+    tensor_t* charge;
+    tensor_t* charge_cooldown;
     tensor_t* age;
 
     tensor_t* last_read;
@@ -75,5 +78,6 @@ void particle_sim_run_genes(struct ParticleSim* ps);
 void particle_sim_resolve_links(struct ParticleSim* ps);
 void particle_sim_distribute_energy(struct ParticleSim* ps);
 void particle_sim_break_links(struct ParticleSim* ps);
+void particle_sim_update_charge(struct ParticleSim* ps);
 
 #endif

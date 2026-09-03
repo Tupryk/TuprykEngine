@@ -8,6 +8,7 @@
 void render_ps(struct ParticleSim* ps, tensor_t* cam_pos)
 {
     float max_dist = 2000.f;
+    float points_2d[ps->max_count][2];
 
     for (int i = 0; i < ps->max_count; i++)
     {
@@ -44,20 +45,35 @@ void render_ps(struct ParticleSim* ps, tensor_t* cam_pos)
                 ps->color->values[i3] * intensity,
                 ps->color->values[i3+1] * intensity,
                 ps->color->values[i3+2] * intensity,
-                0.5f
+                0.25f + 0.5f * ps->charge->values[i]
             );
+
+            points_2d[i][0] = px / cam_dist_vec[1] * WINDOW_W + WINDOW_W * .5f;
+            points_2d[i][1] = WINDOW_H - (pz / cam_dist_vec[1] * WINDOW_H + WINDOW_H * .5f);
             draw_circle(
-                px / cam_dist_vec[1] * WINDOW_W + WINDOW_W * .5f,
-                WINDOW_H - (pz / cam_dist_vec[1] * WINDOW_H + WINDOW_H * .5f),
+                points_2d[i][0], points_2d[i][1],
                 ps->sizes->values[i] / cam_dist_vec[1] * WINDOW_W
             );
 
             set_rgba(1.f, 1.f, 1.f, 0.5f);
             draw_circle(
-                px / cam_dist_vec[1] * WINDOW_W + WINDOW_W * .5f,
-                WINDOW_H - (pz / cam_dist_vec[1] * WINDOW_H + WINDOW_H * .5f),
+                points_2d[i][0], points_2d[i][1],
                 (ps->sizes->values[i] * ps->energy->values[i]) / cam_dist_vec[1] * WINDOW_W
             );
         }
+    }
+
+    // Draw links
+    struct stack_elem* current_elem = ps->link_data->next;
+    while (current_elem != NULL)
+    {
+        link_t* link = (link_t*) current_elem->data;
+        current_elem = current_elem->next;
+
+        set_rgba(1.f, 1.f, 1.f, 0.7f);
+        draw_line_px(
+            points_2d[link->from][0], points_2d[link->from][1],
+            points_2d[link->to][0], points_2d[link->to][1]
+        );
     }
 }
