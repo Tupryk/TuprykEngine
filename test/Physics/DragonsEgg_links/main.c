@@ -14,8 +14,8 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 10;
-int g_max_point_count = 10;
+int g_point_count = 100;
+int g_max_point_count = 100;
 tensor_t* cam_pos = NULL;
 
 link_t* new_link(int from, int to, float x, float y, float z)
@@ -46,6 +46,8 @@ void ps_loop()
     particle_sim_distribute_energy(g_ps);
     particle_sim_break_links(g_ps);
     particle_sim_update_charge(g_ps);
+
+    tensor_fill(g_ps->energy, 0.25f);
 
     render_ps(g_ps, cam_pos);
     

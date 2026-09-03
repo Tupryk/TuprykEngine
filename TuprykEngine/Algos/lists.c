@@ -47,7 +47,7 @@ void vector_free(vector_t* v)
 
 pstack_t* stack_init()
 {
-    pstack_t* s = (pstack_t*) malloc(sizeof(stack_t));
+    pstack_t* s = (pstack_t*) malloc(sizeof(pstack_t));
     s->size = 0;
     s->next = NULL;
     return s;

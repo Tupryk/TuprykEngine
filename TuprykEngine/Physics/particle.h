@@ -11,8 +11,9 @@ typedef struct
     int from;
     int to;
     
-    float strength;
+    // TODO: Slack (for neurons: they don't have to be close together)
     float damping;
+    float strength;
     float relative_tolerance;
     
     float phi;
