@@ -1,8 +1,9 @@
-// Everyone! Contract!!!
+//---- Everyone! Contract!!! ----//
+var = 0
 0: sleep 10
-1: goto [0]
-2: write_neigh 1 [0]
+1: goto var
+2: write_neigh 2 var
 3: contract
-4: goto 2
+4: goto 3
 {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 }
 {  3, 13, 14,  0, 12,  2, 11, 12,  4,  0, 15,  5,  0,  0, 64,  8 }

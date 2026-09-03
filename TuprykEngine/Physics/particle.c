@@ -416,6 +416,10 @@ void particle_sim_run_genes(struct ParticleSim* ps)
                 ps->last_read->values[i] = read_cooldown;
                 break;
             }
+            case 5: // break link
+            {
+                break;
+            }
         }
         ps->code_state[i] = next_line % ps->memory_size;
     }
@@ -497,4 +501,38 @@ void particle_sim_distribute_energy(struct ParticleSim* ps)
     }
     tensor_add(ps->energy, energy_delta, ps->energy);
     tensor_free(energy_delta);
+}
+
+void particle_sim_break_links(struct ParticleSim* ps)
+{
+    struct stack_elem* current_elem = ps->link_data->next;
+    while (current_elem != NULL)
+    {
+        link_t* link = (link_t*) current_elem->data;
+        current_elem = current_elem->next;
+
+        int f3 = link->from * 3;
+        int t3 = link->to * 3;
+        float dist_vec[] = {
+            ps->pos->values[f3] - ps->pos->values[t3],
+            ps->pos->values[f3+1] - ps->pos->values[t3+1],
+            ps->pos->values[f3+2] - ps->pos->values[t3+2],
+        };
+        float dist = sqrt(
+            dist_vec[0]*dist_vec[0] +
+            dist_vec[1]*dist_vec[1] +
+            dist_vec[2]*dist_vec[2]
+        );
+
+        float r1 = ps->sizes->values[link->from];
+        float r2 = ps->sizes->values[link->to];
+
+        if (dist > (r1 + r2) * 1.25f)
+        {
+            stack_pop_elem(ps->link_data, link->data_elem);
+            stack_pop_elem(ps->links[link->to], link->to_elem);
+            stack_pop_elem(ps->links[link->from], link->from_elem);
+            free(link);
+        }
+    }
 }

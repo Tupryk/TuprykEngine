@@ -44,6 +44,7 @@ void ps_loop()
     particle_sim_run_genes(g_ps);
     particle_sim_resolve_links(g_ps);
     particle_sim_distribute_energy(g_ps);
+    particle_sim_break_links(g_ps);
 
     render_ps(g_ps, cam_pos);
     
@@ -87,33 +88,6 @@ int test_particle_sim()
         link->to_elem = stack_push(g_ps->links[to], link);
         link->data_elem = stack_push(g_ps->link_data, link);
     }
-
-    // FISH
-    // tensor_fill(g_ps->sizes, 0.5f);
-    // tensor_fill(g_ps->color, 1.0f);
-    // for (int i = 0; i < g_point_count; i++)
-    // {
-    //     int i3 = i * 3;
-    //     g_ps->color->values[i3] = 1.f;
-    //     g_ps->pos->values[i3] = ((float) i) - 5.f;
-    //     g_ps->pos->values[i3+2] = ((float) (i % 3));
-        
-    //     int from = i==0 ? g_point_count-1 : i-1;
-    //     int to = i;
-        
-    //     link_t* link = new_link(
-    //         from, to, -1.f, 0.f, 0.f
-    //     );
-    //     vector_push(&g_ps->links[from], &link);
-    //     vector_push(&g_ps->links[to], &link);
-    //     stack_push(g_ps->link_data, link);
-        
-    //     if ((i+2) % 3)
-    //     {
-    //         g_ps->color->values[i3+1] = 0.f;
-    //         g_ps->color->values[i3+2] = 0.f;
-    //     }
-    // }
 
     window_wait_with_func(ps_loop);
     // while (1) ps_loop();
