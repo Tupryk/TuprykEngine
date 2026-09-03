@@ -49,6 +49,7 @@ struct ParticleSim
 
     pstack_t** links;
     pstack_t* link_data;
+    int_stack_t* dead;
     
     tensor_t* pos;
     tensor_t* vel;

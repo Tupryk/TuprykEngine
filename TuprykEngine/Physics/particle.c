@@ -50,6 +50,9 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     tensor_fill_uniform(ps->last_read, 0.f, 5.f);
     for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.7f;
 
+    ps->dead = int_stack_init();
+    for (int i = ps->count; i < ps->max_count; i++) int_stack_push(ps->dead, i);
+
     return ps;
 }
 
@@ -68,6 +71,7 @@ void particle_sim_free(struct ParticleSim* ps)
     free(ps->code_state);
     for (int i = 0; i < ps->max_count; i++) free(ps->code_memory[i]);
     free(ps->code_memory);
+    int_stack_free(ps->dead);
     free(ps);
 }
 
@@ -261,6 +265,7 @@ void particle_sim_update_energy(struct ParticleSim* ps)
         if (energy[i] <= 0.f)
         {
             ps->count--;
+            int_stack_push(ps->dead, i);
             particle_sim_remove_dead_links(ps, i);
         }
     }
@@ -281,52 +286,46 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         if (energy[i] <= duplicate_thresh) continue;
         int i3 = i*3;
         
-        for (int j = 0; j < ps->max_count; j++)
+        int j = int_stack_pop(ps->dead);
+        int j3 = j * 3;
+
+        float* pos_parent = &ps->pos->values[i3];
+        float* vel_parent = &ps->vel->values[i3];
+        float* col_parent = &ps->color->values[i3];
+        float parent_size = ps->sizes->values[i];
+
+        float* pos_child = &ps->pos->values[j3];
+        float* vel_child = &ps->vel->values[j3];
+        float* col_child = &ps->color->values[j3];
+
+        // Position
+        pos_child[0] = pos_parent[0] + rand_uni(-parent_size, parent_size);
+        pos_child[1] = pos_parent[1] + rand_uni(-parent_size, parent_size);
+        pos_child[2] = pos_parent[2] + rand_uni(-parent_size, parent_size);
+
+        // Velocity
+        vel_child[0] = pos_child[0] - pos_parent[0];
+        vel_child[1] = pos_child[1] - pos_parent[1];
+        vel_child[2] = pos_child[2] - pos_parent[2];
+
+        // Color
+        for (int c = 0; c < 3; c++)
         {
-            if (energy[j] <= 0.f)
-            {
-                int j3 = j * 3;
-
-                float* pos_parent = &ps->pos->values[i3];
-                float* vel_parent = &ps->vel->values[i3];
-                float* col_parent = &ps->color->values[i3];
-                float parent_size = ps->sizes->values[i];
-
-                float* pos_child = &ps->pos->values[j3];
-                float* vel_child = &ps->vel->values[j3];
-                float* col_child = &ps->color->values[j3];
-
-                // Position
-                pos_child[0] = pos_parent[0] + rand_uni(-parent_size, parent_size);
-                pos_child[1] = pos_parent[1] + rand_uni(-parent_size, parent_size);
-                pos_child[2] = pos_parent[2] + rand_uni(-parent_size, parent_size);
-
-                // Velocity
-                vel_child[0] = pos_child[0] - pos_parent[0];
-                vel_child[1] = pos_child[1] - pos_parent[1];
-                vel_child[2] = pos_child[2] - pos_parent[2];
-
-                // Color
-                for (int c = 0; c < 3; c++)
-                {
-                    col_child[c] = col_parent[c] + rand_uni(-0.1f, 0.1f);
-                    if (col_child[c] > 1.f) col_child[c] = 1.f;
-                    if (col_child[c] < 0.f) col_child[c] = 0.f;
-                }
-
-                ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
-                ps->age->values[j] = 0.f;
-                ps->last_read->values[j] = 0.f;
-                memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
-                
-                energy[j] = 0.5f;
-
-                energy[i] -= duplicate_cost;
-                ps->count++;
-                if (ps->count == ps->max_count) return;
-                break;
-            }
+            col_child[c] = col_parent[c] + rand_uni(-0.1f, 0.1f);
+            if (col_child[c] > 1.f) col_child[c] = 1.f;
+            if (col_child[c] < 0.f) col_child[c] = 0.f;
         }
+
+        ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
+        ps->age->values[j] = 0.f;
+        ps->last_read->values[j] = 0.f;
+        memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
+        
+        energy[j] = 0.5f;
+
+        energy[i] -= duplicate_cost;
+        ps->count++;
+        if (ps->count == ps->max_count) return;
     }
     tensor_clip(ps->sizes, 0.1f, 2.5f);
 }
