@@ -62,9 +62,9 @@ int test_particle_sim()
     tensor_fill(g_ps->age, 0.f);
     g_ps->energy->values[0] = 1.f;
     
-    int src[] = {  0,  8,  2,  2,  8,  3,  0, 10,  0,  2,  5 };
-    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 11 * sizeof(int));
-    g_ps->code_state[0] = 2;
+    int src[] = {  3, 13, 14,  0, 12,  2, 11, 12,  4,  0, 15,  5,  0,  0, 128,  8 };
+    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 16 * sizeof(int));
+    g_ps->code_state[0] = 5;
 
     // Creating an organism manually
     // RING

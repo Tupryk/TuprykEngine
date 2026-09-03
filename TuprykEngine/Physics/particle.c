@@ -332,7 +332,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
-    float read_cooldown = 0.;
+    float read_cooldown = 0.f;
     for (int i = 0; i < ps->max_count; i++)
     {
         if (
@@ -351,20 +351,23 @@ void particle_sim_run_genes(struct ParticleSim* ps)
         {
             case 0: // goto (where)
             {
+                if (current_line + 1 >= ps->memory_size) break;
                 int where_id = memory[current_line + 1];
                 next_line = memory[where_id];
                 break;
             }
-            case 1: // write (what; where)
+            case 1: // write (what, where)
             {
+                if (current_line + 2 >= ps->memory_size) break;
                 int what_id = memory[current_line + 1];
                 int where_id = memory[current_line + 2];
                 memory[where_id] = memory[what_id];
                 next_line = current_line + 3;
                 break;
             }
-            case 2: // write links (what; where)
+            case 2: // write links (what, where)
             {
+                if (current_line + 2 >= ps->memory_size) break;
                 int what_id = memory[current_line+1];
                 int where_id = memory[current_line+2];
 
@@ -376,12 +379,30 @@ void particle_sim_run_genes(struct ParticleSim* ps)
 
                     int idx = (link->from == i) ? link->to : link->from;
 
-                    ps->code_memory[idx][where_id] = what_id;
+                    ps->code_memory[idx][where_id] = memory[what_id];
                 }
                 next_line = current_line + 3;
                 break;
             }
-            case 3: // contract
+            case 3: // sleep (current_time, wait_time)
+            {
+                if (current_line + 2 >= ps->memory_size) break;
+                int current_time_id = memory[current_line+1];
+                int wait_time_id = memory[current_line+2];
+
+                if (memory[current_time_id] >= memory[wait_time_id])
+                {
+                    memory[current_time_id] = 0;
+                    next_line = current_line + 3;
+                }
+                else
+                {
+                    memory[current_time_id]++;
+                    next_line = current_line;
+                }
+                break;
+            }
+            case 4: // contract
             {
                 float expansion_speed = 0.5f;
                 int i3 = i * 3;
