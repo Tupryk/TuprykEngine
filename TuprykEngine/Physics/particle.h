@@ -44,8 +44,8 @@ struct ParticleSim
     float max_vel;
     float max_age;
     
-    int* code_state;    // Current line being read in the genetic code
-    int** code_memory;  // Index 0 is reserved for incoming messages?
+    int* code_state;  // Current line being read in the genetic code
+    int** code_memory;
 
     pstack_t** links;
     pstack_t* link_data;
