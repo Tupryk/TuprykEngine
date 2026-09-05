@@ -70,7 +70,11 @@ int test_particle_sim()
     g_ps->charge->values[0] = 1.f;
     
     int8_t src[] = {  4, 13, 14,  1, 12,  3, 11, 12,  5,  1, 15,  5,  0,  0, 64,  5 };
-    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 16 * sizeof(int8_t));
+    for (int i = 0; i < g_point_count; i++)
+    {
+        memset(g_ps->code_memory[i], 0, g_ps->memory_size * sizeof(int8_t));
+        memcpy(g_ps->code_memory[i], src, 16 * sizeof(int8_t));
+    }
     g_ps->code_state[0] = 5;
 
     // Creating an organism manually

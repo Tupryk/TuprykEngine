@@ -132,6 +132,7 @@ void particle_sim_euler_step(struct ParticleSim* ps, void (*dydt)(struct Particl
 
 int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_size)
 {
+    // TODO: Maybe this is not the best way to compare genes...
     int total = 0;
 
     for (size_t i = 0; i < memory_size; i++)
@@ -144,6 +145,12 @@ int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_siz
         }
     }
 
+    for (int i = 0; i < 64; i++) printf("%d, ", genes_a[i]);
+    printf("\n");
+    for (int i = 0; i < 64; i++) printf("%d, ", genes_b[i]);
+    printf("\n");
+    printf("%d\n", total);
+    return total;
 }
 
 void particle_sim_resolve_collisions(struct ParticleSim* ps)
