@@ -14,8 +14,8 @@
 
 
 struct ParticleSim* g_ps = NULL;
-int g_point_count = 100;
-int g_max_point_count = 100;
+int g_point_count = 6;
+int g_max_point_count = 6;
 tensor_t* cam_pos = NULL;
 
 link_t* new_link(int from, int to, float x, float y, float z)
@@ -47,6 +47,7 @@ void ps_loop()
     particle_sim_break_links(g_ps);
     particle_sim_update_charge(g_ps);
 
+    tensor_fill(g_ps->age, 1.f);
     tensor_fill(g_ps->energy, 0.25f);
 
     render_ps(g_ps, cam_pos);
@@ -60,6 +61,7 @@ int test_particle_sim()
     cam_pos = new_tensor_vector(3, cam_pos_values);
 
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
+    memset(g_ps->open, 1, g_ps->max_count * sizeof(int));
     tensor_fill(g_ps->pos, 0.0f);
     tensor_fill(g_ps->color, 0.0f);
     tensor_fill(g_ps->energy, 0.2f);
@@ -67,8 +69,8 @@ int test_particle_sim()
     g_ps->energy->values[0] = 1.f;
     g_ps->charge->values[0] = 1.f;
     
-    int src[] = {  3, 13, 14,  0, 12,  2, 11, 12,  4,  0, 15,  5,  0,  0, 128,  8 };
-    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 16 * sizeof(int));
+    int8_t src[] = {  4, 13, 14,  1, 12,  3, 11, 12,  5,  1, 15,  5,  0,  0, 64,  5 };
+    for (int i = 0; i < g_point_count; i++) memcpy(g_ps->code_memory[i], src, 16 * sizeof(int8_t));
     g_ps->code_state[0] = 5;
 
     // Creating an organism manually
@@ -79,19 +81,19 @@ int test_particle_sim()
         int i3 = i*3;
         g_ps->color->values[i3] = 1.f;
         float ang = ((float)i) / ((float)g_point_count) * M_PI * 2.f;
-        g_ps->pos->values[i3] = cosf(ang);
-        g_ps->pos->values[i3 + 2] = -sinf(ang);
+        g_ps->pos->values[i3] = cosf(ang) * 1.1f;
+        g_ps->pos->values[i3 + 2] = -sinf(ang) * 1.1f;
         
         int from = i==0 ? g_point_count-1 : i-1;
         int to = i;
         
-        link_t* link = new_link(
-            from, to, -1.f, 0.f, 0.f
-        );
-        link->relative_tolerance = 1.f;
-        link->from_elem = stack_push(g_ps->links[from], link);
-        link->to_elem = stack_push(g_ps->links[to], link);
-        link->data_elem = stack_push(g_ps->link_data, link);
+        // link_t* link = new_link(
+        //     from, to, -1.f, 0.f, 0.f
+        // );
+        // link->relative_tolerance = 1.f;
+        // link->from_elem = stack_push(g_ps->links[from], link);
+        // link->to_elem = stack_push(g_ps->links[to], link);
+        // link->data_elem = stack_push(g_ps->link_data, link);
     }
 
     window_wait_with_func(ps_loop);

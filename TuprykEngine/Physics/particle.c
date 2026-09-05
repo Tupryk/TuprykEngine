@@ -9,6 +9,19 @@
 #include "../Stochastic/sample.h"
 
 
+void particle_sim_gen_init_gene_pool(struct ParticleSim* ps)
+{
+    int init_mutation_count = 16;
+    for (int i = 0; i < ps->count; i++)
+    {
+        for (int j = 0; j < init_mutation_count; j++)
+        {
+            int line_num = rand() % ps->memory_size;
+            ps->code_memory[i][line_num] = rand() % 10;
+        }
+    }
+}
+
 struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_count)
 {
     struct ParticleSim* ps = (struct ParticleSim*) malloc(sizeof(struct ParticleSim));
@@ -20,15 +33,20 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->max_vel = 100.f;
     ps->max_age = 1000.f;
     ps->memory_size = 64;
+    ps->same_gene_thresh = (int) ((float) ps->memory_size * ((float) sizeof(int8_t)) * 0.1f);
     
+    ps->open = (int*) malloc(sizeof(int) * ps->max_count);
+    memset(ps->open, 0, ps->max_count * sizeof(int));
+    ps->duplicate = (int*) malloc(sizeof(int) * ps->max_count);
+    memset(ps->duplicate, 1, ps->max_count * sizeof(int));
     ps->code_state = (int*) malloc(sizeof(int) * ps->max_count);
     memset(ps->code_state, 0, ps->max_count * sizeof(int));
 
-    ps->code_memory = (int**) malloc(sizeof(int*) * ps->max_count);
+    ps->code_memory = (int8_t**) malloc(sizeof(int8_t*) * ps->max_count);
     for (int i = 0; i < ps->max_count; i++)
     {
-        ps->code_memory[i] = (int*) malloc(sizeof(int) * ps->memory_size);
-        memset(ps->code_memory[i], 0, ps->memory_size * sizeof(int));
+        ps->code_memory[i] = (int8_t*) malloc(sizeof(int8_t) * ps->memory_size);
+        memset(ps->code_memory[i], 0, ps->memory_size * sizeof(int8_t));
     }
     
     ps->links = (pstack_t**) malloc(sizeof(pstack_t*) * ps->max_count);
@@ -55,6 +73,8 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->dead = int_stack_init();
     for (int i = ps->count; i < ps->max_count; i++) int_stack_push(ps->dead, i);
 
+    particle_sim_gen_init_gene_pool(ps);
+
     return ps;
 }
 
@@ -76,6 +96,8 @@ void particle_sim_free(struct ParticleSim* ps)
     for (int i = 0; i < ps->max_count; i++) free(ps->code_memory[i]);
     free(ps->code_memory);
     int_stack_free(ps->dead);
+    free(ps->open);
+    free(ps->duplicate);
     free(ps);
 }
 
@@ -106,6 +128,22 @@ void particle_sim_euler_step(struct ParticleSim* ps, void (*dydt)(struct Particl
     ps->t++;
 
     tensor_free(tmp);
+}
+
+int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_size)
+{
+    int total = 0;
+
+    for (size_t i = 0; i < memory_size; i++)
+    {
+        uint8_t x = (uint8_t) genes_a[i] ^ (uint8_t) genes_b[i];
+
+        for (int j = 0; j < 8; j++)
+        {
+            total += (x >> j) & 1;
+        }
+    }
+
 }
 
 void particle_sim_resolve_collisions(struct ParticleSim* ps)
@@ -141,47 +179,89 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
                 dist_vec[2] * dist_vec[2]
             );
 
-            if (dist < r1 + r2 && fabsf(dist) > 0.001f) // Collision!!!
+            if (dist > r1 + r2 || fabsf(dist) < 0.001f) continue;
+
+            // Resolve Position
+            normal[0] = dist_vec[0] / dist;
+            normal[1] = dist_vec[1] / dist;
+            normal[2] = dist_vec[2] / dist;
+            float overlap = (r1 + r2) - dist;
+
+            p1[0] -= normal[0] * overlap * 0.5f;
+            p1[1] -= normal[1] * overlap * 0.5f;
+            p1[2] -= normal[2] * overlap * 0.5f;
+
+            p2[0] += normal[0] * overlap * 0.5f;
+            p2[1] += normal[1] * overlap * 0.5f;
+            p2[2] += normal[2] * overlap * 0.5f;
+        
+            // Resolve Velocity
+            float* v1 = &ps->vel->values[i*3];
+            float* v2 = &ps->vel->values[j*3];
+
+            rel_vel[0] = v2[0] - v1[0];
+            rel_vel[1] = v2[1] - v1[1];
+            rel_vel[2] = v2[2] - v1[2];
+            float vel_dot = normal[0] * rel_vel[0] + normal[1] * rel_vel[1] + normal[2] * rel_vel[2];
+
+            if (vel_dot <= 0.f)
             {
-                // Resolve Position
-                normal[0] = dist_vec[0] / dist;
-                normal[1] = dist_vec[1] / dist;
-                normal[2] = dist_vec[2] / dist;
-                float overlap = (r1 + r2) - dist;
+                float mm = 1.f / mass + 1.f / mass;
+                float tmp = -(1.f + restitution) * vel_dot / mm;
 
-                p1[0] -= normal[0] * overlap * 0.5f;
-                p1[1] -= normal[1] * overlap * 0.5f;
-                p1[2] -= normal[2] * overlap * 0.5f;
+                impulse[0] = tmp * normal[0];
+                impulse[1] = tmp * normal[1];
+                impulse[2] = tmp * normal[2];
 
-                p2[0] += normal[0] * overlap * 0.5f;
-                p2[1] += normal[1] * overlap * 0.5f;
-                p2[2] += normal[2] * overlap * 0.5f;
-            
-                // Resolve Velocity
-                float* v1 = &ps->vel->values[i*3];
-                float* v2 = &ps->vel->values[j*3];
+                v1[0] -= impulse[0] / mass;
+                v1[1] -= impulse[1] / mass;
+                v1[2] -= impulse[2] / mass;
 
-                rel_vel[0] = v2[0] - v1[0];
-                rel_vel[1] = v2[1] - v1[1];
-                rel_vel[2] = v2[2] - v1[2];
-                float vel_dot = normal[0] * rel_vel[0] + normal[1] * rel_vel[1] + normal[2] * rel_vel[2];
+                v2[0] += impulse[0] / mass;
+                v2[1] += impulse[1] / mass;
+                v2[2] += impulse[2] / mass;
+            }
 
-                if (vel_dot <= 0.f)
+            // Link if matching genes
+            if (ps->open[i] && ps->open[j])
+            {
+                int linked = 0;
+                struct stack_elem* current_elem = ps->links[i]->next;
+                while (current_elem != NULL)
                 {
-                    float mm = 1.f / mass + 1.f / mass;
-                    float tmp = -(1.f + restitution) * vel_dot / mm;
+                    link_t* link = (link_t*) current_elem->data;
+    
+                    if (
+                        (link->from == i && link->to == j) ||
+                        (link->from == j && link->to == i)
+                    ) {
+                        linked = 1;
+                        break;
+                    }
+                    current_elem = current_elem->next;
+                }
+                if (!linked)
+                {
+                    int total_diff = particle_sim_diff_gene_bits(ps->code_memory[i], ps->code_memory[j], ps->memory_size);
+                    if (total_diff < ps->same_gene_thresh)
+                    {
+                        link_t* link = (link_t*) malloc(sizeof(link_t));
+                        link->from = i;
+                        link->to = j;
+                        link->strength = 1.f;
+                        link->damping = 1.f;
+                        float x = -1.f;
+                        float y = 0.f;
+                        float z = 0.f;
+                        float p = sqrt(x*x + y*y + z*z);
+                        link->phi = acos(z / p);
+                        link->theta = atan2(y, x);
+                        link->relative_tolerance = 1.f;
 
-                    impulse[0] = tmp * normal[0];
-                    impulse[1] = tmp * normal[1];
-                    impulse[2] = tmp * normal[2];
-
-                    v1[0] -= impulse[0] / mass;
-                    v1[1] -= impulse[1] / mass;
-                    v1[2] -= impulse[2] / mass;
-
-                    v2[0] += impulse[0] / mass;
-                    v2[1] += impulse[1] / mass;
-                    v2[2] += impulse[2] / mass;
+                        link->from_elem = stack_push(ps->links[i], link);
+                        link->to_elem = stack_push(ps->links[j], link);
+                        link->data_elem = stack_push(ps->link_data, link);
+                    }
                 }
             }
         }
@@ -288,7 +368,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 
     for (int i = 0; i < ps->max_count; i++)
     {
-        if (energy[i] <= duplicate_thresh) continue;
+        if (energy[i] <= duplicate_thresh || !ps->duplicate[i]) continue;
         int i3 = i*3;
         
         int j = int_stack_pop(ps->dead);
@@ -324,8 +404,22 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
         ps->age->values[j] = 0.f;
         ps->last_read->values[j] = 0.f;
+        ps->open[j] = 0;
+        ps->duplicate[j] = 1;
         memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
         
+        int mutated_line_count = rand() % 5;
+        int* child_memory = ps->code_memory[j];
+        for (int j = 0; j < mutated_line_count; j++)
+        {
+            int line_num = rand() % ps->memory_size;
+            int mutation = rand() % 10 - 5;
+            if (mutation >= 0) mutation++;
+            child_memory[line_num] += mutation;
+            if (child_memory[line_num] < 0) child_memory[line_num] *= -1;
+            child_memory[line_num] %= ps->memory_size;
+        }
+
         energy[j] = 0.5f;
         ps->charge->values[j] = 0.f;
         ps->charge_cooldown->values[j] = 0.f;
@@ -349,34 +443,39 @@ void particle_sim_run_genes(struct ParticleSim* ps)
         
         ps->last_read->values[i] = 0.f;
         
-        int* memory = ps->code_memory[i];
+        int8_t* memory = ps->code_memory[i];
 
         int current_line = ps->code_state[i];
         int next_line = current_line + 1;
 
         switch (memory[current_line])
         {
-            case 0: // goto (where)
+            case 0: // no-op
+            {
+                ps->last_read->values[i] = read_cooldown * 2.f;
+                break;
+            }
+            case 1: // goto (where)
             {
                 if (current_line + 1 >= ps->memory_size) break;
-                int where_id = memory[current_line + 1];
+                int8_t where_id = memory[current_line + 1];
                 next_line = memory[where_id];
                 break;
             }
-            case 1: // write (what, where)
+            case 2: // write (what, where)
             {
                 if (current_line + 2 >= ps->memory_size) break;
-                int what_id = memory[current_line + 1];
-                int where_id = memory[current_line + 2];
+                int8_t what_id = memory[current_line + 1];
+                int8_t where_id = memory[current_line + 2];
                 memory[where_id] = memory[what_id];
                 next_line = current_line + 3;
                 break;
             }
-            case 2: // write links (what, where)
+            case 3: // write links (what, where)
             {
                 if (current_line + 2 >= ps->memory_size) break;
-                int what_id = memory[current_line+1];
-                int where_id = memory[current_line+2];
+                int8_t what_id = memory[current_line+1];
+                int8_t where_id = memory[current_line+2];
 
                 struct stack_elem* current_elem = ps->links[i]->next;
                 while (current_elem != NULL)
@@ -391,11 +490,11 @@ void particle_sim_run_genes(struct ParticleSim* ps)
                 next_line = current_line + 3;
                 break;
             }
-            case 3: // sleep (current_time, wait_time)
+            case 4: // sleep (current_time, wait_time)
             {
                 if (current_line + 2 >= ps->memory_size) break;
-                int current_time_id = memory[current_line+1];
-                int wait_time_id = memory[current_line+2];
+                int8_t current_time_id = memory[current_line+1];
+                int8_t wait_time_id = memory[current_line+2];
 
                 if (memory[current_time_id] >= memory[wait_time_id])
                 {
@@ -409,9 +508,9 @@ void particle_sim_run_genes(struct ParticleSim* ps)
                 }
                 break;
             }
-            case 4: // contract
+            case 5: // contract
             {
-                float expansion_speed = 0.5f;
+                float expansion_speed = 0.75f;
                 int i3 = i * 3;
                 if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
                 {
@@ -423,8 +522,14 @@ void particle_sim_run_genes(struct ParticleSim* ps)
                 ps->last_read->values[i] = read_cooldown;
                 break;
             }
-            case 5: // duplicate
+            case 6: // open / close
             {
+                ps->open[i] = !ps->open[i];
+                break;
+            }
+            case 7: // duplicate
+            {
+                ps->duplicate[i] = !ps->duplicate[i];
                 break;
             }
         }
@@ -573,7 +678,7 @@ void particle_sim_update_charge(struct ParticleSim* ps)
 
             if (link->from == i)
             {
-                float new_charge = ps->charge->values[link->to] + charge;
+                float new_charge = ps->charge->values[link->to] + charge * link->strength;
                 charge_next->values[link->to] = new_charge > 1.f ? 1.f : new_charge;
             }
 

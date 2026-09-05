@@ -41,13 +41,16 @@ struct ParticleSim
     int count;
     int max_count;
     int memory_size;
+    int same_gene_thresh;
     
     float tau;
     float max_vel;
     float max_age;
     
+    int* open;
+    int* duplicate;
     int* code_state;  // Current line being read in the genetic code
-    int** code_memory;
+    int8_t** code_memory;
 
     pstack_t** links;
     pstack_t* link_data;
