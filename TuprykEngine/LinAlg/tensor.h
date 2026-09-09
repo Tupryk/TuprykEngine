@@ -10,7 +10,7 @@ typedef struct
     float* values;
     int volume;
     int is_slice;
-    struct tensor_t* grad;
+    // struct tensor_t* grad;
     
     // This could speed things up in a lot of cases (eg. Inverting). Value needs to be updated in certain cases.
     int type;  // -1: None, 0: diagonal, 1: orthogonal, 2: PSD // TODO: Decide this. Maybe each bit can encode a certain thing? Like positive, etc.

@@ -13,6 +13,7 @@ void init_window();
 void window_clear();
 void window_wait();
 void window_wait_with_func(void (*func)());
+void window_wait_steps_with_func(void (*func)(), int steps, int delay);
 int window_wait_time(float dt);
 void free_window();
 

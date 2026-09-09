@@ -36,16 +36,19 @@ void none(struct ParticleSim* ps, tensor_t* acc) { }
 void ps_loop()
 {
     particle_sim_euler_step(g_ps, none);
-    particle_sim_resolve_collisions(g_ps);
     particle_sim_cap_vels(g_ps);
-    particle_sim_update_energy(g_ps);
-    particle_sim_duplicate_particles(g_ps);
     particle_sim_wrap_pos(g_ps, 64.f);
-    particle_sim_run_genes(g_ps);
+    
     particle_sim_resolve_links(g_ps);
-    particle_sim_distribute_energy(g_ps);
+    particle_sim_resolve_collisions(g_ps);
     particle_sim_break_links(g_ps);
+    
+    particle_sim_update_energy(g_ps);
+    particle_sim_distribute_energy(g_ps);
+    particle_sim_duplicate_particles(g_ps);
+
     particle_sim_update_charge(g_ps);
+    particle_sim_run_genes(g_ps);
 
     tensor_fill(g_ps->age, 1.f);
     tensor_fill(g_ps->energy, 0.25f);

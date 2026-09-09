@@ -83,5 +83,6 @@ void particle_sim_resolve_links(struct ParticleSim* ps);
 void particle_sim_distribute_energy(struct ParticleSim* ps);
 void particle_sim_break_links(struct ParticleSim* ps);
 void particle_sim_update_charge(struct ParticleSim* ps);
+void particle_sim_step(struct ParticleSim* ps);
 
 #endif

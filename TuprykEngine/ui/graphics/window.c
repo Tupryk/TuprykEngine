@@ -67,6 +67,24 @@ void window_wait_with_func(void (*func)())
     }
 }
 
+void window_wait_steps_with_func(void (*func)(), int steps, int delay)
+{
+    SDL_Event e;
+    for (int i = 0; i < steps; i++)
+    {
+        while (SDL_PollEvent(&e)) { }
+
+        func();
+
+        SDL_RenderPresent(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_Delay(delay);
+    }
+}
+
 int window_wait_time(float dt)
 {
     SDL_Event e;

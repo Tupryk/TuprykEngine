@@ -65,10 +65,10 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
 
     tensor_fill_uniform(ps->pos, -50.f, 50.f);
     tensor_fill_uniform(ps->color, 0.5f, 1.f);
-    tensor_fill_uniform(ps->sizes, 0.25f, 2.f);
+    tensor_fill_uniform(ps->sizes, 2.f, 3.f);
     tensor_fill_uniform(ps->age, 0.f, 5.f);
     tensor_fill_uniform(ps->last_read, 0.f, 5.f);
-    for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.7f;
+    for (int i = 0; i < init_particle_count; i++) ps->energy->values[i] = 0.25f;
 
     ps->dead = int_stack_init();
     for (int i = ps->count; i < ps->max_count; i++) int_stack_push(ps->dead, i);
@@ -99,6 +99,25 @@ void particle_sim_free(struct ParticleSim* ps)
     free(ps->open);
     free(ps->duplicate);
     free(ps);
+}
+
+void none(struct ParticleSim* ps, tensor_t* acc) { }
+void particle_sim_step(struct ParticleSim* ps)
+{
+    particle_sim_euler_step(ps, none);
+    particle_sim_cap_vels(ps);
+    particle_sim_wrap_pos(ps, 64.f);
+    
+    particle_sim_resolve_links(ps);
+    particle_sim_resolve_collisions(ps);
+    particle_sim_break_links(ps);
+    
+    particle_sim_update_energy(ps);
+    particle_sim_distribute_energy(ps);
+    particle_sim_duplicate_particles(ps);
+
+    particle_sim_update_charge(ps);
+    particle_sim_run_genes(ps);
 }
 
 // void particle_sim_rk4_step(struct ParticleSim* ps, void (*dydt)(struct ParticleSim*, tensor_t*))
@@ -135,7 +154,7 @@ int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_siz
     // TODO: Maybe this is not the best way to compare genes...
     int total = 0;
 
-    for (size_t i = 0; i < memory_size; i++)
+    for (int i = 0; i < memory_size; i++)
     {
         uint8_t x = (uint8_t) genes_a[i] ^ (uint8_t) genes_b[i];
 
@@ -145,11 +164,6 @@ int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_siz
         }
     }
 
-    for (int i = 0; i < 64; i++) printf("%d, ", genes_a[i]);
-    printf("\n");
-    for (int i = 0; i < 64; i++) printf("%d, ", genes_b[i]);
-    printf("\n");
-    printf("%d\n", total);
     return total;
 }
 
@@ -229,6 +243,10 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
                 v2[2] += impulse[2] / mass;
             }
 
+            // TODO: Compute momentum. If above a certain threshhold lower cell energy (cell damaged).
+            // TODO: If a cell gets squished between two other cells (or a wall) lower the energy. (With respect to cell density?).
+            // TODO: Nerons don't have to be in contact to form a link.
+
             // Link if matching genes
             if (ps->open[i] && ps->open[j])
             {
@@ -293,12 +311,22 @@ void particle_sim_cap_vels(struct ParticleSim* ps)
 
 void particle_sim_wrap_pos(struct ParticleSim* ps, float bounds)
 {
+    // TODO: Reflect velocity with respect to the normal like in the regular collisions
     float* pos = ps->pos->values;
+    float* vel = ps->vel->values;
 
     for (int i = 0; i < ps->max_count * 3; i++)
     {
-        if (pos[i] > bounds) pos[i] = bounds;
-        if (pos[i] < -bounds) pos[i] = -bounds;
+        if (pos[i] > bounds)
+        {
+            pos[i] = bounds;
+            if (vel[i] > 0.f) vel[i] *= -0.5f;
+        }
+        if (pos[i] < -bounds)
+        {
+            pos[i] = -bounds;
+            if (vel[i] < 0.f) vel[i] *= -0.5f;
+        }
     }
 }
 
@@ -327,11 +355,11 @@ void particle_sim_remove_dead_links(struct ParticleSim* ps, int particle_id)
 
 void particle_sim_update_energy(struct ParticleSim* ps)
 {
-    float base_weight = 0.05f;
+    float base_weight = 0.01f;
     
     float sun_effect = -10.f;  // Barrier on z-axis
     float sun_max_effect = 50.f;
-    float sun_weight = 0.2f;
+    float sun_weight = 0.025f;
 
     float* energy = ps->energy->values;
     tensor_scalar_add(ps->age, ps->tau, ps->age);
@@ -368,8 +396,8 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
 {
     if (ps->count == ps->max_count) return;
 
-    float duplicate_thresh = 0.7f;
-    float duplicate_cost = 0.1f;
+    float duplicate_thresh = 0.8f;
+    float duplicate_cost = 0.5f;
 
     float* energy = ps->energy->values;
 
@@ -413,10 +441,10 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         ps->last_read->values[j] = 0.f;
         ps->open[j] = 0;
         ps->duplicate[j] = 1;
-        memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int));
+        memcpy(ps->code_memory[j], ps->code_memory[i], ps->memory_size * sizeof(int8_t));
         
         int mutated_line_count = rand() % 5;
-        int* child_memory = ps->code_memory[j];
+        int8_t* child_memory = ps->code_memory[j];
         for (int j = 0; j < mutated_line_count; j++)
         {
             int line_num = rand() % ps->memory_size;
@@ -427,7 +455,7 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
             child_memory[line_num] %= ps->memory_size;
         }
 
-        energy[j] = 0.5f;
+        energy[j] = 0.2f;
         ps->charge->values[j] = 0.f;
         ps->charge_cooldown->values[j] = 0.f;
 
@@ -435,11 +463,12 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         ps->count++;
         if (ps->count == ps->max_count) return;
     }
-    tensor_clip(ps->sizes, 0.1f, 2.5f);
+    tensor_clip(ps->sizes, 2.f, 3.f);
 }
 
 void particle_sim_run_genes(struct ParticleSim* ps)
 {
+    // TODO: Genetic code to asm code printing :D
     float read_cooldown = 0.f;
     for (int i = 0; i < ps->max_count; i++)
     {
@@ -562,24 +591,23 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
             
             int idx = (link->from == i) ? link->to : link->from;
             if (idx < i || ps->energy->values[idx] <= 0.f) continue;
-    
-            float size_i = ps->sizes->values[i];
-            float target = ps->sizes->values[idx] + size_i;
-    
+            
             int i3 = i * 3;
             int l3 = idx * 3;
-    
+            
             float dl[3] = {
                 ps->pos->values[l3]   - ps->pos->values[i3],
                 ps->pos->values[l3+1] - ps->pos->values[i3+1],
                 ps->pos->values[l3+2] - ps->pos->values[i3+2]
             };
-    
+            
             float dist  = sqrtf(dl[0]*dl[0] + dl[1]*dl[1] + dl[2]*dl[2]);
+            float target_dist = ps->sizes->values[idx] + ps->sizes->values[i];
+            
+            float scale  = (target_dist  - dist)  / dist  * 0.5f;
     
-            float scale  = (target  - dist)  / dist  * 0.5f;
-    
-            for (int c = 0; c < 3; c++) {
+            for (int c = 0; c < 3; c++)
+            {
                 float f  = dl[c] * scale;
     
                 pos_delta->values[i3+c] -= f;
@@ -649,7 +677,7 @@ void particle_sim_break_links(struct ParticleSim* ps)
 
         float desired_dist = r1 + r2;
         float offset = fabsf(dist - desired_dist);
-
+        
         if (offset > desired_dist * link->relative_tolerance)
         {
             stack_pop_elem(ps->link_data, link->data_elem);
@@ -688,7 +716,6 @@ void particle_sim_update_charge(struct ParticleSim* ps)
                 float new_charge = ps->charge->values[link->to] + charge * link->strength;
                 charge_next->values[link->to] = new_charge > 1.f ? 1.f : new_charge;
             }
-
         }
     }
     tensor_transfer_values(ps->charge, charge_next);

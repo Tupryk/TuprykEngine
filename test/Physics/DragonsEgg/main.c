@@ -18,28 +18,22 @@ int g_point_count = 100;
 int g_max_point_count = 500;
 tensor_t* cam_pos = NULL;
 
-void none(struct ParticleSim* ps, tensor_t* acc) { }
+int show_every = 10000;
+int show_for = 500;
 
-void ps_loop()
+void print_timestep()
 {
-    particle_sim_euler_step(g_ps, none);
-    particle_sim_resolve_collisions(g_ps);
-    particle_sim_cap_vels(g_ps);
-    particle_sim_update_energy(g_ps);
-    particle_sim_duplicate_particles(g_ps);
-    particle_sim_wrap_pos(g_ps, 64.f);
-    particle_sim_run_genes(g_ps);
-    particle_sim_resolve_links(g_ps);
-    particle_sim_distribute_energy(g_ps);
-    particle_sim_break_links(g_ps);
-    particle_sim_update_charge(g_ps);
-
-    tensor_fill(g_ps->age, 1.f);
-    tensor_fill(g_ps->energy, 0.25f);
-
-    render_ps(g_ps, cam_pos);
-    
     printf("Time %d (%gs) - Particle count: %d/%d\n", g_ps->t, ((float)g_ps->t) * g_ps->tau, g_ps->count, g_ps->max_count);
+}
+
+void ps_step_render()
+{
+    particle_sim_step(g_ps);
+    render_ps(g_ps, cam_pos);
+    if (g_ps->t % 10 == 0)
+    {
+        print_timestep();
+    }
 }
 
 int test_particle_sim()
@@ -49,8 +43,20 @@ int test_particle_sim()
 
     g_ps = particle_sim_init(g_point_count, g_max_point_count);
 
-    window_wait_with_func(ps_loop);
-    // while (1) ps_loop();
+    while (1)
+    {
+        // Render current state
+        init_window();
+        window_wait_steps_with_func(ps_step_render, show_for, 16);
+        free_window();
+        
+        // Step sim without rendering
+        for (int i = show_for; i < show_every; i++)
+        {
+            particle_sim_step(g_ps);
+            if (g_ps->t % 1000 == 0) print_timestep();
+        }
+    }
 
     particle_sim_free(g_ps);
     tensor_free(cam_pos);
@@ -61,8 +67,6 @@ int main()
 {
     srand( time( NULL ) );
 
-    init_window();
-
     int failures_count = 0;
     failures_count += test_particle_sim();
 
@@ -71,7 +75,6 @@ int main()
     } else {
         printf("\033[1;32mAll tests passed! :)\033[0m\n");
     }
-
-    free_window();
+    
     return 0;
 }

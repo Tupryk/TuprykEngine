@@ -31,7 +31,7 @@ tensor_t* new_tensor(int* shape, int shape_dim, float* values)
     #endif
 
     tensor_t* t = (tensor_t*) malloc(sizeof(tensor_t));
-    t->grad = NULL;
+    // t->grad = NULL;
     t->is_slice = 0;
 
     t->shape_dim = shape_dim;
@@ -184,7 +184,7 @@ void tensor_transfer_all(tensor_t* to, tensor_t* from)
 
 void tensor_free(tensor_t* t)
 {
-    if (t->grad != NULL) tensor_free(t->grad);
+    // if (t->grad != NULL) tensor_free(t->grad);
     if (!t->is_slice) free(t->values);
     free(t->shape);
     free(t);
