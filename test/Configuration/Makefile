@@ -3,7 +3,8 @@ CFLAGS = -Wall -Wextra -g `sdl2-config --cflags`
 LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
-	../../TuprykEngine/LinAlg/*.c \
+	../../TuprykEngine/LinAlg/tensor.c \
+	../../TuprykEngine/LinAlg/sparse.c \
 	../../TuprykEngine/ui/prints/*.c \
 	../../TuprykEngine/ui/graphics/*.c \
 	../../TuprykEngine/Kinematics/*.c \

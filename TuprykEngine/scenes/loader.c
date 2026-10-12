@@ -5,8 +5,18 @@
 #include "loader.h"
 
 
-void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, int* current_id)
+struct children_list
 {
+    int count;
+    int* ids;
+};
+
+struct children_list read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, int* current_id)
+{
+    struct children_list cl;
+    cl.count = 0;
+    cl.ids = NULL;
+
     char line[256];
     while (fgets(line, sizeof(line), file))
     {
@@ -50,38 +60,28 @@ void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, i
 
         else if (strchr(line, '}'))
         {
-            return;
+            return cl;
         }
 
-        else if (strstr(line, "type:"))
+        else if (strstr(line, "radius:"))
         {
-            char type_str[16];
-
-            if (sscanf(line, " type: %15s", type_str) == 1)
+            float radius;
+            if (sscanf(line, " radius: %f;", &radius) == 1)
             {
-                if (strcmp(type_str, "ball") == 0)
-                {
-                    printf("It's a ball!\n");
-                }
-                else if (strcmp(type_str, "free") == 0)
-                {
-                    printf("It's free!\n");
-                }
+                geom_t* ball_geom = (geom_t*) new_frame->data;
+                *(float*)ball_geom->mesh = radius;
+                ball_geom->mass = radius;
+                
+                tensor_free(ball_geom->inertia);
+                float Ii = 2.f/5.f * ball_geom->mass * radius*radius;
+                float inertia_values[] = {Ii, Ii, Ii};
+                ball_geom->inertia = new_tensor_diagonal(3, inertia_values);
             }
         }
 
-        // else if (strstr(line, "radius"))
-        // {
-        //     float r;
-
-        //     if (sscanf(line, " radius = %f;", &r) == 1)
-        //     {
-        //         printf("Radius = %f\n", r);
-        //     }
-        // }
-
         else if (strchr(line, '(') && strchr(line, ')'))
         {
+            // New frame!
             float pos[] = {0.f, 0.f, 0.f};
             float rot[] = {1.f, 0.f, 0.f, 0.f};
 
@@ -94,8 +94,10 @@ void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, i
                 continue;
             }
 
-            frame *child = frame_init(name, pos, rot);
+            frame_t* child = frame_init(name, pos, rot);
             child->parent = new_frame_id;
+            child->pos_rel = tensor_copy(child->pos);
+            child->rot_rel = tensor_copy(child->rot);
 
             // 0: Marker, 1: Geometry, 2: Camera, 3: Light, 4: Joint
             if (strcmp(type_str, "mark") == 0)
@@ -109,6 +111,7 @@ void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, i
                 geom_t* ball_geom = (geom_t*) malloc(sizeof(geom_t));
     
                 ball_geom->type = 0;
+                float radius = 1.f;
                 
                 ball_geom->mesh = (void*) malloc(sizeof(float));
                 *(float*)ball_geom->mesh = radius;
@@ -130,9 +133,9 @@ void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, i
                 ball_geom->tex->shininess = 10.f;
                 ball_geom->tex->reflectance = 0.f;
     
-                geom->tex->reflectance = 0.2f;
+                ball_geom->tex->reflectance = 0.2f;
     
-                child->data = (void*) geom;
+                child->data = (void*) ball_geom;
             }
             else if (strcmp(type_str, "cam") == 0)
             {
@@ -172,9 +175,18 @@ void read_frame(config_t* C, FILE *file, frame_t* new_frame, int new_frame_id, i
 
             (*current_id)++;
             C->frames[*current_id] = child;
-            read_frame(C, file, child, (*current_id), current_id);
+    
+            if (cl.ids == NULL) cl.ids = (int*) malloc(sizeof(int));
+            else cl.ids = realloc(cl.ids, sizeof(int) * cl.count+1);
+            cl.ids[cl.count] = *current_id;
+            cl.count++;
+
+            struct children_list ccl = read_frame(C, file, child, (*current_id), current_id);
+            child->children_count = ccl.count;
+            child->children = ccl.ids;
         }
     }
+    return cl;
 }
 
 config_t* load_scene(const char* path)
@@ -225,7 +237,60 @@ config_t* load_scene(const char* path)
 
     // Recursively go through frames
     rewind(file);
-    read_frame(C, file, root, 0, &frame_counter);
+    struct children_list cl = read_frame(C, file, root, 0, &frame_counter);
+    root->children_count = cl.count;
+    root->children = cl.ids;
+
+    // Fill in joint array and qs
+    int q_dim = 0;
+    int q_vel_dim = 0;
+    C->joints = NULL;
+    for (int i = 0; i < C->frame_count; i++)
+    {
+        if (C->frames[i]->type == 4)
+        {
+            C->joints_count++;
+            joint_t* joint_data = C->frames[i]->data;
+            int joint_type = joint_data->type;
+            if (joint_type == 0 || joint_type == 1 || joint_type == 2)
+            {
+                q_dim++;
+                q_vel_dim++;
+            }
+            else if (joint_type == 3)
+            {
+                q_dim += 7;
+                q_vel_dim += 6;
+            }
+            #ifdef DEBUG
+            else
+            {
+                printf("Invalid joint type!\n");
+                exit(EXIT_FAILURE);
+            }
+            #endif
+        }
+    }
+    int index = 0;
+    if (C->joints_count)
+    {
+        C->joints = (int*) malloc(sizeof(int)*C->joints_count);
+        for (int i = 0; i < C->frame_count; i++)
+        {
+            if (C->frames[i]->type == 4)
+            {
+                C->joints[index] = i;
+                index++;
+            }
+        }
+    }
+    
+    C->q = new_tensor_vector(q_dim, NULL);
+    C->q_min = new_tensor_vector(q_dim, NULL);
+    C->q_max = new_tensor_vector(q_dim, NULL);
+    C->q_vel = new_tensor_vector(q_vel_dim, NULL);
+    tensor_fill(C->q_min, -1.f);
+    tensor_fill(C->q_max, 1.f);
 
     fclose(file);
     return C;

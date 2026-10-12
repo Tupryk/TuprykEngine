@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "../LinAlg/tensor.h"
 #include "../Stochastic/sample.h"
 
 
+// TODO: Limit on how often a cell can mutate? (Hayflick limit)
 void particle_sim_gen_init_gene_pool(struct ParticleSim* ps)
 {
     int init_mutation_count = 16;
@@ -31,8 +33,10 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->t = 0;
     ps->tau = 0.01f;
     ps->max_vel = 100.f;
-    ps->max_age = 1000.f;
+    ps->max_age = 1000000.f;
+    ps->max_food_age = 10.f;
     ps->memory_size = 64;
+    ps->command_count = 8;
     ps->same_gene_thresh = (int) ((float) ps->memory_size * ((float) sizeof(int8_t)) * 0.1f);
     
     ps->open = (int*) malloc(sizeof(int) * ps->max_count);
@@ -63,8 +67,8 @@ struct ParticleSim* particle_sim_init(int init_particle_count, int max_particle_
     ps->charge = new_tensor_vector(max_particle_count, NULL);
     ps->charge_cooldown = new_tensor_vector(max_particle_count, NULL);
 
-    tensor_fill_uniform(ps->pos, -50.f, 50.f);
-    tensor_fill_uniform(ps->color, 0.5f, 1.f);
+    tensor_fill_uniform(ps->pos, -100.f, 100.f);
+    tensor_fill_uniform(ps->color, 0.f, 1.f);
     tensor_fill_uniform(ps->sizes, 2.f, 3.f);
     tensor_fill_uniform(ps->age, 0.f, 5.f);
     tensor_fill_uniform(ps->last_read, 0.f, 5.f);
@@ -104,6 +108,7 @@ void particle_sim_free(struct ParticleSim* ps)
 void none(struct ParticleSim* ps, tensor_t* acc) { }
 void particle_sim_step(struct ParticleSim* ps)
 {
+    // TODO: Should a next_ps struct exist for better smoother steps?
     particle_sim_euler_step(ps, none);
     particle_sim_cap_vels(ps);
     particle_sim_wrap_pos(ps, 64.f);
@@ -118,6 +123,8 @@ void particle_sim_step(struct ParticleSim* ps)
 
     particle_sim_update_charge(ps);
     particle_sim_run_genes(ps);
+    
+    ps->t++;
 }
 
 // void particle_sim_rk4_step(struct ParticleSim* ps, void (*dydt)(struct ParticleSim*, tensor_t*))
@@ -131,6 +138,7 @@ void particle_sim_step(struct ParticleSim* ps)
 //     ps->t++;
 // }
 
+// void particle_sim_euler_step(float* pos, float* vel, void (*dydt)(struct ParticleSim*, tensor_t*), float tau, int particle_id)
 void particle_sim_euler_step(struct ParticleSim* ps, void (*dydt)(struct ParticleSim*, tensor_t*))
 {
     tensor_t* tmp = tensor_copy_shape(ps->pos);
@@ -143,8 +151,6 @@ void particle_sim_euler_step(struct ParticleSim* ps, void (*dydt)(struct Particl
     dydt(ps, tmp);
     tensor_scalar_mult(tmp, ps->tau, tmp);
     tensor_add(ps->vel, tmp, ps->vel);
-
-    ps->t++;
 
     tensor_free(tmp);
 }
@@ -167,6 +173,19 @@ int particle_sim_diff_gene_bits(int8_t* genes_a, int8_t* genes_b, int memory_siz
     return total;
 }
 
+void particle_sim_eat_cell(struct ParticleSim* ps, int eater, int food)
+{
+    // Update Eater
+    float prev_energy = ps->energy->values[eater];
+    ps->energy->values[eater] += ps->sizes->values[food];
+    if (ps->energy->values[eater] > 1.f) ps->energy->values[eater] = 1.f;
+    
+    // Update Food
+    float energy_gained = ps->energy->values[eater] - prev_energy;
+    ps->sizes->values[food] -= energy_gained;
+    if (ps->sizes->values[food] < 1.f) ps->age->values[food] = ps->max_age + ps->max_food_age;
+}
+
 void particle_sim_resolve_collisions(struct ParticleSim* ps)
 {
     // TODO: use pos_delta and vel_delta and combine with link resolution
@@ -175,15 +194,16 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
     float rel_vel[3];
     float dist_vec[3];
     float restitution = 1.f;
-    float mass = 1.f;
+    float aa = ps->max_age + ps->max_food_age;  // TODO: remove aa variable everywhere ps->max_age = ps->max_age_alive + ps->max_age_food
+    float* age = ps->age->values;
 
     for (int i = 0; i < ps->max_count; i++)
     {
-        if (ps->energy->values[i] <= 0.f) continue;
+        if (age[i] >= aa) continue;
 
         for (int j = i+1; j < ps->max_count; j++)
         {
-            if (ps->energy->values[j] <= 0.f) continue;
+            if (age[i] >= aa) continue;
 
             float* p1 = &ps->pos->values[i*3];
             float* p2 = &ps->pos->values[j*3];
@@ -200,7 +220,16 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
                 dist_vec[2] * dist_vec[2]
             );
 
-            if (dist > r1 + r2 || fabsf(dist) < 0.001f) continue;
+            if (dist > r1 + r2 || fabsf(dist) < 0.001f) continue;  // No collision!
+
+            // Feed
+            int is_food1 = age[i] >= ps->max_age;
+            int is_food2 = age[j] >= ps->max_age;
+            if (is_food1 ^ is_food2)
+            {
+                if (is_food1) particle_sim_eat_cell(ps, j, i);
+                else particle_sim_eat_cell(ps, i, j);
+            }
 
             // Resolve Position
             normal[0] = dist_vec[0] / dist;
@@ -227,45 +256,55 @@ void particle_sim_resolve_collisions(struct ParticleSim* ps)
 
             if (vel_dot <= 0.f)
             {
-                float mm = 1.f / mass + 1.f / mass;
+                float mass1 = ps->sizes->values[i];
+                float mass2 = ps->sizes->values[j];
+                
+                float mm = 1.f / mass1 + 1.f / mass2;
                 float tmp = -(1.f + restitution) * vel_dot / mm;
 
                 impulse[0] = tmp * normal[0];
                 impulse[1] = tmp * normal[1];
                 impulse[2] = tmp * normal[2];
 
-                v1[0] -= impulse[0] / mass;
-                v1[1] -= impulse[1] / mass;
-                v1[2] -= impulse[2] / mass;
+                v1[0] -= impulse[0] / mass1;
+                v1[1] -= impulse[1] / mass1;
+                v1[2] -= impulse[2] / mass1;
 
-                v2[0] += impulse[0] / mass;
-                v2[1] += impulse[1] / mass;
-                v2[2] += impulse[2] / mass;
+                v2[0] += impulse[0] / mass2;
+                v2[1] += impulse[1] / mass2;
+                v2[2] += impulse[2] / mass2;
             }
 
             // TODO: Compute momentum. If above a certain threshhold lower cell energy (cell damaged).
             // TODO: If a cell gets squished between two other cells (or a wall) lower the energy. (With respect to cell density?).
             // TODO: Nerons don't have to be in contact to form a link.
 
-            // Link if matching genes
-            if (ps->open[i] && ps->open[j])
+            // Are the cells linked?
+            int linked = 0;
+            struct stack_elem* current_elem = ps->links[i]->next;
+            while (current_elem != NULL)
             {
-                int linked = 0;
-                struct stack_elem* current_elem = ps->links[i]->next;
-                while (current_elem != NULL)
-                {
-                    link_t* link = (link_t*) current_elem->data;
-    
-                    if (
-                        (link->from == i && link->to == j) ||
-                        (link->from == j && link->to == i)
-                    ) {
-                        linked = 1;
-                        break;
-                    }
-                    current_elem = current_elem->next;
+                link_t* link = (link_t*) current_elem->data;
+                
+                if (
+                    (link->from == i && link->to == j) ||
+                    (link->from == j && link->to == i)
+                ) {
+                    linked = 1;
+                    break;
                 }
-                if (!linked)
+                current_elem = current_elem->next;
+            }
+            
+            if (!linked)
+            {
+                // Contact sensing
+                // TODO: Depending on the force it should activate more or less.
+                ps->charge->values[i] = 1.f;
+                ps->charge->values[j] = 1.f;
+
+                // Link if both cells are open and have matching genes
+                if (ps->open[i] && ps->open[j])
                 {
                     int total_diff = particle_sim_diff_gene_bits(ps->code_memory[i], ps->code_memory[j], ps->memory_size);
                     if (total_diff < ps->same_gene_thresh)
@@ -362,31 +401,44 @@ void particle_sim_update_energy(struct ParticleSim* ps)
     float sun_weight = 0.025f;
 
     float* energy = ps->energy->values;
-    tensor_scalar_add(ps->age, ps->tau, ps->age);
+    float* age = ps->age->values;
 
     for (int i = 0; i < ps->max_count; i++)
     {
-        if (energy[i] <= 0.f) continue;
-
-        float* pos = &ps->pos->values[i * 3];
-        
-        // Minus Energy
-        energy[i] -= base_weight * ps->tau;
-
-        // Plus Energy
-        if (pos[2] > sun_effect)
+        if (energy[i] > 0.f)
         {
-            float sun_energy = (pos[2] - sun_effect) / (sun_max_effect - sun_effect);
-            if (sun_energy > 1.f) sun_energy = 1.f;
-            energy[i] += sun_energy * sun_weight * ps->tau;
+            float* pos = &ps->pos->values[i * 3];
+            
+            // Minus Energy
+            energy[i] -= base_weight * ps->tau;
+
+            // Plus Energy
+            if (pos[2] > sun_effect)
+            {
+                float sun_energy = (pos[2] - sun_effect) / (sun_max_effect - sun_effect);
+                if (sun_energy > 1.f) sun_energy = 1.f;
+                energy[i] += sun_energy * sun_weight * ps->tau;
+            }
+            
+            // Cell Death
+            if (ps->age->values[i] >= ps->max_age) energy[i] = 0.f;  // Death from old-age.
+            if (energy[i] <= 0.f)
+            {
+                age[i] = ps->max_age;
+                ps->open[i] = 0;
+                particle_sim_remove_dead_links(ps, i);
+            }
         }
-        
-        if (ps->age->values[i] >= ps->max_age) energy[i] = 0.f;  // Death from old-age.
-        if (energy[i] <= 0.f)
+
+        float aa = ps->max_age + ps->max_food_age;
+        if (age[i] < aa)
         {
-            ps->count--;
-            int_stack_push(ps->dead, i);
-            particle_sim_remove_dead_links(ps, i);
+            age[i] += ps->tau;
+            if (age[i] >= aa)
+            {
+                ps->count--;
+                int_stack_push(ps->dead, i);
+            }
         }
     }
     tensor_clip(ps->energy, 0.f, 1.f);
@@ -436,7 +488,10 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
             if (col_child[c] < 0.f) col_child[c] = 0.f;
         }
 
+        // TODO: muscle cells which retract should still maintain a base size, the retraction is then an offset to this.
         ps->sizes->values[j] = parent_size + rand_uni(-0.1f, 0.1f);
+        if (ps->sizes->values[j] < 2.f) ps->sizes->values[j] = 2.f;
+        if (ps->sizes->values[j] > 3.f) ps->sizes->values[j] = 3.f;
         ps->age->values[j] = 0.f;
         ps->last_read->values[j] = 0.f;
         ps->open[j] = 0;
@@ -463,7 +518,6 @@ void particle_sim_duplicate_particles(struct ParticleSim* ps)
         ps->count++;
         if (ps->count == ps->max_count) return;
     }
-    tensor_clip(ps->sizes, 2.f, 3.f);
 }
 
 void particle_sim_run_genes(struct ParticleSim* ps)
@@ -484,7 +538,8 @@ void particle_sim_run_genes(struct ParticleSim* ps)
         int current_line = ps->code_state[i];
         int next_line = current_line + 1;
 
-        switch (memory[current_line])
+        int command = memory[current_line] % ps->command_count;  // Maybe better for mutations
+        switch (command)
         {
             case 0: // no-op
             {
@@ -546,16 +601,16 @@ void particle_sim_run_genes(struct ParticleSim* ps)
             }
             case 5: // contract
             {
-                float expansion_speed = 0.75f;
-                int i3 = i * 3;
-                if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
-                {
-                    float delta = expansion_speed * ps->tau;
-                    ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
-                    if (ps->sizes->values[i] < 0.25) ps->sizes->values[i] = 0.25;
-                    if (ps->sizes->values[i] > 1.0) ps->sizes->values[i] = 1.0;
-                }
-                ps->last_read->values[i] = read_cooldown;
+                // float expansion_speed = 0.75f;
+                // int i3 = i * 3;
+                // if (ps->color->values[i3+1] < 1.f && ps->color->values[i3+2] < 1.f)
+                // {
+                //     float delta = expansion_speed * ps->tau;
+                //     ps->sizes->values[i] += ((ps->t + 1) / 100) % 2 ? -delta : delta;
+                //     if (ps->sizes->values[i] < 0.25) ps->sizes->values[i] = 0.25;
+                //     if (ps->sizes->values[i] > 1.0) ps->sizes->values[i] = 1.0;
+                // }
+                // ps->last_read->values[i] = read_cooldown;
                 break;
             }
             case 6: // open / close
@@ -595,6 +650,7 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
             int i3 = i * 3;
             int l3 = idx * 3;
             
+            // Resolve Position
             float dl[3] = {
                 ps->pos->values[l3]   - ps->pos->values[i3],
                 ps->pos->values[l3+1] - ps->pos->values[i3+1],
@@ -606,13 +662,13 @@ void particle_sim_resolve_links(struct ParticleSim* ps)
             
             float scale  = (target_dist  - dist)  / dist  * 0.5f;
     
-            for (int c = 0; c < 3; c++)
-            {
-                float f  = dl[c] * scale;
-    
-                pos_delta->values[i3+c] -= f;
-                pos_delta->values[l3+c] += f;
-            }
+            pos_delta->values[i3  ] -= dl[0] * scale;
+            pos_delta->values[i3+1] -= dl[1] * scale;
+            pos_delta->values[i3+2] -= dl[2] * scale;
+
+            pos_delta->values[l3  ] += dl[0] * scale;
+            pos_delta->values[l3+1] += dl[1] * scale;
+            pos_delta->values[l3+2] += dl[2] * scale;
         }
     }
     tensor_add(ps->pos, pos_delta, ps->pos);
@@ -691,13 +747,13 @@ void particle_sim_break_links(struct ParticleSim* ps)
 void particle_sim_update_charge(struct ParticleSim* ps)
 {
     float charge_tau = 0.5f;
-    float decharge_thresh = 0.5;
+    float discharge_thresh = 0.5;
     tensor_t* charge_next = tensor_copy(ps->charge);
     for (int i = 0; i < ps->max_count; i++)
     {
         if (
             ps->energy->values[i] <= 0.f ||
-            ps->charge->values[i] < decharge_thresh ||
+            ps->charge->values[i] < discharge_thresh ||
             ps->charge_cooldown->values[i] < charge_tau
         ) continue;
 

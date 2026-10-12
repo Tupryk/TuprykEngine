@@ -377,7 +377,7 @@ void config_free(config_t* C)
             force_t* F = (force_t*) stack_pop(C->forces);
             force_free(F);
         }
-        stack_free(C->forces);
+        stack_free(C->forces, NULL);
     }
     free(C);
 }

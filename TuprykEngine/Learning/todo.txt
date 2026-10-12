@@ -4,3 +4,5 @@
 - Conv2d
 - LSTM
 - Boltzmann machine
+- Graph NN
+- GAN

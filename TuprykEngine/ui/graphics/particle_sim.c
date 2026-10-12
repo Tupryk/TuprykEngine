@@ -1,79 +1,54 @@
 #include <stdio.h>
 
 #include "particle_sim.h"
-#include "../../../TuprykEngine/ui/graphics/window.h"
-#include "../../../TuprykEngine/ui/graphics/basic.h"
+#include "../../../TuprykEngine/ui/graphics/ogl.h"
 
 
-void render_ps(struct ParticleSim* ps, tensor_t* cam_pos)
+void render_ps(struct ParticleSim* ps)
 {
-    float max_dist = 2000.f;
-    float points_2d[ps->max_count][2];
+    float aa = ps->max_age + ps->max_food_age;
 
+    /* Draw particles */
     for (int i = 0; i < ps->max_count; i++)
     {
-        if (ps->energy->values[i] <= 0.f) continue;
+        if (ps->age->values[i] >= aa) continue; /* skip dead particles */
         int i3 = i * 3;
-        
+
         float px = ps->pos->values[i3];
         float py = ps->pos->values[i3 + 1];
         float pz = ps->pos->values[i3 + 2];
 
-        float cam_dist_vec[] = {
-            px - cam_pos->values[0],
-            py - cam_pos->values[1],
-            pz - cam_pos->values[2]
-        };
-        float cam_dist = sqrtf(
-            cam_dist_vec[0] * cam_dist_vec[0] +
-            cam_dist_vec[1] * cam_dist_vec[1] +
-            cam_dist_vec[2] * cam_dist_vec[2]
-        );
+        float r = ps->color->values[i3];
+        float g = ps->color->values[i3 + 1];
+        float b = ps->color->values[i3 + 2];
 
-        if (
-            (
-                cam_dist_vec[1] > 0.f && cam_dist > 0.01f && cam_dist < max_dist
-            ) &&
-            (
-                px / cam_dist_vec[1] < 1.1f && px / cam_dist_vec[1] > -1.1f &&
-                pz / cam_dist_vec[1] < 1.1f && pz / cam_dist_vec[1] > -1.1f
-            )
-        )
+        float radius = ps->sizes->values[i];
+
+        if (ps->age->values[i] < ps->max_age)
         {
-            float intensity = 1.f - cam_dist / max_dist;
-            set_rgba(
-                ps->color->values[i3] * intensity,
-                ps->color->values[i3+1] * intensity,
-                ps->color->values[i3+2] * intensity,
-                0.25f + 0.5f * ps->charge->values[i]
-            );
-
-            points_2d[i][0] = px / cam_dist_vec[1] * WINDOW_W + WINDOW_W * .5f;
-            points_2d[i][1] = WINDOW_H - (pz / cam_dist_vec[1] * WINDOW_H + WINDOW_H * .5f);
-            draw_circle(
-                points_2d[i][0], points_2d[i][1],
-                ps->sizes->values[i] / cam_dist_vec[1] * WINDOW_W
-            );
-
-            set_rgba(1.f, 1.f, 1.f, 0.5f);
-            draw_circle(
-                points_2d[i][0], points_2d[i][1],
-                (ps->sizes->values[i] * ps->energy->values[i]) / cam_dist_vec[1] * WINDOW_W
-            );
+            ogl_draw_sphere(px, py, pz, radius, r, g, b);
+        }
+        else
+        {
+            ogl_draw_sphere(px, py, pz, radius, 0.f, 0.8f, 0.f);
         }
     }
 
-    // Draw links
+    /* Draw links as semi-transparent white lines between particles */
     struct stack_elem* current_elem = ps->link_data->next;
     while (current_elem != NULL)
     {
         link_t* link = (link_t*) current_elem->data;
         current_elem = current_elem->next;
 
-        set_rgba(1.f, 1.f, 1.f, 0.7f);
-        draw_line_px(
-            points_2d[link->from][0], points_2d[link->from][1],
-            points_2d[link->to][0], points_2d[link->to][1]
-        );
+        int from = link->from;
+        int to = link->to;
+
+        int f3 = from * 3;
+        int t3 = to * 3;
+
+        ogl_draw_line(ps->pos->values[f3], ps->pos->values[f3 + 1], ps->pos->values[f3 + 2],
+                      ps->pos->values[t3], ps->pos->values[t3 + 1], ps->pos->values[t3 + 2],
+                      1.f, 1.f, 1.f, 0.7f);
     }
 }

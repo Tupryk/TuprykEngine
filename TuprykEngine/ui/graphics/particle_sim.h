@@ -4,6 +4,6 @@
 #include "../../LinAlg/tensor.h"
 #include "../../Physics/particle.h"
 
-void render_ps(struct ParticleSim* ps, tensor_t* cam_pos);
+void render_ps(struct ParticleSim* ps);
 
 #endif

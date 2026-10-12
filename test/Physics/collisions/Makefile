@@ -4,6 +4,7 @@ LDFLAGS = `sdl2-config --libs` -lm
 
 SRCS = main.c \
 	../../../TuprykEngine/LinAlg/tensor.c \
+	../../../TuprykEngine/LinAlg/sparse.c \
 	../../../TuprykEngine/ui/prints/linalg.c \
 	../../../TuprykEngine/ui/graphics/window.c \
 	../../../TuprykEngine/ui/graphics/basic.c \
@@ -23,7 +24,7 @@ SRCS = main.c \
 OBJS = $(SRCS:.c=.o)
 TARGET = p
 
-all: $(TARGET)
+all: clean $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -33,3 +34,5 @@ $(TARGET): $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean

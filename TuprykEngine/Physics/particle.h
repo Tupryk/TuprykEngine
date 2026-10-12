@@ -42,10 +42,12 @@ struct ParticleSim
     int max_count;
     int memory_size;
     int same_gene_thresh;
+    int command_count;
     
     float tau;
     float max_vel;
     float max_age;
+    float max_food_age;
     
     int* open;
     int* duplicate;

@@ -5,7 +5,7 @@ ball1_joint(joint)
     ball1_geom(geom)
     {
         type: ball
-        radius = 0.1
+        radius: 0.1
     }
 }
 
@@ -16,6 +16,6 @@ ball2_joint(joint)
     ball2_geom(geom)
     {
         type: ball
-        radius = 0.1
+        radius: 0.1
     }
 }
