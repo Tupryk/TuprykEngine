@@ -29,7 +29,7 @@
 int generation_count = 1000;  // 1000
 int best_agent_idx = 0;
 int pop_size = 30;  // 30
-int resolution = 10;  // 10
+int resolution = 4;  // 10
 float freq = 10.f;
 float amplitud = 1.f;
 
@@ -102,7 +102,10 @@ float eval_agent(int id)
 
     float ep_time = 10.f / freq;  // Num. of cycles times cycle frequency
     int total_steps = ep_time / vs->tau;
-    for (int i = 0; i < total_steps; i++) actuation_step();
+    for (int i = 0; i < total_steps; i++)
+    {
+        actuation_step();
+    }
     
     sim_time = clock() - sim_time;
 
@@ -138,6 +141,7 @@ void evolve_population(population_t* pop)
         for (int j = 0; j < pop->size; j++)
         {
             scores[j] = eval_agent(j);
+            // printf("Evaluating member %d of generation %d... Score: %f\n", j+1, i+1, scores[j]);
         }
 
         // Report generation results

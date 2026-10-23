@@ -182,6 +182,8 @@ struct VoxelSim* voxel_init(float voxel_dim, int self_collision)
     vs->cte = NULL;
     vs->damping_scaler = NULL;
     vs->damping_scaler_rot = NULL;
+
+    vs->coll_pairs = NULL;
     
     vs->color = NULL;
     
@@ -881,7 +883,6 @@ void voxel_integrate(struct VoxelSim* vs)
 void voxel_step(struct VoxelSim* vs)
 {
     clock_t total_time = clock();
-    
     clock_t acc_time = clock();
     voxel_compute_acc(vs);
     acc_time = clock() - acc_time;
