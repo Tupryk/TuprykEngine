@@ -73,17 +73,15 @@ struct VoxelSim
 };
 
 struct VoxelSim* voxel_init(float voxel_dim, int self_collision);
-void voxel_add_sequence(
+void voxel_expand(
     struct VoxelSim* vs,
-    void (*lsystem)(int, int*, float*),
-    int max_steps, int max_voxels,
-    float pos_x, float pos_y, float pos_z
-);
-void voxel_add_implicit(
-    struct VoxelSim* vs,
-    void (*implicit_func)(float*, float*),
-    int resolution,
-    float pos_x, float pos_y, float pos_z
+    int count,
+    float* pos,
+    int* links,
+    float* stiffness,
+    float* cte,
+    int* fixed,
+    float* color
 );
 void voxel_free(struct VoxelSim* vs);
 void voxel_step(struct VoxelSim* vs);

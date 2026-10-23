@@ -8,8 +8,9 @@
 
 // TODO: Reject species that do not improve over n generations.
 // TODO: Interspecies mating rate.
-// TODO: Checking if the mutation already exists should be done generation wide and not full history wise.
+// TODO: Checking if the mutation already exists should be done generation wise and not full history wise.
 // TODO: Option to allow or reject loops.
+// TODO: Do we keep the champion? If not this should be an option.
 
 typedef struct
 {

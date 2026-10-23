@@ -125,12 +125,16 @@ void population_feed_all_agents(population_t* pop, float** input, float** output
 
 void population_resample(population_t* pop, float* fitness)  // TODO: This might be a bit expensive...
 {
-    size_t prev_gen_species_count = pop->species.size;
-    float adjusted_fitness[pop->size];
+    
+    // Zero mean fitness
     float offset_fitness[pop->size];
     float min_fitness = fitness[0];
     for (int i = 1; i < pop->size; i++) if (min_fitness > fitness[i]) min_fitness = fitness[i];
     for (int i = 0; i < pop->size; i++) offset_fitness[i] = fitness[i] - min_fitness;
+    
+    // Compute adjusted fitness
+    size_t prev_gen_species_count = pop->species.size;
+    float adjusted_fitness[pop->size];
     
     float avg_adjusted_fitness[prev_gen_species_count];
     memset(avg_adjusted_fitness, 0.f, sizeof(avg_adjusted_fitness));
@@ -138,7 +142,6 @@ void population_resample(population_t* pop, float* fitness)  // TODO: This might
     memset(species_size, 0, sizeof(species_size));
     int species_agent_indices[pop->size][pop->size];
 
-    // Compute adjusted fitness
     for (int i = 0; i < pop->size; i++)
     {
         int current_species = pop->agent_to_species[i];

@@ -27,6 +27,7 @@ SRCS = main.c \
 	../../TuprykEngine/Funcs/funcs.c \
     ../../TuprykEngine/Geom/quaternions.c \
 	../../TuprykEngine/Physics/voxels.c \
+	../../TuprykEngine/Physics/voxel_generators.c \
 	../../TuprykEngine/Physics/voxel_utils.c \
     ../../TuprykEngine/ui/graphics/voxels_vis.c \
 	../../TuprykEngine/ui/prints/vis_neat.c \

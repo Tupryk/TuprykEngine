@@ -1,3 +1,4 @@
+/// Code based on:
 /// Unshackling Evolution: Evolving Soft Robots with Multiple
 /// Materials and a Powerful Generative Encoding (2013)
 /// Nick Cheney, Robert MacCurdy, Jeff Clune, Hod Lipson
@@ -17,6 +18,7 @@
 #include "../../TuprykEngine/Physics/voxels.h"
 #include "../../TuprykEngine/NEAT/population.h"
 #include "../../TuprykEngine/Stochastic/sample.h"
+#include "../../TuprykEngine/Physics/voxel_generators.h"
 
 #include "../../TuprykEngine/ui/graphics/ogl.h"
 #include "../../TuprykEngine/ui/prints/vis_neat.h"
@@ -29,7 +31,7 @@
 int generation_count = 1000;  // 1000
 int best_agent_idx = 0;
 int pop_size = 30;  // 30
-int resolution = 8;  // 10
+int resolution = 4;  // 10
 float freq = 50.f;
 float amplitud = 1.f;
 

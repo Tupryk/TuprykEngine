@@ -13,6 +13,7 @@
 #include "../../TuprykEngine/Funcs/funcs.h"
 #include "../../TuprykEngine/Physics/voxels.h"
 #include "../../TuprykEngine/Stochastic/sample.h"
+#include "../../TuprykEngine/Physics/voxel_generators.h"
 
 #include "../../TuprykEngine/ui/graphics/ogl.h"
 #include "../../TuprykEngine/ui/prints/vis_neat.h"
