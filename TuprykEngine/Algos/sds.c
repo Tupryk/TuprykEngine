@@ -9,8 +9,8 @@ struct grid_sds* grid_sds_init(int grid_size, float grid_dim)
     sds->grid_dim = grid_dim;
     int grid_dim3 = grid_size * grid_size * grid_size;
 
-    sds->grid = (struct int_stack_t**) malloc(
-        sizeof(struct int_stack_t*) * grid_dim3
+    sds->grid = (int_stack_t**) malloc(
+        sizeof(int_stack_t*) * grid_dim3
     );
     for (int i = 0; i < grid_dim3; i++) sds->grid[i] = int_stack_init();
 

@@ -26,12 +26,14 @@ struct stack_elem
 typedef struct
 {
     size_t size;
-    struct stack_elem* next;
+    struct stack_elem* first;
+    struct stack_elem* last;
 } pstack_t;
 
 pstack_t* stack_init();
 void stack_free(pstack_t* s, void (*elem_freer)(void*));
 struct stack_elem* stack_push(pstack_t* s, void* data);
+struct stack_elem* stack_push_between(pstack_t* s, void* data, struct stack_elem* prev, struct stack_elem* next);
 void* stack_pop(pstack_t* s);
 void* stack_pop_at_index(pstack_t* s, size_t i);
 void* stack_pop_elem(pstack_t* s, struct stack_elem* elem);

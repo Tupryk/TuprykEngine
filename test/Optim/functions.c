@@ -315,14 +315,14 @@ nlp_t* get_nlp_swiss_roll()
     return nlp;
 }
 
-float gaussian(tensor_t* x)
-{
-    float std = .25f;
+// float gaussian(tensor_t* x)
+// {
+//     float std = .25f;
 
-    float norm2 = vector_squared_norm(x);
+//     float norm2 = vector_squared_norm(x);
 
-    return 1.f / sqrtf(2.f * M_PI * std * std) * expf(-norm2 / (2.f * std * std));
-}
+//     return 1.f / sqrtf(2.f * M_PI * std * std) * expf(-norm2 / (2.f * std * std));
+// }
 
 float repeat(float x, float period)
 {

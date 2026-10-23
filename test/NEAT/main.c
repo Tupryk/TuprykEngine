@@ -8,13 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../functions.h"
-#include "../../../../TuprykEngine/Optim/meta.h"
-#include "../../../../TuprykEngine/Stochastic/sample.h"
-#include "../../../../TuprykEngine/Optim/zero_order/neat.h"
+#include "../Optim/functions.h"
+#include "../../TuprykEngine/NEAT/agent.h"
+#include "../../TuprykEngine/Optim/meta.h"
+#include "../../TuprykEngine/NEAT/population.h"
+#include "../../TuprykEngine/Stochastic/sample.h"
 
-#include "../../../../TuprykEngine/ui/prints/vis_neat.h"
-#include "../../../../TuprykEngine/ui/graphics/genetic.h"
+#include "../../TuprykEngine/ui/prints/vis_neat.h"
+#include "../../TuprykEngine/ui/graphics/genetic.h"
 
 
 float task1_eval(float* input, float* predicted_out)
@@ -40,12 +41,11 @@ int test_init()
     int in_dim = 3;
     int out_dim = 2;
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 300);
     printf("Initial agents:\n");
     print_agents(pop);
 
     print_agent_genes(&pop->innovations, pop->agents[0]);
-    draw_network(pop, pop->agents[0]);
     
     population_free(pop);
     return 0;
@@ -56,7 +56,7 @@ int test_speciation()
     int in_dim = 3;
     int out_dim = 2;
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 300);
 
     for (int i = 0; i < pop->size; i++)
     {
@@ -81,7 +81,7 @@ int test_crossover()
     int in_dim = 3;
     int out_dim = 2;
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 300);
 
     printf("Parent A:\n");
     print_agent_gene_sequence(&pop->innovations, pop->agents[0]);
@@ -104,7 +104,7 @@ int test_feed_agent()
     float input[3] = {1.f, 0.f, 0.f};
     float output[2];
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 300);
 
     int agent_idx = 0;
     print_agent(pop->agents[agent_idx]);
@@ -134,7 +134,7 @@ int test_resample()
     int out_dim = 2;
     int generation_count = 1000;
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 300);
     printf("Initial agents:\n");
     print_agents(pop);
 
@@ -165,7 +165,7 @@ int test_full()
     int generation_count = 1000;
     int task_trials = 100;
 
-    population_t* pop = init_population(in_dim, out_dim);
+    population_t* pop = init_population(in_dim, out_dim, 100);
     
     float scores[pop->size];
     float** output = (float**) malloc(sizeof(float*) * pop->size);

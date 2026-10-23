@@ -54,6 +54,7 @@ void tensor_transpose(tensor_t* t);
 int tensors_equal_shape(tensor_t* a, tensor_t* b);
 int tensors_equal(tensor_t* a, tensor_t* b);
 void tensor_scalar_mult(tensor_t* a, float b, tensor_t* out);
+void tensor_add_delta(tensor_t* x, tensor_t* dir, float tau, tensor_t* out);
 tensor_t* tensor_scalar_mult_give(tensor_t* a, float b);
 void tensor_scalar_div(tensor_t* a, float b, tensor_t* out);
 tensor_t* tensor_scalar_div_give(tensor_t* a, float b);

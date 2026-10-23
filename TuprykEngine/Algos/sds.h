@@ -7,7 +7,7 @@ struct grid_sds
 {
     int grid_size;
     float grid_dim;
-    struct int_stack_t** grid;
+    int_stack_t** grid;
 };
 
 struct grid_sds* grid_sds_init(int grid_size, float grid_dim);

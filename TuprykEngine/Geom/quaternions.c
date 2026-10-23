@@ -1,6 +1,8 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
+
 #include "quaternions.h"
 
 
@@ -132,4 +134,88 @@ void quaternion_normalize(float* q)
         q[2] /= norm;
         q[3] /= norm;
     }
+}
+
+void quaternion_delta(float* q, float* delta, float dt, float* out)
+{
+    float delta_step[3] = { delta[0] * dt, delta[1] * dt, delta[2] * dt };
+    float angular_vel = sqrt(
+        delta_step[0] * delta_step[0] +
+        delta_step[1] * delta_step[1] +
+        delta_step[2] * delta_step[2]
+    );
+    float theta = angular_vel;
+
+    float q_omega[4];
+
+    if (theta > 1e-6f)
+    {
+        float theta_half = theta * 0.5f;
+        float sin_theta = sinf(theta_half);
+
+        q_omega[0] = cosf(theta_half);
+        q_omega[1] = delta_step[0] / angular_vel * sin_theta;
+        q_omega[2] = delta_step[1] / angular_vel * sin_theta;
+        q_omega[3] = delta_step[2] / angular_vel * sin_theta;
+    }
+    else
+    {
+        q_omega[0] = 1.f;
+        q_omega[1] = 0.f;
+        q_omega[2] = 0.f;
+        q_omega[3] = 0.f;
+    }
+
+    float tmp[4];
+    quaternion_product(q_omega, q, tmp);
+    quaternion_normalize(tmp);
+    memcpy(out, tmp, sizeof(tmp));
+}
+
+void quaternion_diff(float* q1, float* q2, float* out)
+{
+    float q1_conj[4];
+    quaternion_conjugate(q1, q1_conj);
+    quaternion_product(q1_conj, q2, out);
+}
+
+void quaternion_to_euler(float* q, float* out)
+{
+    float w = q[0]; float x = q[1]; float y = q[2]; float z = q[3];
+
+    out[0] = atan2f(2.f * (w*x + y*z), 1.f - 2.f * (x*x + y*y));
+
+    float s = 2.f * (w*y - z*x);
+    if (s >  1.f) s =  1.f;
+    if (s < -1.f) s = -1.f;
+    out[1] = asinf(s);
+
+    out[2] = atan2f(2.f * (w*z + x*y), 1.f - 2.f * (y*y + z*z));
+}
+
+void quaternion_rotate(float* q, float* v, float* out)
+{
+    float qx = q[1], qy = q[2], qz = q[3], w = q[0];
+    float tx = 2.f * (qy*v[2] - qz*v[1]);
+    float ty = 2.f * (qz*v[0] - qx*v[2]);
+    float tz = 2.f * (qx*v[1] - qy*v[0]);
+
+    out[0] = v[0] + w*tx + (qy*tz - qz*ty);
+    out[1] = v[1] + w*ty + (qz*tx - qx*tz);
+    out[2] = v[2] + w*tz + (qx*ty - qy*tx);
+}
+
+void quaternion_to_rotvec(float* q, float* out)
+{
+    float w = q[0]; float x = q[1]; float y = q[2]; float z = q[3];
+    if (w < 0.f) { w = -w; x = -x; y = -y; z = -z; }
+
+    float vn = sqrtf(x*x + y*y + z*z);
+    float scale;
+    if (vn < 1e-6f) scale = 2.f;
+    else scale = 2.f * atan2f(vn, w) / vn;
+
+    out[0] = x * scale;
+    out[1] = y * scale;
+    out[2] = z * scale;
 }

@@ -215,3 +215,33 @@ void ogl_draw_line(float x1, float y1, float z1,
     glDisable(GL_BLEND);
     glEnable(GL_LIGHTING);
 }
+
+void draw_floor(float z, float r, float g, float b, float a)
+{
+    const float half = 150.0f;
+    const int   n    = 30;
+    const float step = (2.0f * half) / n;
+
+    if (a < 1.0f) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    glColor4f(r, g, b, a);
+    glNormal3f(0.0f, 0.0f, 1.0f); /* Z is up, so the floor faces +Z */
+
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            float x0 = -half + i * step, x1 = x0 + step;
+            float y0 = -half + j * step, y1 = y0 + step;
+            glVertex3f(x0, y0, z);
+            glVertex3f(x1, y0, z);
+            glVertex3f(x1, y1, z);
+            glVertex3f(x0, y1, z);
+        }
+    }
+    glEnd();
+
+    if (a < 1.0f) glDisable(GL_BLEND);
+}

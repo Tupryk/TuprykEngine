@@ -319,14 +319,14 @@ agent_t* mutate_agent(population_t* pop, agent_t* parent)
     return child;
 }
 
-population_t* init_population(int in_dim, int out_dim)
+population_t* init_population(int in_dim, int out_dim, int max_size)
 {
     population_t* pop = (population_t*) malloc(sizeof(population));
     
     pop->in_dim = in_dim;
     pop->out_dim = out_dim;
-    pop->max_size = 300;
-    pop->keep_best_n = 100;
+    pop->max_size = max_size;
+    pop->keep_best_n = pop->max_size / 5;
     pop->agent_children_count = 2;
     // pop->network_size_cost_weight = 0.0000001;
     pop->network_size_cost_weight = 0.0;

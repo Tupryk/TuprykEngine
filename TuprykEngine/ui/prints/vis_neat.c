@@ -4,7 +4,7 @@
 #include "vis_neat.h"
 
 
-void print_innovations(vector* innovations)
+void print_innovations(vector_t* innovations)
 {
     for (size_t i = 0; i < innovations->size; i++)
     {
@@ -12,7 +12,7 @@ void print_innovations(vector* innovations)
     }
 }
 
-void print_innovation(vector* innovations, size_t i)
+void print_innovation(vector_t* innovations, size_t i)
 {
     gene_t g = *(gene_t*)vector_get(innovations, i);
     printf("Gene %zu: %d -> %d\n", i, g.out, g.in);
@@ -52,9 +52,9 @@ void print_agent(agent_t* a)
         printf("%d (", i);
         print_activation_name(a->activation_funcs[i]);
         printf("): ");
-        for (int j = 0; j < a->connection_counts[i]; j++)
+        for (int j = 0; j < a->out_count[i]; j++)
         {
-            printf("%d (%f), ", a->connections[i][j], a->connection_weight[i][j]);
+            printf("%d (%f), ", a->out_id[i][j], a->out_weight[i][j]);
         }
         printf("\n");
     }
@@ -80,7 +80,7 @@ void print_species_info(population_t* pop)
     }
 }
 
-void print_agent_gene_sequence(vector* innovations, agent_t* a)
+void print_agent_gene_sequence(vector_t* innovations, agent_t* a)
 {
     for (int i = 0; i < a->gene_count; i++)
     {
@@ -111,7 +111,7 @@ void print_agent_gene_sequence(vector* innovations, agent_t* a)
     printf("|\n");
 }
 
-void print_agent_genes(vector* innovations, agent_t* a)
+void print_agent_genes(vector_t* innovations, agent_t* a)
 {
     printf("Agent Genes (total: %d) -> ", a->gene_count);
     for (int i = 0; i < a->gene_count; i++)
@@ -144,21 +144,13 @@ void print_population_best_agent(population_t* pop, float* scores)
 
 void print_activation_name(int act_id)
 {
-    switch (act_id)
-    {
-    case 0:
-        printf("Linear");
-        break;
-
-    case 1:
-        printf("ReLU");
-        break;
-
-    default:
-        #ifdef DEBUG
+    if (act_id >= 0 &&
+        act_id < (int) (sizeof(activations) / sizeof(activations[0])))
+        printf("%s", activation_names[act_id]);
+    #ifdef DEBUG
+    else {
         printf("Invalid node activation function!\n");
         exit(EXIT_FAILURE);
-        #endif
-        break;
     }
+    #endif
 }

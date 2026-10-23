@@ -542,6 +542,14 @@ void tensor_scalar_mult(tensor_t* a, float b, tensor_t* out)
     }
 }
 
+void tensor_add_delta(tensor_t* x, tensor_t* dir, float tau, tensor_t* out)
+{
+    for (int i = 0; i < x->volume; i++)
+    {
+        out->values[i] = x->values[i] + dir->values[i] * tau;
+    }
+}
+
 tensor_t* tensor_scalar_mult_give(tensor_t* a, float b)
 {
     tensor_t* out = tensor_copy(a);

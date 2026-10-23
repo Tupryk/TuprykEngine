@@ -49,13 +49,14 @@ pstack_t* stack_init()
 {
     pstack_t* s = (pstack_t*) malloc(sizeof(pstack_t));
     s->size = 0;
-    s->next = NULL;
+    s->first = NULL;
+    s->last = NULL;
     return s;
 }
 
 void stack_free(pstack_t* s, void (*elem_freer)(void*))
 {
-    while (s->next != NULL)
+    while (s->first != NULL)
     {
         void* elem = stack_pop(s);
         if (elem_freer != NULL) elem_freer(elem);
@@ -67,10 +68,25 @@ struct stack_elem* stack_push(pstack_t* s, void* data)
 {
     struct stack_elem* new_elem = (struct stack_elem*) malloc(sizeof(struct stack_elem));
     new_elem->data = data;
-    new_elem->next = s->next;
+    new_elem->next = s->first;
     new_elem->prev = NULL;
-    if (s->next != NULL) s->next->prev = new_elem;
-    s->next = new_elem;
+    if (s->first != NULL) s->first->prev = new_elem;
+    s->first = new_elem;
+    if (s->last == NULL) s->last = new_elem;
+    s->size++;
+    return new_elem;
+}
+
+struct stack_elem* stack_push_between(pstack_t* s, void* data, struct stack_elem* prev, struct stack_elem* next)
+{
+    struct stack_elem* new_elem = (struct stack_elem*) malloc(sizeof(struct stack_elem));
+    new_elem->data = data;
+    new_elem->prev = prev;
+    new_elem->next = next;
+    if (prev != NULL) prev->next = new_elem;
+    else s->first = new_elem;
+    if (next != NULL) next->prev = new_elem;
+    else s->last = new_elem;
     s->size++;
     return new_elem;
 }
@@ -78,22 +94,27 @@ struct stack_elem* stack_push(pstack_t* s, void* data)
 void* stack_pop_elem(pstack_t* s, struct stack_elem* elem)
 {
     if (elem->next != NULL) elem->next->prev = elem->prev;
+    else s->last = elem->prev;
+
     if (elem->prev != NULL) elem->prev->next = elem->next;
-    if (elem->prev == NULL) s->next = elem->next;
+    else s->first = elem->next;
+
     void* data = elem->data;
     free(elem);
     s->size--;
+
     return data;
 }
 
 void* stack_pop(pstack_t* s)
 {
-    if (s->next != NULL)
+    if (s->first != NULL)
     {
-        struct stack_elem* poped = s->next;
+        struct stack_elem* poped = s->first;
         void* data = poped->data;
-        s->next = poped->next;
+        s->first = poped->next;
         if (poped->next != NULL) poped->next->prev = NULL;
+        else s->last = poped->prev;
         free(poped);
 
         s->size--;
@@ -114,17 +135,19 @@ void* stack_pop_at_index(pstack_t* s, size_t i)
     
     size_t index = 0;
     struct stack_elem* prev_elem = NULL;
-    struct stack_elem* current_elem = s->next;
+    struct stack_elem* current_elem = s->first;
     while (current_elem != NULL)
     {
         if (index == i)
         {
             void* data = current_elem->data;
             
-            if (prev_elem == NULL) s->next = current_elem->next;
+            if (prev_elem == NULL) s->first = current_elem->next;
             else prev_elem->next = current_elem->next;
             
             if (current_elem->next != NULL) current_elem->next->prev = NULL;
+            else s->last = current_elem->prev;
+
             free(current_elem);
             s->size--;
             
