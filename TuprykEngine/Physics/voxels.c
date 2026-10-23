@@ -279,7 +279,6 @@ void voxel_expand(
     }
 
     vs->mass = (float*) malloc(sizeof(float) * new_count);
-    memset(vs->mass, vs->l3, sizeof(float) * new_count);
     for (int i = 0; i < new_count; i++) vs->mass[i] = vs->l3;
     
     // Color
@@ -315,15 +314,19 @@ void voxel_expand(
     }
 
     float shear_tmp = (2.f*(1.f+0.33f));
+
     for (int i = prev_count; i < new_count; i++)
     {
-        int i3 = i*3;
-        int i6 = i*6;
-
         vs->inertia[i] = vs->mass[i] * vs->l2 / 6.f;
         vs->stiffness[i] = stiffness[i-prev_count];
         vs->shear[i] = vs->stiffness[i] / shear_tmp;
         vs->cte[i] = cte[i-prev_count];
+    }
+
+    for (int i = prev_count; i < new_count; i++)
+    {
+        int i3 = i*3;
+        int i6 = i*6;
 
         for (int j = 0; j < 6; j++)
         {
@@ -347,6 +350,7 @@ void voxel_expand(
                     vs->neg_z_links_count++;
                 }
                 vs->links[i6 + j] += prev_count;
+                neigh_id += prev_count;
                 if (j % 2 == 1)
                 {
                     float E1 = vs->stiffness[i];
@@ -404,9 +408,11 @@ void voxel_expand(
             if (vs->neighs[i] != NULL) free(vs->neighs[i]);
         }
         free(vs->neighs);
+        vs->neighs = NULL;
+        vs->neighs_count = NULL;
     }
 
-    // Pre-compute outer shell for fater collision checks
+    // Pre-compute outer shell for faster collision checks
     voxel_compute_outer_shell(vs);
     if (vs->self_collision) voxel_compute_neighs(vs);
 

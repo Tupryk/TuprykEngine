@@ -35,7 +35,7 @@ void cppn(float* pos, float* out, agent_t* agent)
         {
             // Green: Actuated at 20%
             out[1] = 1000.f;  // Stiffness
-            out[2] = 0.2f;  // CTE
+            out[2] = 0.2f;    // CTE
             out[3] = 0.f; out[4] = 1.f; out[5] = 0.f;  // Color
             break;
         }
@@ -43,15 +43,15 @@ void cppn(float* pos, float* out, agent_t* agent)
         {
             // Light Blue: Soft and pasive
             out[1] = 50.f;  // Stiffness
-            out[2] = 0.f;  // CTE
+            out[2] = 0.f;   // CTE
             out[3] = 0.f; out[4] = 1.f; out[5] = 1.f;  // Color
             break;
         }
         case 2:
         {
-            // Green: Actuated at 20% (couter to Green)
+            // Red: Actuated at 20% (counter to Green)
             out[1] = 1000.f;  // Stiffness
-            out[2] = -0.2f;  // CTE
+            out[2] = -0.2f;   // CTE
             out[3] = 1.f; out[4] = 0.f; out[5] = 0.f;  // Color
             break;
         }
@@ -59,7 +59,7 @@ void cppn(float* pos, float* out, agent_t* agent)
         {
             // Dark Blue: Hard and pasive
             out[1] = 1000.f;  // Stiffness
-            out[2] = 0.f;  // CTE
+            out[2] = 0.f;     // CTE
             out[3] = 0.f; out[4] = 0.f; out[5] = 1.f;  // Color
             break;
         }

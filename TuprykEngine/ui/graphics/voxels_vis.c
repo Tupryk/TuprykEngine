@@ -12,6 +12,23 @@ void render_voxels(struct VoxelSim* vs)
 
     draw_floor(vs->floor_z, 0.8f, 0.8f, 0.8f, 0.8f);
 
+    // Origin
+    ogl_draw_line(
+        0.f, 0.f, 0.f,
+        0.1f, 0.f, 0.f,
+        1.f, 0.f, 0.f, 1.f
+    );
+    ogl_draw_line(
+        0.f, 0.f, 0.f,
+        0.f, 0.1f, 0.f,
+        0.f, 1.f, 0.f, 1.f
+    );
+    ogl_draw_line(
+        0.f, 0.f, 0.f,
+        0.f, 0.f, 0.1f,
+        0.f, 0.f, 1.f, 1.f
+    );
+
     for (int i = 0; i < vs->count; i++)
     {
         int i3 = i*3;

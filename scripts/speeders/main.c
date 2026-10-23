@@ -29,8 +29,8 @@
 int generation_count = 1000;  // 1000
 int best_agent_idx = 0;
 int pop_size = 30;  // 30
-int resolution = 4;  // 10
-float freq = 10.f;
+int resolution = 8;  // 10
+float freq = 50.f;
 float amplitud = 1.f;
 
 // Global structs
