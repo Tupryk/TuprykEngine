@@ -141,6 +141,7 @@ struct VoxelSim* voxel_init(float voxel_dim, int self_collision)
     vs->neg_x_links_count = 0;
     vs->neg_y_links_count = 0;
     vs->neg_z_links_count = 0;
+    vs->links = NULL;
     vs->neg_x_links = NULL;
     vs->neg_y_links = NULL;
     vs->neg_z_links = NULL;
@@ -638,48 +639,51 @@ void voxel_add_implicit(
 
 void voxel_free(struct VoxelSim* vs)
 {
-    tensor_free(vs->pos);
-    tensor_free(vs->vel);
-    tensor_free(vs->acc);
-
-    tensor_free(vs->rot);
-    tensor_free(vs->rot_vel);
-    tensor_free(vs->rot_acc);
-
-    free(vs->mass);
-    free(vs->inertia);
-    free(vs->stiffness);
-    free(vs->shear);
-    free(vs->cte);
-
-    free(vs->a1);
-    free(vs->a2);
-    free(vs->b1);
-    free(vs->b2);
-    free(vs->b3);
-
-    free(vs->damping_scaler);
-    free(vs->damping_scaler_rot);
-
-    tensor_free(vs->color);
-
-    free(vs->links);
-    free(vs->neg_x_links);
-    free(vs->neg_y_links);
-    free(vs->neg_z_links);
-    free(vs->fixed);
-    free(vs->static_flag);
-    
-    free(vs->shell);
-    free(vs->is_shell);
-    if (vs->neighs_count != NULL)
+    if (vs->pos != NULL)
     {
-        free(vs->neighs_count);
-        for (int i = 0; i < vs->shell_count; i++) if (vs->neighs[i] != NULL) free(vs->neighs[i]);
-        free(vs->neighs);
-    }
+        tensor_free(vs->pos);
+        tensor_free(vs->vel);
+        tensor_free(vs->acc);
+    
+        tensor_free(vs->rot);
+        tensor_free(vs->rot_vel);
+        tensor_free(vs->rot_acc);
+    
+        free(vs->mass);
+        free(vs->inertia);
+        free(vs->stiffness);
+        free(vs->shear);
+        free(vs->cte);
+    
+        free(vs->a1);
+        free(vs->a2);
+        free(vs->b1);
+        free(vs->b2);
+        free(vs->b3);
+    
+        free(vs->damping_scaler);
+        free(vs->damping_scaler_rot);
+    
+        tensor_free(vs->color);
+    
+        free(vs->links);
+        free(vs->neg_x_links);
+        free(vs->neg_y_links);
+        free(vs->neg_z_links);
+        free(vs->fixed);
+        free(vs->static_flag);
+        
+        free(vs->shell);
+        free(vs->is_shell);
+        if (vs->neighs_count != NULL)
+        {
+            free(vs->neighs_count);
+            for (int i = 0; i < vs->shell_count; i++) if (vs->neighs[i] != NULL) free(vs->neighs[i]);
+            free(vs->neighs);
+        }
 
-    if (vs->coll_pairs != NULL) stack_free(vs->coll_pairs, free);
+        if (vs->coll_pairs != NULL) stack_free(vs->coll_pairs, free);
+    }
     free(vs);
 }
 

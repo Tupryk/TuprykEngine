@@ -87,7 +87,11 @@ float eval_agent(int id)
     vs = voxel_init(voxel_dim, 0);
     float z_offset = -vs->voxel_dim * ((float)resolution) * 0.5f;
     voxel_add_implicit(vs, implicit_func, resolution, 0.f, 0.f, z_offset);
-    if (vs->count < 20) return 0.f;
+    if (vs->count < 20)
+    {
+        voxel_free(vs);
+        return 0.f;
+    }
     
     init_time = clock() - init_time;
 
@@ -111,7 +115,6 @@ float eval_agent(int id)
         printf("Simulator returned NaN!\n");
         score = -1.f;
     }
-    
     voxel_free(vs);
 
     // total_time = clock() - total_time;
@@ -135,7 +138,6 @@ void evolve_population(population_t* pop)
         for (int j = 0; j < pop->size; j++)
         {
             scores[j] = eval_agent(j);
-            printf("Evaluating member %d of generation %d... Score: %f\n", j+1, i+1, scores[j]);
         }
 
         // Report generation results
@@ -161,8 +163,8 @@ int main()
     srand( time( NULL ) );
 
     // Setup implicit function
-    printf("Initializing population with dimensions; in: %d, out: %d\n", in_dim, out_dim);
-    pop = init_population(in_dim, out_dim, pop_size);
+    printf("Initializing population with dimensions; in: %d, out: %d\n", IN_DIM, OUT_DIM);
+    pop = init_population(IN_DIM, OUT_DIM, pop_size);
     evolve_population(pop);
 
     // Evaluating best

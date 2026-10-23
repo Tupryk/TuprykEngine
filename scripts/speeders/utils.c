@@ -1,5 +1,7 @@
 #include "utils.h"
 
+float nn_input[IN_DIM];
+
 
 void cppn(float* pos, float* out, agent_t* agent)
 {
@@ -15,8 +17,8 @@ void cppn(float* pos, float* out, agent_t* agent)
     nn_input[2] = cos(phi);  // ???
     nn_input[3] = px; nn_input[4] = py; nn_input[5] = pz;
     
-    float net_out[out_dim];
-    agent_feed(agent, in_dim, out_dim, nn_input, net_out);
+    float net_out[OUT_DIM];
+    agent_feed(agent, IN_DIM, OUT_DIM, nn_input, net_out);
 
     int max_id = 1;
     for (int i = 2; i < 5; i++)
