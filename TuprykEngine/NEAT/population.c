@@ -372,7 +372,7 @@ void agent_build_network(population_t* pop, agent_t* a)
         a->activations[i] = 0.f;
         a->activation_count[i] = 0;
         if (i < initial_node_count) a->activation_funcs[i] = 0;
-        else a->activation_funcs[i] = 3;
+        else a->activation_funcs[i] = 2;
         a->activation_biases[i] = 0.f;
         a->out_count[i] = 0;
         a->in_count[i] = 0;

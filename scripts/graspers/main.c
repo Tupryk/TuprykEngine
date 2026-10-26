@@ -29,8 +29,7 @@ void render_grid()
 {
     for (int i = 0; i < 100; i++)
     {
-        vs->temp = sinf(((float)vs->t) * 0.0002f) * .65f;
-        // if (vs->temp > 0.f) vs->temp = 0.f;
+        fixed_grasp_motion(vs, 0.f, 2.f, -0.2f);
         voxel_step(vs);
     }
     render_voxels(vs);
@@ -63,8 +62,8 @@ int main()
     vs = voxel_init(voxel_dim, 1);
 
     // voxel_add_sequence(vs, human_made_sequence_hand0, 4, 1000, 0.f, 0.f, 0.f);
-    voxel_add_implicit(vs, human_made_implicit_hand, 20, 0.f, 0.f, 0.5f);
-    voxel_add_implicit(vs, human_made_implicit_cube, 5, 0.f, 0.f, 1.f);
+    voxel_add_implicit(vs, human_made_implicit_hand, 20, 0.f, 0.f, 0.f);
+    voxel_add_implicit(vs, human_made_implicit_cube, 5, 0.f, 0.f, -0.75f);
     
     // vs->gravity = 0.f;
     printf("Total voxel count: %d\n", vs->count);

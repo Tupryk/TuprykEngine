@@ -28,11 +28,11 @@
 
 
 // Evaluation
-int generation_count = 1000;  // 1000
+int generation_count = 20;  // 1000
 int best_agent_idx = 0;
 int pop_size = 30;  // 30
 int resolution = 4;  // 10
-float freq = 50.f;
+float freq = 2.f;
 float amplitud = 1.f;
 
 // Global structs
@@ -57,7 +57,7 @@ float compute_displacement()
 void actuation_step()
 {
     float time = ((float)vs->t) * vs->tau;
-    vs->temp = sinf((time / (2.f * M_PI)) * freq) * amplitud;
+    vs->temp = sinf(time * 2.f * M_PI * freq) * amplitud;  // Probably wrong!!!
     // if (vs->temp > 0.f) vs->temp = 0.f;
     voxel_step(vs);
 }

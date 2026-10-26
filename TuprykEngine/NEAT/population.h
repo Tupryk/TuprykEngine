@@ -11,6 +11,8 @@
 // TODO: Checking if the mutation already exists should be done generation wise and not full history wise.
 // TODO: Option to allow or reject loops.
 // TODO: Do we keep the champion? If not this should be an option.
+// TODO: Mutating activation types.
+// TODO: Add a config struct to avoid interference between scripts.
 
 typedef struct
 {
