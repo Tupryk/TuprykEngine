@@ -42,7 +42,7 @@ void cppn(float* pos, float* out, agent_t* agent)
         case 1:
         {
             // Light Blue: Soft and pasive
-            out[1] = 50.f;  // Stiffness
+            out[1] = 100.f;  // Stiffness
             out[2] = 0.f;   // CTE
             out[3] = 0.f; out[4] = 1.f; out[5] = 1.f;  // Color
             break;
@@ -58,7 +58,7 @@ void cppn(float* pos, float* out, agent_t* agent)
         case 3:
         {
             // Dark Blue: Hard and pasive
-            out[1] = 1000.f;  // Stiffness
+            out[1] = 100.f;  // Stiffness
             out[2] = 0.f;     // CTE
             out[3] = 0.f; out[4] = 0.f; out[5] = 1.f;  // Color
             break;

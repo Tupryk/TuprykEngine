@@ -28,11 +28,11 @@
 
 
 // Evaluation
-int generation_count = 20;  // 1000
+int generation_count = 10;  // 1000
 int best_agent_idx = 0;
 int pop_size = 30;  // 30
-int resolution = 4;  // 10
-float freq = 2.f;
+int resolution = 8;  // 10
+float freq = 4.f;
 float amplitud = 1.f;
 
 // Global structs
@@ -41,17 +41,25 @@ population_t* pop;
 int agent_idx = 0;
 
 
-float compute_displacement()
+float compute_z_offset()
 {
-    float center[2] = {0.f, 0.f};
+    return vs->voxel_dim * ((float)resolution) * 0.5f + vs->floor_z + vs->voxel_dim;
+}
+
+float vec_len(float* center)
+{
+    return sqrtf(center[0]*center[0] + center[1]*center[1]);
+}
+
+void compute_center(float* center)
+{
+    center[0] = 0.f; center[1] = 0.f;
     for (int i = 0; i < vs->count; i++)
     {
         center[0] += vs->pos->values[0];
         center[1] += vs->pos->values[1];
     }
     center[0] /= (float) vs->count; center[1] /= (float) vs->count;
-    
-    return sqrtf(center[0]*center[0] + center[1]*center[1]);
 }
 
 void actuation_step()
@@ -67,7 +75,9 @@ void render_grid()
     for (int i = 0; i < 100; i++) actuation_step();
 
     // Compute final score
-    float score = compute_displacement();
+    float center[2];
+    compute_center(center);
+    float score = vec_len(center);
 
     printf("Simulation time: %f (Episode time: %f)\n", vs->tau * ((float) vs->t), 10.f / freq);
     printf("Score: %f\n", score);
@@ -87,7 +97,7 @@ float eval_agent(int id)
 
     float voxel_dim = 1.f / ((float) resolution);
     vs = voxel_init(voxel_dim, 0);
-    float z_offset = -vs->voxel_dim * ((float)resolution) * 0.5f;
+    float z_offset = vs->voxel_dim * ((float)resolution) * 0.5f - vs->floor_z + vs->voxel_dim;
     voxel_add_implicit(vs, implicit_func, resolution, 0.f, 0.f, z_offset);
     if (vs->count < 20)
     {
@@ -97,24 +107,27 @@ float eval_agent(int id)
     
     init_time = clock() - init_time;
 
-    float init_disp = compute_displacement();
-
     // Simulate voxels
     clock_t sim_time = clock();
 
     float ep_time = 10.f / freq;  // Num. of cycles times cycle frequency
     int total_steps = ep_time / vs->tau;
-    for (int i = 0; i < total_steps; i++)
-    {
-        actuation_step();
-    }
+    float center_start[2];
+    float center_end[2];
+    
+    for (int i = 0; i < total_steps; i++) actuation_step();
+    compute_center(center_start);
+    
+    for (int i = 0; i < total_steps; i++) actuation_step();
+    compute_center(center_end);
+    
+    center_end[0] -= center_start[0];
+    center_end[1] -= center_start[1];
     
     sim_time = clock() - sim_time;
 
-    float final_disp = compute_displacement();
-    
     // Compute final score
-    float score = fabsf(final_disp - init_disp);
+    float score = vec_len(center_end);
     if (isnan(score))
     {
         printf("Simulator returned NaN!\n");
@@ -143,7 +156,7 @@ void evolve_population(population_t* pop)
         for (int j = 0; j < pop->size; j++)
         {
             scores[j] = eval_agent(j);
-            // printf("Evaluating member %d of generation %d... Score: %f\n", j+1, i+1, scores[j]);
+            printf("Evaluating member %d of generation %d... Score: %f\n", j+1, i+1, scores[j]);
         }
 
         // Report generation results
@@ -177,15 +190,15 @@ int main()
     agent_idx = best_agent_idx;
     print_agent(pop->agents[agent_idx]);
     
-    float voxel_dim = 1.f / ((float) resolution);
+    float voxel_dim = 0.5f;
     vs = voxel_init(voxel_dim, 0);
-    float z_offset = -vs->voxel_dim * ((float)resolution) * 0.5f;
+    float z_offset = compute_z_offset();
     voxel_add_implicit(vs, implicit_func, resolution, 0.f, 0.f, z_offset);
     
     // Rendering
     ogl_init();
     ogl_set_speed(10.0f, 0.7f);
-    ogl_set_camera_pos(0.f, -3.f, 0.f);
+    ogl_set_camera_pos(0.f, -vs->voxel_dim * ((float)resolution) * 5.f, 0.f);
     ogl_loop(render_grid);
 
     // Free memory
