@@ -31,6 +31,8 @@ SRCS = main.c \
     ../../TuprykEngine/ui/graphics/voxels_vis.c \
 	../../TuprykEngine/ui/prints/vis_neat.c \
     ../../TuprykEngine/MCP/mcp.c \
+    ../../TuprykEngine/Vision/filters.c \
+    ../../TuprykEngine/Algos/utils.c \
     utils.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p

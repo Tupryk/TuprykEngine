@@ -1081,15 +1081,47 @@ void tensor_xTx(tensor_t* x, tensor_t* out)
     tensor_free(xT);
 }
 
-void tensor_conv2d(tensor_t* kernel, tensor_t* image, tensor_t* out)
+// void tensor_conv2d(tensor_t* kernel, tensor_t* image, tensor_t* out)
+// {
+// 
+// }
+
+void tensor_conv3d(tensor_t* kernel, tensor_t* grid, tensor_t* out)
 {
-    // This will wrap around the image
-    for (int i = 0; i < image->shape[0]; i++)
+    for (int i = 0; i < grid->volume; i++)
     {
+        int x = i / (grid->shape[1] * grid->shape[2]);
+        int y = (i / grid->shape[2]) % grid->shape[1];
+        int z = i % grid->shape[2];
+
+        float sum = 0.f;
         for (int j = 0; j < kernel->volume; j++)
         {
+            int x_offset = (j / (kernel->shape[1] * kernel->shape[2])) - (kernel->shape[0] / 2);
+            int y_offset = ((j / kernel->shape[2]) % kernel->shape[1]) - (kernel->shape[1] / 2);
+            int z_offset = (j % kernel->shape[2]) - (kernel->shape[2] / 2);
+
+            int grid_x = x + x_offset;
+            int grid_y = y + y_offset;
+            int grid_z = z + z_offset;
             
+            if (grid_x < 0) grid_x = grid->shape[0]-1;
+            else if (grid_x >= grid->shape[0]) grid_x = 0;
+            
+            if (grid_y < 0) grid_y = grid->shape[1]-1;
+            else if (grid_y >= grid->shape[1]) grid_y = 0;
+            
+            if (grid_z < 0) grid_z = grid->shape[2]-1;
+            else if (grid_z >= grid->shape[2]) grid_z = 0;
+
+            int sub_x = grid_x * grid->shape[1] * grid->shape[2];
+            int sub_y = grid_y * grid->shape[2];
+            int sub_z = grid_z;
+
+            int sub_i = sub_x + sub_y + sub_z;
+            sum += grid->values[sub_i] * kernel->values[j];
         }
+        out->values[i] = sum;
     }
 }
 

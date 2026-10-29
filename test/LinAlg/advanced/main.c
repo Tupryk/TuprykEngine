@@ -253,6 +253,45 @@ int test_inverse()
     return failure_count;
 }
 
+int test_conv()
+{
+    printf("--- Test Conv3d ---\n");
+
+    tensor_t* kernel = sobel_x_3d();
+    
+    int grid_shape[] = {3, 3, 3};
+    float grid_values[] = {
+        0.f, 0.f, 0.f,
+        0.f, 0.f, 0.f,
+        0.f, 0.f, 0.f,
+
+        0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f,
+
+        0.f, 0.f, 0.f,
+        0.f, 0.f, 0.f,
+        0.f, 0.f, 0.f
+    };
+    tensor_t* grid = new_tensor(grid_shape, 3, grid_values);
+    tensor_t* grid_next = new_tensor(grid_shape, 3, NULL);
+
+    tensor_conv3d(kernel, grid, grid_next);
+
+    printf("Kernel:\n");
+    print_tensor(kernel);
+    printf("Grid Before:\n");
+    print_tensor(grid);
+    printf("Grid After:\n");
+    print_tensor(grid_next);
+
+    tensor_free(kernel);
+    tensor_free(grid);
+    tensor_free(grid_next);
+
+    return 0;
+}
+
 int main()
 {
     int failures_count = 0;
@@ -260,6 +299,7 @@ int main()
     failures_count += test_lu_decomposition();
     failures_count += test_determinant();
     failures_count += test_inverse();
+    failures_count += test_conv();
 
     if (failures_count > 0) {
         printf("\033[1;31mFailed %d test(s)!\033[0m\n", failures_count);

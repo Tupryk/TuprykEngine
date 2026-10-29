@@ -14,6 +14,7 @@ else
 endif
 
 SRCS = main.c \
+    ../../TuprykEngine/NEAT/utils.c \
     ../../TuprykEngine/LinAlg/tensor.c \
     ../../TuprykEngine/LinAlg/sparse.c \
     ../../TuprykEngine/ui/prints/linalg.c \
@@ -31,6 +32,8 @@ SRCS = main.c \
 	../../TuprykEngine/Physics/voxel_utils.c \
     ../../TuprykEngine/ui/graphics/voxels_vis.c \
 	../../TuprykEngine/ui/prints/vis_neat.c \
+    ../../TuprykEngine/Vision/filters.c \
+    ../../TuprykEngine/Algos/utils.c \
     utils.c
 OBJS = $(SRCS:.c=.o)
 TARGET = p

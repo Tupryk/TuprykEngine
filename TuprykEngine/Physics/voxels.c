@@ -148,7 +148,7 @@ struct VoxelSim* voxel_init(float voxel_dim, int self_collision)
     
     vs->voxel_dim = voxel_dim;
     vs->tau = 0.0001f;
-    vs->floor_z = -1.1f;
+    vs->floor_z = 0.f;
     vs->temp = 0.1f;
     vs->temp_ref = 0.f;
     vs->damping_ratio = 1.4f;

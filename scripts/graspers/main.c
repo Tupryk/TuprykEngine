@@ -62,8 +62,8 @@ int main()
     vs = voxel_init(voxel_dim, 1);
 
     // voxel_add_sequence(vs, human_made_sequence_hand0, 4, 1000, 0.f, 0.f, 0.f);
-    voxel_add_implicit(vs, human_made_implicit_hand, 20, 0.f, 0.f, 0.f);
-    voxel_add_implicit(vs, human_made_implicit_cube, 5, 0.f, 0.f, -0.75f);
+    voxel_add_implicit(vs, human_made_implicit_hand, 20, 0.f, 0.f, 1.1f);
+    voxel_add_implicit(vs, human_made_implicit_cube, 5, 0.f, 0.f, 0.35f);
     
     // vs->gravity = 0.f;
     printf("Total voxel count: %d\n", vs->count);
@@ -72,7 +72,7 @@ int main()
     // Rendering
     ogl_init();
     ogl_set_speed(10.0f, 0.7f);
-    ogl_set_camera_pos(0.f, -3.f, 0.f);
+    ogl_set_camera_pos(0.f, -3.f, 1.f);
     ogl_loop(render_grid);
 
     // Free memory

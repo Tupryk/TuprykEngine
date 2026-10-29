@@ -1,6 +1,9 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "voxel_generators.h"
+#include "../Vision/filters.h"
+#include "../Algos/utils.h"
 
 
 void move_voxel(int id, int axis, int* pos, int* links)
@@ -228,11 +231,276 @@ void voxel_add_implicit(
     }
 }
 
-// void voxel_add_cellular(
-//     struct VoxelSim* vs,
-//     void (*cellular_automaton)(float*, float*),
-//     int steps, int resolution,
-//     float pos_x, float pos_y, float pos_z
-// ) {
-//     // Apply convolutions to existing cells and their surroundings?
-// }
+struct cell_t
+{
+    int id;
+    int pos[3];
+    float* channels;
+    struct cell_t* neighs[3][3][3];
+};
+
+struct cell_t* new_cell(int channel_dim, int pos_x, int pos_y, int pos_z)
+{
+    struct cell_t* cell = (struct cell_t*) malloc(sizeof(struct cell_t));
+    cell->id = -1;
+    cell->pos[0] = pos_x; cell->pos[1] = pos_y; cell->pos[2] = pos_z;
+    cell->channels = (float*) malloc(sizeof(float) * channel_dim);
+    for (int i = 0; i < channel_dim; i++) cell->channels[i] = 0.f;
+    for (int x = 0; x < 3; x++)
+    for (int y = 0; y < 3; y++)
+    for (int z = 0; z < 3; z++)
+    cell->neighs[x][y][z] = NULL;
+
+    cell->neighs[1][1][1] = cell;
+    return cell;
+}
+
+void cell_free(void* data)
+{
+    struct cell_t* cell = (struct cell_t*) data;
+    free(cell->channels);
+
+    for (int x = 0; x < 3; x++)
+    for (int y = 0; y < 3; y++)
+    for (int z = 0; z < 3; z++)
+    {
+        struct cell_t* neigh = cell->neighs[x][y][z];
+        if (neigh != NULL)
+        {
+            int neigh_x = -x + 2;
+            int neigh_y = -y + 2;
+            int neigh_z = -z + 2;
+            neigh->neighs[neigh_x][neigh_y][neigh_z] = NULL;
+        }
+    }
+    free(cell);
+}
+
+struct cell_t* cell_get(pstack_t* all_cells, int pos_x, int pos_y, int pos_z)
+{
+    struct cell_t* cell = NULL;
+
+    if (all_cells != NULL)
+    {
+        struct stack_elem* current_elem = all_cells->first;
+        while (current_elem != NULL)
+        {
+            struct cell_t* current_cell = (struct cell_t*) current_elem->data;
+            if (
+                current_cell->pos[0] == pos_x &&
+                current_cell->pos[1] == pos_y &&
+                current_cell->pos[2] == pos_z
+            ) {
+                cell = current_cell;
+                break;
+            }
+            current_elem = current_elem->next;
+        }
+    }
+    return cell;
+}
+
+struct cell_t* cell_get_or_create(
+    pstack_t* all_cells, pstack_t* all_cells_next,
+    int channel_dim, int pos_x, int pos_y, int pos_z,
+    int* is_new
+) {
+    *is_new = 0;
+    struct cell_t* cell = cell_get(all_cells, pos_x, pos_y, pos_z);
+    if (cell == NULL) cell = cell_get(all_cells_next, pos_x, pos_y, pos_z);
+    if (cell != NULL) return cell;
+    *is_new = 1;
+    return new_cell(channel_dim, pos_x, pos_y, pos_z);
+}
+
+void cell_populate_neighs(struct cell_t* cell, int channel_dim, pstack_t* grid, pstack_t* grid_next)
+{
+    int is_new;
+    for (int x = 0; x < 3; x++)
+    for (int y = 0; y < 3; y++)
+    for (int z = 0; z < 3; z++)
+    {
+        if (cell->neighs[x][y][z] != NULL) continue;
+        struct cell_t* neigh_cell = cell_get_or_create(
+            grid,
+            grid_next,
+            channel_dim,
+            cell->pos[0] + x - 1,
+            cell->pos[1] + y - 1,
+            cell->pos[2] + z - 1,
+            &is_new
+        );
+        cell->neighs[x][y][z] = neigh_cell;
+
+        int neigh_x = -x + 2;
+        int neigh_y = -y + 2;
+        int neigh_z = -z + 2;
+        
+        neigh_cell->neighs[neigh_x][neigh_y][neigh_z] = cell;
+        if (grid_next != NULL && is_new) stack_push(grid_next, neigh_cell);
+    }
+}
+
+void voxel_add_cellular(
+    struct VoxelSim* vs,
+    void (*cellular_automaton)(float*, float*),
+    int steps, int channel_dim
+) {
+    // Apply convolutions to existing cells and their surroundings
+    pstack_t* grid = stack_init();
+    struct cell_t* seed_cell = new_cell(channel_dim, 0.f, 0.f, 0.f);
+    seed_cell->channels[0] = 1.f;  // Alive
+    seed_cell->channels[1] = 1.f;  // Red
+    stack_push(grid, seed_cell);
+
+    // Init seed
+    cell_populate_neighs(seed_cell, channel_dim, NULL, grid);
+
+    // Apply convolutions
+    tensor_t* sobel_x = sobel_x_3d();
+    tensor_t* sobel_y = sobel_y_3d();
+    tensor_t* sobel_z = sobel_z_3d();
+
+    float sum;
+    float input[channel_dim * 4];
+    float channel[27];
+    for (int i = 0; i < steps; i++)
+    {
+        pstack_t* next_grid = stack_init();
+        
+        while (grid->first != NULL)
+        {
+            struct cell_t* cell = (struct cell_t*) stack_pop(grid);
+            int was_alive = cell->channels[0] > 0.1f;
+
+            for (int j = 0; j < channel_dim; j++)
+            {
+                for (int k = 0; k < 27; k++)
+                {
+                    int x = k / 9;
+                    int y = (k / 3) % 3;
+                    int z = k % 3;
+
+                    struct cell_t* neigh = cell->neighs[x][y][z];
+                    if (neigh != NULL) channel[k] = neigh->channels[j];
+                    else  channel[k] = 0.f;
+                }
+
+                sum = 0.f;
+                for (int k = 0; k < 27; k++) sum += channel[k] * sobel_x->values[k];
+                input[channel_dim*1 + j] = sum;
+                sum = 0.f;
+                for (int k = 0; k < 27; k++) sum += channel[k] * sobel_y->values[k];
+                input[channel_dim*2 + j] = sum;
+                sum = 0.f;
+                for (int k = 0; k < 27; k++) sum += channel[k] * sobel_z->values[k];
+                input[channel_dim*3 + j] = sum;
+
+                input[j] = cell->channels[j];
+            }
+            cellular_automaton(input, cell->channels);
+
+            if (!was_alive && cell->channels[0] > 0.1f)
+            {
+                cell_populate_neighs(cell, channel_dim, grid, next_grid);
+            }
+            
+            int relevant = 0;
+            for (int x = 0; x < 3; x++)
+            for (int y = 0; y < 3; y++)
+            for (int z = 0; z < 3; z++)
+            {
+                struct cell_t* neigh = cell->neighs[x][y][z];
+                if (neigh != NULL && neigh->channels[0] > 0.1f) relevant = 1;
+            }
+
+            if (relevant) stack_push(next_grid, cell);
+            else cell_free(cell);
+        }
+
+        stack_free(grid, cell_free);
+        grid = next_grid;
+    }
+
+    tensor_free(sobel_x);
+    tensor_free(sobel_y);
+    tensor_free(sobel_z);
+
+    // Transfer to voxel simulation
+    int count = 0;
+    float pos[grid->size *3];
+    int links[grid->size * 6];
+    float stiffness[grid->size];
+    float cte[grid->size];
+    int fixed[grid->size];
+    float color[grid->size * 3];
+
+    float min_z = 0.f;
+    struct stack_elem* current_elem = grid->first;
+    while (current_elem != NULL)
+    {
+        struct cell_t* cell = (struct cell_t*) current_elem->data;
+
+        if (cell->channels[0] > 0.1f)
+        {
+            cell->id = count;
+
+            pos[count*3 + 0] = ((float) cell->pos[0]) * vs->voxel_dim;
+            pos[count*3 + 1] = ((float) cell->pos[1]) * vs->voxel_dim;
+            pos[count*3 + 2] = ((float) cell->pos[2]) * vs->voxel_dim;
+
+            if (min_z > pos[count*3 + 2]) min_z = pos[count*3 + 2];
+
+            color[count*3 + 0] = rescale(cell->channels[1], -1.f, 1.f, 0.f, 1.f);
+            color[count*3 + 1] = rescale(cell->channels[2], -1.f, 1.f, 0.f, 1.f);
+            color[count*3 + 2] = rescale(cell->channels[3], -1.f, 1.f, 0.f, 1.f);
+
+            stiffness[count] = rescale(cell->channels[4], -1.f, 1.f, 100.f, 1000.f);
+            cte[count] = cell->channels[5] * 0.2f;
+            fixed[count] = 0;
+
+            count++;
+        }
+        
+        current_elem = current_elem->next;
+    }
+
+    current_elem = grid->first;
+    while (current_elem != NULL)
+    {
+        struct cell_t* cell = (struct cell_t*) current_elem->data;
+        int id = cell->id;
+
+        if (id != -1)
+        {
+            int id6 = id*6;
+            // X-Axis
+            links[id6 + 0] = cell->neighs[2][1][1] != NULL ? cell->neighs[2][1][1]->id : -1;
+            links[id6 + 1] = cell->neighs[0][1][1] != NULL ? cell->neighs[0][1][1]->id : -1;
+
+            // Y-Axis
+            links[id6 + 2] = cell->neighs[1][2][1] != NULL ? cell->neighs[1][2][1]->id : -1;
+            links[id6 + 3] = cell->neighs[1][0][1] != NULL ? cell->neighs[1][0][1]->id : -1;
+
+            // Z-Axis
+            links[id6 + 4] = cell->neighs[1][1][2] != NULL ? cell->neighs[1][1][2]->id : -1;
+            links[id6 + 5] = cell->neighs[1][1][0] != NULL ? cell->neighs[1][1][0]->id : -1;
+        }
+
+        current_elem = current_elem->next;
+    }
+
+    for (int i = 0; i < count; i++) pos[i*3 + 2] += -min_z + vs->floor_z + vs->voxel_dim * 0.5f;
+    stack_free(grid, cell_free);
+
+    voxel_expand(
+        vs,
+        count,
+        pos,
+        links,
+        stiffness,
+        cte,
+        fixed,
+        color
+    );
+}

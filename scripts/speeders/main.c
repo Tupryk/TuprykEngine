@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../TuprykEngine/NEAT/utils.h"
 #include "../../TuprykEngine/NEAT/agent.h"
 #include "../../TuprykEngine/Optim/meta.h"
 #include "../../TuprykEngine/Funcs/funcs.h"
@@ -28,22 +29,23 @@
 
 
 // Evaluation
-int generation_count = 10;  // 1000
+int generation_count = 1;  // 1000
 int best_agent_idx = 0;
-int pop_size = 30;  // 30
-int resolution = 8;  // 10
+int pop_size = 10;  // 30
+int resolution = 4;  // 10
 float freq = 4.f;
 float amplitud = 1.f;
+float voxel_dim = 0.5f;
 
 // Global structs
 struct VoxelSim* vs;
 population_t* pop;
-int agent_idx = 0;
+agent_t* current_agent;
 
 
 float compute_z_offset()
 {
-    return vs->voxel_dim * ((float)resolution) * 0.5f + vs->floor_z + vs->voxel_dim;
+    return vs->voxel_dim * ((float)resolution) * 0.5f + vs->floor_z;
 }
 
 float vec_len(float* center)
@@ -84,18 +86,17 @@ void render_grid()
     render_voxels(vs);
 }
 
-void implicit_func(float* pos, float* out) { cppn(pos, out, pop->agents[agent_idx]); }
+void implicit_func(float* pos, float* out) { cppn(pos, out, current_agent); }
 
-float eval_agent(int id)
+float eval_agent(agent_t* agent)
 {
     clock_t total_time = clock();
 
-    agent_idx = id;
+    current_agent = agent;
     
     // Setup voxel world
     clock_t init_time = clock();
 
-    float voxel_dim = 1.f / ((float) resolution);
     vs = voxel_init(voxel_dim, 0);
     float z_offset = vs->voxel_dim * ((float)resolution) * 0.5f - vs->floor_z + vs->voxel_dim;
     voxel_add_implicit(vs, implicit_func, resolution, 0.f, 0.f, z_offset);
@@ -146,37 +147,6 @@ float eval_agent(int id)
     return score;
 }
 
-void evolve_population(population_t* pop)
-{
-    float scores[pop->size];
-
-    for (int i = 0; i < generation_count; i++)
-    {
-        // Evaluate creatures
-        for (int j = 0; j < pop->size; j++)
-        {
-            scores[j] = eval_agent(j);
-            printf("Evaluating member %d of generation %d... Score: %f\n", j+1, i+1, scores[j]);
-        }
-
-        // Report generation results
-        best_agent_idx = 0;
-        float max_score = scores[0];
-        for (int j = 1; j < pop->size; j++)
-        {
-            if (scores[j] > max_score)
-            {
-                max_score = scores[j];
-                best_agent_idx = j;
-            }
-        }
-        printf("Best score for generation %d: %f\n", i+1, max_score);
-
-        // Resample population
-        population_resample(pop, scores);
-    }
-}
-
 int main()
 {
     srand( time( NULL ) );
@@ -184,13 +154,12 @@ int main()
     // Setup implicit function
     printf("Initializing population with dimensions; in: %d, out: %d\n", IN_DIM, OUT_DIM);
     pop = init_population(IN_DIM, OUT_DIM, pop_size);
-    evolve_population(pop);
+    best_agent_idx = evolve_population(pop, eval_agent, generation_count);
 
     // Evaluating best
-    agent_idx = best_agent_idx;
-    print_agent(pop->agents[agent_idx]);
+    current_agent = pop->agents[best_agent_idx];
+    print_agent(pop->agents[best_agent_idx]);
     
-    float voxel_dim = 0.5f;
     vs = voxel_init(voxel_dim, 0);
     float z_offset = compute_z_offset();
     voxel_add_implicit(vs, implicit_func, resolution, 0.f, 0.f, z_offset);
@@ -198,7 +167,7 @@ int main()
     // Rendering
     ogl_init();
     ogl_set_speed(10.0f, 0.7f);
-    ogl_set_camera_pos(0.f, -vs->voxel_dim * ((float)resolution) * 5.f, 0.f);
+    ogl_set_camera_pos(0.f, -vs->voxel_dim * ((float)resolution) * 5.f, 1.f);
     ogl_loop(render_grid);
 
     // Free memory

@@ -16,11 +16,10 @@ void voxel_add_implicit(
     int resolution,
     float pos_x, float pos_y, float pos_z
 );
-// void voxel_add_cellular(
-//     struct VoxelSim* vs,
-//     void (*cellular_automaton)(float*, float*),
-//     int steps, int resolution,
-//     float pos_x, float pos_y, float pos_z
-// );
+void voxel_add_cellular(
+    struct VoxelSim* vs,
+    void (*cellular_automaton)(float*, float*),
+    int steps, int channel_dim
+);
 
 #endif
