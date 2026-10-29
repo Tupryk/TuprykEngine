@@ -26,8 +26,9 @@
 #define FEATURE_DIM 16
 int in_dim = FEATURE_DIM*4;
 int out_dim = FEATURE_DIM;
+int conv_steps = 10;
 int agent_idx = 0;
-float freq = 1.f;
+float freq = 5.f;
 float voxel_dim = 0.1f;
 float tau = 0.0001f;
 
@@ -35,7 +36,7 @@ float tau = 0.0001f;
 struct VoxelSim* vs;
 population_t* pop;
 agent_t* current_agent;
-int gen_count = 100;
+int gen_count = 1;
 int pop_size = 30;
 
 void actuation_step()
@@ -72,7 +73,7 @@ float eval_agent(agent_t* agent)
     // Setup voxel world
     vs = voxel_init(voxel_dim, 0);
     vs->tau = tau;
-    voxel_add_cellular(vs, ann_feed, 2, FEATURE_DIM);
+    voxel_add_cellular(vs, ann_feed, conv_steps, FEATURE_DIM);
     if (vs->count < 9)
     {
         voxel_free(vs);
@@ -114,11 +115,11 @@ int main()
     // int best_agent_idx = 0;
     current_agent = pop->agents[best_agent_idx];
 
-    vs = voxel_init(voxel_dim, 1);
+    vs = voxel_init(voxel_dim, 0);
     vs->tau = tau;
 
     // voxel_add_cellular(vs, human_made_cellular_automaton, 10, FEATURE_DIM);
-    voxel_add_cellular(vs, ann_feed, 2, FEATURE_DIM);
+    voxel_add_cellular(vs, ann_feed, conv_steps, FEATURE_DIM);
     
     printf("Total voxel count: %d\n", vs->count);
     printf("Total shell count: %d/%d\n", vs->shell_count, vs->count);

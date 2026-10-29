@@ -398,7 +398,10 @@ void voxel_add_cellular(
 
                 input[j] = cell->channels[j];
             }
-            cellular_automaton(input, cell->channels);
+            float delta[channel_dim];
+            cellular_automaton(input, delta);
+            float step_size = 0.05f;
+            for (int c = 0; c < channel_dim; c++) cell->channels[c] += step_size * delta[c];
 
             if (!was_alive && cell->channels[0] > 0.1f)
             {
